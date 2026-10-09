@@ -13,6 +13,9 @@ per line on stdin,
 
     {"network": id, "proof": "<path to a .json.gz>", "rule_set": [...]}
 
+A worker started with held_out=True (by core.final, and nothing else) may load
+held-out networks; any other worker refuses them.
+
 with one JSON line on stdout: {"result": ..., "diagnosis": ...} or
 {"error": ...}. It hashes the trusted files again before every check, and an
 error stops the run.
@@ -39,7 +42,7 @@ class CheckerError(RuntimeError):
 
 
 # the worker side ------------------------------------------------------------------------
-def serve(folder_path: str, expected: dict) -> None:
+def serve(folder_path: str, expected: dict, held_out: bool = False) -> None:
     # Keep stdout for the protocol; anything else printed goes to stderr.
     proto = os.fdopen(os.dup(1), "w", buffering=1)
     os.dup2(2, 1)
@@ -74,11 +77,16 @@ def serve(folder_path: str, expected: dict) -> None:
             if len(data) > MAX_PROOF_BYTES:
                 raise CheckerError("the proof file is too large")
             nid = req["network"]
-            result = check_proof(json.loads(data), folder, nid, rule_set=tuple(req["rule_set"]), detail=True)
+            result = check_proof(
+                json.loads(data), folder, nid, rule_set=tuple(req["rule_set"]), allow_held_out=held_out, detail=True
+            )
             diagnosis = None
             if result["status"] == "ok":
                 if nid not in float_view:
-                    float_view[nid] = (float_margins(folder, nid), correct_mask(folder, nid))
+                    float_view[nid] = (
+                        float_margins(folder, nid, allow_held_out=held_out),
+                        correct_mask(folder, nid, allow_held_out=held_out),
+                    )
                 diagnosis = diagnose(folder, network_entry(folder, nid), result, *float_view[nid])
             result.pop("mask", None)
             result.pop("outcomes", None)
@@ -89,19 +97,19 @@ def serve(folder_path: str, expected: dict) -> None:
 
 
 def main() -> None:
-    serve(sys.argv[1], json.loads(sys.argv[2]))
+    serve(sys.argv[1], json.loads(sys.argv[2]), held_out=len(sys.argv) > 3 and sys.argv[3] == "held-out")
 
 
 # the driver side ------------------------------------------------------------------------
 class CheckerProcess:
     """A checker worker for one model folder, started from read-only code with a clean slate."""
 
-    def __init__(self, folder_path: str | Path, expected: dict):
+    def __init__(self, folder_path: str | Path, expected: dict, held_out: bool = False):
         self.pycache = tempfile.mkdtemp(prefix="cpl-no-pycache-")
         self.log = tempfile.TemporaryFile()
         bootstrap = f"import sys; sys.path.insert(0, {str(REPO_ROOT)!r}); from core.check.worker import main; main()"
         cmd = [sys.executable, "-I", "-B", "-X", f"pycache_prefix={self.pycache}", "-c", bootstrap]
-        cmd += [str(folder_path), json.dumps(expected)]
+        cmd += [str(folder_path), json.dumps(expected)] + (["held-out"] if held_out else [])
         env = {
             "PATH": os.defpath,
             "LANG": "C.UTF-8",

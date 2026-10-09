@@ -6,7 +6,7 @@ Each round, an agent proposes a circuit claim and a recipe: a program that turns
 
 ## Status
 
-Steps 0 to 8 of the spec are built and tested: the max2 model folder with its trained zoo, the exact checker, the sandbox with its hardened modes, diagnostics, the prompt builder, and the loop with fake, manual and API backends (the API one tested against a mock only). Next come reports and the final held-out evaluation (Step 9), then the first real runs with an API key (Step 10).
+Steps 0 to 9 of the spec are built and tested: the max2 model folder with its trained zoo, the exact checker, the sandbox with its hardened modes, diagnostics, the prompt builder, the loop with fake, manual and API backends (the API one tested against a mock only), reports, and the final evaluation on held-out networks. Next is Step 10: the first real runs with an API key.
 
 The first model is the max-of-2 network from the [proof-based approach tutorial](https://github.com/LouisYRYJ/Proof_based_approach_tutorial/blob/master/proof_public.ipynb).
 
@@ -20,6 +20,15 @@ python -m core.loop status --run ~/auto-research-compact-proof-runs/max2-round0-
 ```
 
 The zoo's weights are in the repository, so nothing needs training. The run replays the three max2 baselines as round 0, then five deliberately broken responses, and prints the frontier. It takes a few minutes, mostly waiting for the response that never ends to time out. Add `--diagnostics` to `status` to see where each attempt lost accuracy.
+
+After a run:
+
+```bash
+python -m core.final --run ~/auto-research-compact-proof-runs/<run_id>    # frontier recipes on the held-out networks
+python -m core.report --run ~/auto-research-compact-proof-runs/<run_id> --results
+```
+
+The report (tables, frontier plots, progress, the frontier recipes' claims) lands in the run folder; `--results` copies it into `results/<run_id>/` and adds a line to `results/RESULTS.md`, ready to commit.
 
 Recipes run in a sandbox. On Linux, Landlock keeps them in with no setup. On a Mac, install Docker Desktop and run `python -m core.sandbox build` once; without it, runs fall back to a weak mode and say so. See [docs/SANDBOX.md](docs/SANDBOX.md).
 

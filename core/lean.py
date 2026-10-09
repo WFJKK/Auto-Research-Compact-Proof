@@ -54,10 +54,10 @@ def run_lean(folder, network_id: str, proof_path: Path) -> int:
         raise LeanError(f"the Lean checker's output has no certified count: {r.stdout[-300:]!r}") from exc
 
 
-def spot_check(ctx, k: int, records: list[dict]) -> list[dict]:
-    """Check up to SPOT_CHECKS of these new frontier records in Lean; halt on any disagreement."""
+def spot_check(ctx, k: int, records: list[dict], limit: int | None = SPOT_CHECKS) -> list[dict]:
+    """Check up to `limit` of these records in Lean (all with None); halt on any disagreement."""
     results = []
-    for rec in records[:SPOT_CHECKS]:
+    for rec in records if limit is None else records[:limit]:
         gz = ctx.run.round_path(k) / f"attempt_{rec['attempt']}" / "proofs" / f"{rec['network']}__{knob_label(rec['knob'])}.json.gz"
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "proof.json"

@@ -31,10 +31,14 @@ def scored(records: list[dict]) -> list[dict]:
 
 
 def frontier(records: list[dict]) -> dict[str, list[dict]]:
-    """Per network, the proofs no other proof beats on both length and certified inputs, by increasing length."""
+    """Per network, the proofs no other proof beats on both length and certified inputs, by increasing length.
+
+    A proof that certifies nothing is never on it.
+    """
     by_net: dict[str, list[dict]] = {}
     for r in scored(records):
-        by_net.setdefault(r["network"], []).append(r)
+        if r["certified"] > 0:
+            by_net.setdefault(r["network"], []).append(r)
     out = {}
     for net, rs in by_net.items():
         rs.sort(key=lambda r: (r["length"], -r["certified"], r["record_id"]))

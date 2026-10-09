@@ -16,7 +16,7 @@ from .cost import VERSION
 def fill_costs(folder, log=print) -> dict:
     manifest = read_manifest(folder)
     for entry in manifest["networks"]:
-        E, B = extraction_and_brute_force_costs(folder, entry["id"], allow_held_out=True)
+        E, B = extraction_and_brute_force_costs(folder, entry["id"])
         entry["E"], entry["B"], entry["cost_model"] = E, B, VERSION
         log(f"{entry['id']}: E={E:,} B={B:,}")
     write_manifest(folder, manifest)

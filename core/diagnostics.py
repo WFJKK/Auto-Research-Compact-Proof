@@ -29,13 +29,13 @@ CHUNK = 1 << 13
 RULE_ORDER = ("extract", "read", "tree", "contract", "approximate", "single", "interval", "symmetry")
 
 
-def float_margins(folder: ModelFolder, network_id: str) -> np.ndarray:
+def float_margins(folder: ModelFolder, network_id: str, allow_held_out: bool = False) -> np.ndarray:
     """Per input, in float: the label's output minus the largest other output (not positive when wrong)."""
     import torch
 
     entry = network_entry(folder, network_id)
     setting = entry["setting"]
-    module = load_module(folder, network_id)
+    module = load_module(folder, network_id, allow_held_out=allow_held_out)
     toks = inputs.all_inputs(folder.input_space(setting))
     labels = np.asarray(folder.task.label(toks, folder.sizes(setting)), dtype=np.int64)
     out = np.empty(len(toks))

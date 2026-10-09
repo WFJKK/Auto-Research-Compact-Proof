@@ -267,18 +267,21 @@ def brute_force_proof(folder: ModelFolder, network_id: str) -> dict:
     return {"schema": SCHEMA, "network": network_id, "tree": full_tree(space)}
 
 
-def extraction_and_brute_force_costs(folder: ModelFolder, network_id: str, allow_held_out: bool = True) -> tuple[int, int]:
+def extraction_and_brute_force_costs(folder: ModelFolder, network_id: str) -> tuple[int, int]:
     """E and B under the cost model, computed without running brute force.
 
-    B is the length the checker reports for brute_force_proof; a test checks
-    that the two agree on a small model.
+    Both depend only on the network's shapes, never on its weights, so this
+    uses the module's own initial weights and loads nothing from the zoo (held-
+    out networks included). A test checks that B is the length the checker
+    reports for brute_force_proof.
     """
     entry = network_entry(folder, network_id)
     space = folder.input_space(entry["setting"])
     n = inputs.n_inputs(space)
-    weights = load_weights(folder, network_id, allow_held_out=allow_held_out)
+    module = folder.build(entry["setting"])
+    weights = {k: v.detach().numpy() for k, v in module.state_dict().items()}
     counter = Counter()
-    prog = Program(build_graph(folder.build(entry["setting"])), weights, counter)
+    prog = Program(build_graph(module), weights, counter)
     E = counter.total
     one = Counter()
     tok = np.zeros((1, len(space)), dtype=np.int64)

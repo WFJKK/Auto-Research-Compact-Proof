@@ -62,6 +62,7 @@ class Context:
     sandbox: Sandbox = field(default_factory=lambda: Sandbox("process"))
     log: Callable = print
     since: float = field(default_factory=time.time)
+    held_out: bool = False  # True only in core.final's evaluation on held-out networks
     _weights: dict = field(default_factory=dict, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
@@ -72,7 +73,7 @@ class Context:
     def weights(self, network_id: str) -> dict:
         with self._lock:
             if network_id not in self._weights:
-                self._weights[network_id] = load_weights(self.folder, network_id)
+                self._weights[network_id] = load_weights(self.folder, network_id, allow_held_out=self.held_out)
             return self._weights[network_id]
 
     def info(self, entry: dict) -> dict:
@@ -289,7 +290,7 @@ def run_attempt(ctx: Context, k: int, j: int, source: str, text: str) -> list[di
         first, rest = ctx.entries, []
     ctx.verify_trusted()
     try:
-        checker = CheckerProcess(ctx.folder.path, ctx.versions)
+        checker = CheckerProcess(ctx.folder.path, ctx.versions, held_out=ctx.held_out)
     except CheckerError as exc:
         raise RoundError(f"the checker could not start: {exc}") from exc
     with checker:
