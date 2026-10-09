@@ -6,7 +6,7 @@ Each round, an agent proposes a circuit claim and a recipe: a program that turns
 
 ## Status
 
-Steps 0 to 9 of the spec are built and tested: the max2 model folder with its trained zoo, the exact checker, the sandbox with its hardened modes, diagnostics, the prompt builder, the loop with fake, manual and API backends (the API one tested against a mock only), reports, and the final evaluation on held-out networks. Next is Step 10: the first real runs with an API key.
+The pipeline is built and tested end to end (spec Steps 0 to 9): the max2 model folder with its trained zoo, the exact checker, the hardened sandbox, diagnostics, the prompt builder, the loop with fake, manual and API backends (the API one tested against a mock), reports, and the held-out evaluation. Two independent reviews found no soundness bug; the robustness and cost gaps they found are fixed and have regression tests. All that remains is Step 10: the first runs with a real API key, which you drive from where your key lives (see below).
 
 The first model is the max-of-2 network from the [proof-based approach tutorial](https://github.com/LouisYRYJ/Proof_based_approach_tutorial/blob/master/proof_public.ipynb).
 
