@@ -130,6 +130,8 @@ class ModelFolder:
         for p in self.path.rglob("*"):
             if not p.is_file() or "__pycache__" in p.parts or p.suffix == ".pyc":
                 continue
+            if any(part.startswith(".") for part in p.relative_to(self.path).parts):
+                continue  # editor and OS files such as .DS_Store
             rp = p.resolve()
             if zoo in rp.parents and p.name != "manifest.json":
                 continue

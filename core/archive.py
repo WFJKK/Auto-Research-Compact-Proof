@@ -6,10 +6,11 @@ Layout of a run (outside the repository, under the run config's runs_dir):
         config.yaml        copy of the run config
         config.sha256
         archive.jsonl      one result record per line; append-only
-        round_000/         one folder per round, written once
-            prompt.md  response.md  parsed.json  recipe.py
-            proofs/<network>__k<knob>.json
-            results.json   meta.json   DONE
+        versions.json      the hashes the run started with
+        round_000/         one folder per round, written once (see core.rounds)
+            prompt.md
+            attempt_0/     response.md  parsed.json  recipe.py  proofs/  results.json
+            meta.json  DONE
 
 A round is complete when its DONE marker exists. Files in a completed round
 are never rewritten.
@@ -30,8 +31,16 @@ class ArchiveError(RuntimeError):
     pass
 
 
-def record_id(run_id: str, round_k: int, network: str, knob) -> str:
-    return f"{run_id}/r{round_k:03d}/{network}/k{knob}"
+def knob_label(knob) -> str:
+    return f"k{float(knob):g}"
+
+
+def record_id(run_id: str, round_k: int, attempt: int, network: str | None = None, knob=None) -> str:
+    """One id per network and knob value in an attempt; an attempt that never ran has one id of its own."""
+    base = f"{run_id}/r{round_k:03d}/a{attempt}"
+    if network is None:
+        return f"{base}/attempt"
+    return f"{base}/{network}/{knob_label(knob)}"
 
 
 class RunDir:

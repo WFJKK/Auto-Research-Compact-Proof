@@ -28,10 +28,10 @@ def test_run_cannot_be_created_twice(tmp_path):
 def test_archive_is_append_only_and_idempotent(tmp_path):
     run = RunDir(tmp_path, "r1")
     run.create({})
-    recs = [{"record_id": record_id("r1", 0, "net", k), "v": k} for k in (0, 1)]
+    recs = [{"record_id": record_id("r1", 0, 0, "net", k), "v": k} for k in (0, 1)]
     assert run.append_archive(recs) == 2
     assert run.append_archive(recs) == 0  # replaying a round adds nothing
-    run.append_archive([{"record_id": record_id("r1", 1, "net", 0), "v": 9}])
+    run.append_archive([{"record_id": record_id("r1", 1, 0, "net", 0), "v": 9}])
     got = run.read_archive()
     assert [r["v"] for r in got] == [0, 1, 9]
     with pytest.raises(ArchiveError):

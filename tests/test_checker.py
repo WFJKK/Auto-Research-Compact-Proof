@@ -1,8 +1,6 @@
 """Tests of the trusted checker on the stub model and on hand-made networks."""
 
-import copy
 import itertools
-import json
 import shutil
 from fractions import Fraction
 
