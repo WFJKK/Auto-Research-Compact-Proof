@@ -31,7 +31,9 @@ sandbox_dir: null
 sandbox: auto
 sandbox_image: auto-research-compact-proof-sandbox:1
 
-# Round 0 replays the model folder's baselines/ responses; agent rounds follow.
+# Round 0 replays baselines from the model folder's baselines/ folder: true for
+# all of them, false for none, or a list of names (for example [brute_force],
+# so the agent starts from brute force and has to discover everything else).
 baselines: true
 rounds_max: 100
 patience: 25

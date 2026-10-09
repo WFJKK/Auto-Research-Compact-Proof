@@ -4,8 +4,10 @@
     python -m core.loop resume --run <runs_dir>/<run_id>
     python -m core.loop status --run <runs_dir>/<run_id>
 
-Round 0 replays the model folder's baselines (the baseline frontier); rounds
-1 to rounds_max ask the run's backend for recipes_per_round responses each. A
+Round 0 replays the baselines the run config selects (all of the model
+folder's, none, or named ones such as brute force only, so the agent has to
+discover the rest); rounds 1 to rounds_max ask the run's backend for
+recipes_per_round responses each. A
 run can stop at any point and resume: completed rounds are kept, and an
 incomplete round reuses any response it already saved. A run refuses to go on
 if the checker, the sandbox code or the model folder changed since it started.
@@ -75,6 +77,32 @@ def select_networks(folder, cfg) -> list[dict]:
     missing = [e["id"] for e in chosen if e.get("E") is None or e.get("B") is None]
     if missing:
         raise LoopError(f"E and B are missing for {missing}; run python -m core.check.costs on the model folder")
+    return chosen
+
+
+def baseline_files(folder, selection) -> list:
+    """The baseline responses round 0 replays: all of the model folder's, none, or the named ones.
+
+    A name matches a file stem exactly ("01_brute_force") or without its numeric prefix ("brute_force").
+    Whatever is left out never reaches the agent, so it has to discover that strategy itself.
+    """
+    available = sorted((folder.path / "baselines").glob("*.md")) if (folder.path / "baselines").is_dir() else []
+    if selection is True:
+        return available
+    if selection is False:
+        return []
+
+    def stems(p):
+        stem = p.stem
+        bare = stem.split("_", 1)[1] if stem[:1].isdigit() and "_" in stem else stem
+        return {stem, bare}
+
+    chosen = []
+    for name in selection:
+        hits = [p for p in available if name in stems(p)]
+        if not hits:
+            raise LoopError(f"no baseline named {name!r} in {folder.path / 'baselines'}; available: {[p.stem for p in available]}")
+        chosen += [h for h in hits if h not in chosen]
     return chosen
 
 
@@ -179,6 +207,7 @@ def open_context(run: RunDir, cfg: dict, log=print) -> Context:
 def preflight(cfg: dict, folder) -> None:
     """Checks that must pass before a run folder is made."""
     select_networks(folder, cfg)
+    baseline_files(folder, cfg["baselines"])  # a misspelt baseline name fails here
     if cfg["lean_spot_check"] and lean_command(folder) is None:
         raise LoopError(f"lean_spot_check is on, but {folder.name} has no Lean checker (lean_check in its config.yaml)")
     if cfg["backend"] == "api":
@@ -212,9 +241,9 @@ def resume(run_path: str | Path, log=print) -> Context:
 def drive(ctx: Context) -> None:
     cfg, run, folder = ctx.cfg, ctx.run, ctx.folder
     if not run.round_done(0):
-        baselines = folder.path / "baselines"
-        if cfg["baselines"] and baselines.is_dir():
-            fake = FakeBackend([baselines])
+        files = baseline_files(folder, cfg["baselines"])
+        if files:
+            fake = FakeBackend(files)
             run_round(ctx, 0, fake, 0, len(fake), "baseline")
         else:
             run_round(ctx, 0, _NoResponses(), 0, 0, "baseline")

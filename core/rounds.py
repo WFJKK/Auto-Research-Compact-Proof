@@ -93,7 +93,7 @@ def compiled_files_since(roots, since: float) -> list[str]:
     out = []
     for root in roots:
         for p in Path(root).rglob("*"):
-            if (p.suffix in (".pyc", ".pyo") or "__pycache__" in p.parts) and p.is_file():
+            if p.suffix in (".pyc", ".pyo") and p.is_file():  # only files Python could load as bytecode
                 try:
                     if p.stat().st_mtime >= since:
                         out.append(str(p))

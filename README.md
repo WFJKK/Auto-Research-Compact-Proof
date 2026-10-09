@@ -65,4 +65,6 @@ Open a Claude Code session in this repository and ask it to follow `docs/SPEC.md
 
 A run stops at `rounds_max`, after `patience` rounds without a gain, or when the API reports something waiting can't fix (a spend limit, say). Ctrl-C is safe at any point; `python -m core.loop resume --run <runs_dir>/<run_id>` continues without paying for any saved response again. Each round's `meta.json` records the tokens used and the estimated cost, priced from `config/prices.yaml`.
 
+In the real-run configs (`max2-smoke`, `max2-pilot`, `max2-manual`) round 0 holds brute force only: the agent is told which proof rules exist, but it has to discover the strategies (the input symmetry, contracting the linear maps, grouping inputs by their label) itself. `config/max2-round0.yaml` runs all three hand-written baselines instead, and `python -m core.report --run <pilot> --reference <that run>` overlays them as reference marks on the pilot's plots, so you can see whether the agent rediscovered them or beat them. Set `baselines` in a run config to `true`, `false` or a list of names to choose.
+
 To try the loop without a key, `config/max2-manual.yaml` lets you play the agent: each round writes a prompt for you to paste into Claude, and waits for you to save the answer as `response.md`.

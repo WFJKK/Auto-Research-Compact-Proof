@@ -89,9 +89,12 @@ def validate(cfg: dict, source: str = "run config") -> None:
         _number(cfg, key, errors, integer=True, minimum=1)
     for key in ("shown_top_recipes", "shown_last_attempts", "seed"):
         _number(cfg, key, errors, integer=True, minimum=0)
-    for key in ("screen", "baselines", "lean_spot_check"):
+    for key in ("screen", "lean_spot_check"):
         if not isinstance(cfg[key], bool):
             errors.append(f"{key} must be true or false")
+    b = cfg["baselines"]
+    if not (isinstance(b, bool) or (isinstance(b, list) and b and all(isinstance(x, str) for x in b))):
+        errors.append("baselines must be true (all), false (none) or a list of baseline names")
     if cfg["backend"] not in BACKENDS:
         errors.append(f"backend must be one of {BACKENDS}")
     if not isinstance(cfg["fake_responses"], list) or not all(isinstance(p, str) for p in cfg["fake_responses"]):

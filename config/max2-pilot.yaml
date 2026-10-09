@@ -7,3 +7,5 @@ agent_model: claude-fable-5-1   # fallback: claude-opus-5-5 if it does not engag
 effort: xhigh
 rounds_max: 30
 patience: 10
+# The agent starts from brute force only; symmetry and contraction are its to find.
+baselines: [brute_force]

@@ -56,7 +56,7 @@ def _metric_rows(s: dict) -> list[tuple[str, str, str]]:
     return rows
 
 
-def plot_frontiers(records, entries, out: Path) -> list[Path]:
+def plot_frontiers(records, entries, out: Path, reference: list[dict] | None = None) -> list[Path]:
     import matplotlib
 
     matplotlib.use("Agg")
@@ -83,6 +83,12 @@ def plot_frontiers(records, entries, out: Path) -> list[Path]:
                 ys = [r["certified"] / r["n_inputs"] for r in rs]
                 ax.scatter(xs, ys, s=12, marker=marker, color=color, alpha=0.5, label=f"{source} proofs")
                 ax2.scatter(xs, [max(1 - y, 1e-6) for y in ys], s=12, marker=marker, color=color, alpha=0.5)
+        ref = [r for r in (reference or []) if r["status"] == "ok" and r["setting"] == setting and r["round"] == 0]
+        if ref:
+            xs = [r["length"] for r in ref]
+            ys = [r["certified"] / r["n_inputs"] for r in ref]
+            ax.scatter(xs, ys, s=40, marker="x", color="C0", alpha=0.9, label="reference proofs (not shown to the agent)")
+            ax2.scatter(xs, [max(1 - y, 1e-6) for y in ys], s=40, marker="x", color="C0", alpha=0.9)
         for a in (ax, ax2):
             a.set_xscale("log")
             a.axvline(E, ls="--", color="k", lw=0.8)
@@ -131,11 +137,18 @@ def plot_progress(points, out: Path, metric_name: str) -> Path:
     return path
 
 
-def build_report(run_path: str | Path) -> Path:
+def build_report(run_path: str | Path, reference_path: str | Path | None = None) -> Path:
     run_path = Path(run_path).expanduser().resolve()
     run = RunDir(run_path.parent, run_path.name)
     if not run.exists():
         raise LoopError(f"no run at {run_path}")
+    reference, ref_run = [], None
+    if reference_path is not None:
+        rp = Path(reference_path).expanduser().resolve()
+        ref_run = RunDir(rp.parent, rp.name)
+        if not ref_run.exists():
+            raise LoopError(f"no reference run at {rp}")
+        reference = [r for r in ref_run.read_archive() if r["round"] == 0]
     cfg = run.config()
     folder = load_model_folder(resolve(cfg["model"]))
     entries = select_networks(folder, cfg)
@@ -178,7 +191,23 @@ def build_report(run_path: str | Path) -> Path:
         lines += ["", f"![frontier {setting}](frontier_{setting}.png)", ""]
 
     points = progress(run, records, entries, metric_key)
-    plot_frontiers(records, entries, out)
+    plot_frontiers(records, entries, out, reference)
+    if ref_run is not None:
+        lines += ["## Reference proofs (never shown to the agent)", "", f"Round-0 baselines of run `{ref_run.run_id}`, drawn as crosses in the frontier plots:", ""]
+        seen = set()
+        for r in reference:
+            if r["status"] != "ok":
+                continue
+            key = (r["attempt"], r["setting"])
+            if key in seen:
+                continue
+            seen.add(key)
+            src = (ref_run.read(0, f"attempt_{r['attempt']}/response_meta.json") or {}).get("source", str(r["attempt"]))
+            same = [x for x in reference if x["status"] == "ok" and x["attempt"] == r["attempt"] and x["setting"] == r["setting"]]
+            med = statistics.median(x["length"] for x in same)
+            acc = statistics.median(x["certified"] / x["n_inputs"] for x in same)
+            lines.append(f"- {r['setting']}: {Path(src).stem}: length {int(med):,} (B/{r['B'] / med:.1f}), certified {100 * acc:.3f}% (medians)")
+        lines.append("")
     if points:
         plot_progress(points, out, cfg["metric"])
         lines += ["## Progress", "", "![progress](progress.png)", ""]
@@ -251,9 +280,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run", required=True, help="the run's folder, <runs_dir>/<run_id>")
     ap.add_argument("--results", action="store_true", help="also copy the report into results/<run_id>/")
+    ap.add_argument("--reference", help="another run whose round-0 baselines are overlaid as reference marks")
     args = ap.parse_args(argv)
     try:
-        path = build_report(args.run)
+        path = build_report(args.run, args.reference)
         print(f"report: {path}")
         if args.results:
             print(f"copied to {copy_to_results(args.run)}")

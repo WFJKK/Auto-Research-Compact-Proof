@@ -9,3 +9,5 @@ effort: medium
 rounds_max: 3
 # One network per size setting, so the smoke test is quick and cheap.
 networks: [max2-v64-s0, max2-v128-s0]
+# The agent starts from brute force only; symmetry and contraction are its to find.
+baselines: [brute_force]

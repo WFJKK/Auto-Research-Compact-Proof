@@ -157,3 +157,33 @@ def test_lean_spot_checks_agree_or_halt_the_run(trained_stub, tmp_path):
 def test_lean_spot_checks_need_a_lean_checker(trained_stub, tmp_path):
     with pytest.raises(loop.LoopError, match="no Lean checker"):
         loop.start(write_config(tmp_path, trained_stub, "no-lean", lean_spot_check=True), log=lambda *a: None)
+
+
+def test_brute_force_only_round_zero_hides_the_other_baselines(trained_stub, tmp_path):
+    from core.agent.build_prompt import build_prompt
+    from core.report import build_report
+
+    cfg = write_config(tmp_path, trained_stub, "bf-only", baselines=["brute_force"], fake_responses=[], rounds_max=1)
+    ctx = loop.start(cfg, log=lambda *a: None)
+    loop.drive(ctx)
+    sources = [m["source"] for m in ctx.run.read(0, "meta.json")["attempts"]]
+    assert sources == ["01_brute_force.md"]
+    p = build_prompt(ctx.cfg, ctx.folder, ctx.entries, ctx.run, 1)
+    assert "01_brute_force" in p.part2 and "symmetry" not in p.part2.split("BEST RECIPES")[1].split("YOUR LAST")[0].lower().replace("symmetry: ", "")
+    assert "02_symmetry" not in p.text
+    # Q starts at 0: brute force alone scores nothing, so every gain is the agent's own.
+    from core.scoring import summarize
+
+    s = summarize(ctx.run.read_archive(), ctx.entries)
+    assert all(v["Q_median"] == 0.0 for v in s.values())
+    # The full-baseline run can be overlaid as a reference in the report.
+    full = loop.start(write_config(tmp_path, trained_stub, "all-baselines", fake_responses=[], rounds_max=1), log=lambda *a: None)
+    loop.drive(full)
+    report = build_report(ctx.run.path, full.run.path)
+    text = report.read_text()
+    assert "Reference proofs (never shown to the agent)" in text and "02_symmetry" in text
+
+
+def test_unknown_baseline_name_is_an_error(trained_stub, tmp_path):
+    with pytest.raises(loop.LoopError, match="no baseline named"):
+        loop.start(write_config(tmp_path, trained_stub, "bad-name", baselines=["contraction"]), log=lambda *a: None)
