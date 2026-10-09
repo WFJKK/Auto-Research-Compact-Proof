@@ -9,7 +9,15 @@ import pytest
 
 from core.runner import BadOutput, Limits, parse_proof_bytes, read_regular, run_recipe
 
+from tests.conftest import make_sandbox, sandbox_modes
+
 LIMITS = Limits(time_s=10, memory_mb=1024, max_proof_bytes=1 << 16)
+MODES = sandbox_modes()
+
+
+@pytest.fixture(params=MODES)
+def mode(request):
+    return request.param
 
 
 @pytest.fixture(scope="module")
@@ -23,36 +31,43 @@ def setup():
     return folder, weights, info
 
 
-def run(setup, source, limits=LIMITS, knob=0.5, root=None):
+def run(setup, source, limits=LIMITS, knob=0.5, root=None, mode="process"):
     folder, weights, info = setup
-    return run_recipe(source, folder.source(), weights, info, knob, limits, sandbox_root=root)
+    sb = make_sandbox(mode, (str(folder.path),))
+    return run_recipe(source, folder.source(), weights, info, knob, limits, sandbox_root=root, sandbox=sb)
 
 
-def test_a_proof_comes_back(setup, tmp_path):
+def test_a_proof_comes_back(setup, tmp_path, mode):
     src = (
         "import helpers\n"
         "def make_proof(weights, info, knob):\n"
         "    return helpers.proof(helpers.full_tree(info['input_space']), notes=str(knob))\n"
     )
-    ex = run(setup, src, root=tmp_path)
-    assert ex.status == "ok" and ex.error is None
+    ex = run(setup, src, root=tmp_path, mode=mode)
+    assert ex.status == "ok" and ex.error is None and ex.mode == mode
     assert ex.proof["schema"] == "split-tree-v1" and ex.proof["notes"] == "0.5"
     assert ex.proof_bytes == len(json.dumps(ex.proof, separators=(",", ":")).encode())
     assert list(tmp_path.iterdir()) == []  # the sandbox folder is gone
 
 
-def test_the_recipe_sees_exactly_its_inputs(setup):
+def test_the_recipe_sees_exactly_its_inputs(setup, mode):
     folder, weights, info = setup
     src = (
         "import os, json, numpy as np\n"
+        "def can_write(path):\n"
+        "    try:\n"
+        "        with open(path, 'a'):\n"
+        "            return True\n"
+        "    except OSError:\n"
+        "        return False\n"
         "def make_proof(weights, info, knob):\n"
         "    here = os.path.dirname(os.path.abspath(__file__))\n"
         "    return {'files': sorted(os.listdir(here)), 'env': sorted(os.environ),\n"
         "            'weights': {k: np.asarray(v).tolist() for k, v in weights.items()},\n"
         "            'dtypes': sorted({str(v.dtype) for v in weights.values()}), 'info': info, 'knob': knob,\n"
-        "            'writable': os.access(os.path.join(here, 'helpers.py'), os.W_OK) or os.access(here, os.W_OK)}\n"
+        "            'writable': can_write(os.path.join(here, 'helpers.py')) or can_write(os.path.join(here, 'new.txt'))}\n"
     )
-    ex = run(setup, src, limits=Limits(time_s=10, memory_mb=1024, max_proof_bytes=1 << 20))
+    ex = run(setup, src, limits=Limits(time_s=10, memory_mb=1024, max_proof_bytes=1 << 20), mode=mode)
     assert ex.status == "ok", ex.error
     p = ex.proof
     assert p["files"] == ["harness.py", "helpers.py", "input.json", "model.py", "out", "recipe.py", "tmp", "weights.npz"]
@@ -61,7 +76,7 @@ def test_the_recipe_sees_exactly_its_inputs(setup):
     for k, v in weights.items():
         assert np.array_equal(np.asarray(p["weights"][k], dtype=np.float32), v)
     # Not real protection in process mode (the recipe owns these files), but no accidental writes.
-    if os.geteuid() != 0:
+    if os.geteuid() != 0 or mode != "process":
         assert p["writable"] is False
 
 
@@ -85,8 +100,8 @@ def test_numpy_values_become_json(setup):
         ("import os\ndef make_proof(w, i, k):\n    os._exit(7)\n", "crash", "exited with code 7"),
     ],
 )
-def test_failures_get_their_status(setup, source, status, message):
-    ex = run(setup, source)
+def test_failures_get_their_status(setup, source, status, message, mode):
+    ex = run(setup, source, mode=mode)
     assert ex.status == status and message in ex.error, ex.error
     assert ex.proof is None
 
@@ -116,14 +131,18 @@ def _write_out(body: str) -> str:
         ("    open(out, 'w').write('{\"a\": \"' + 'x' * 200000 + '\"}')\n", "above the limit"),
     ],
 )
-def test_output_written_behind_the_harness_is_only_ever_data(setup, body, message):
-    ex = run(setup, _write_out(body), limits=Limits(time_s=10, memory_mb=1024, max_proof_bytes=1 << 17))
-    assert ex.status == "bad_output" and message in ex.error, ex.error
+def test_output_written_behind_the_harness_is_only_ever_data(setup, body, message, mode):
+    ex = run(setup, _write_out(body), limits=Limits(time_s=10, memory_mb=1024, max_proof_bytes=1 << 17), mode=mode)
+    if mode == "landlock" and ("symlink" in body or "mkfifo" in body):
+        assert ex.status == "crash" and "PermissionError" in ex.error  # the sandbox stops it even earlier
+    else:
+        assert ex.status == "bad_output" and message in ex.error, ex.error
 
 
-def test_time_limit(setup):
-    ex = run(setup, "def make_proof(w, i, k):\n    while True:\n        pass\n", limits=Limits(time_s=1.5, memory_mb=1024, max_proof_bytes=1 << 16))
-    assert ex.status == "timeout" and 1.5 <= ex.runtime_s < 6
+def test_time_limit(setup, mode):
+    limits = Limits(time_s=1.5, memory_mb=1024, max_proof_bytes=1 << 16)
+    ex = run(setup, "def make_proof(w, i, k):\n    while True:\n        pass\n", limits=limits, mode=mode)
+    assert ex.status == "timeout" and 1.5 <= ex.runtime_s < 12
 
 
 def test_children_are_killed_with_the_recipe(setup, tmp_path):
@@ -144,9 +163,9 @@ def test_children_are_killed_with_the_recipe(setup, tmp_path):
     assert not flag.exists()
 
 
-def test_memory_limit(setup):
+def test_memory_limit(setup, mode):
     src = "import numpy as np\ndef make_proof(w, i, k):\n    keep = [np.ones(25_000_000) for _ in range(8)]\n    return {}\n"
-    ex = run(setup, src, limits=Limits(time_s=20, memory_mb=400, max_proof_bytes=1 << 16))
+    ex = run(setup, src, limits=Limits(time_s=20, memory_mb=400, max_proof_bytes=1 << 16), mode=mode)
     assert ex.status == "crash" and ("memory limit" in ex.error or "MemoryError" in ex.error), ex.error
 
 

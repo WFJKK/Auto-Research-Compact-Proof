@@ -10,6 +10,10 @@ run can stop at any point and resume: completed rounds are kept, and an
 incomplete round reuses any response it already saved. A run refuses to go on
 if the checker, the sandbox code or the model folder changed since it started.
 
+Recipes run in the sandbox the run config asks for (core.sandbox). Each start
+and resume first runs the sandbox probe; a hardened mode that lets anything
+critical out is refused, and the weak process mode is reported.
+
 Prompt building (Step 7), patience and the API backend (Step 8) come later;
 until then the fake backend stands in for the agent.
 """
@@ -17,6 +21,7 @@ until then the fake backend stands in for the agent.
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from pathlib import Path
 
@@ -28,6 +33,7 @@ from .model_folder import load_model_folder
 from .rounds import Context, RoundError, now, run_round
 from .run_config import load_run_config, resolve
 from .runner import Limits
+from .sandbox import SandboxError, check_probe, choose, probe, protected_paths
 from .scoring import summarize
 from .util import git_state, read_json, write_json
 from .versions import changed, collect
@@ -71,7 +77,24 @@ def make_backend(cfg):
     raise LoopError(f"the {cfg['backend']} backend is not built yet")
 
 
+def prepare_sandbox(cfg: dict, folder, run: RunDir, entries: list[dict], log=print):
+    """Choose the run's sandbox and probe it; returns the sandbox and the probe's report."""
+    sb = choose(cfg, protected_paths(cfg, folder, run.path))
+    report = probe(sb, folder, entries[0]["id"], run.path / "probe", Limits.from_config(cfg))
+    check_probe(sb, report)
+    if sb.hardened:
+        log(f"sandbox: {sb.mode}; the probe's {len(report['attempts'])} escape attempts were all blocked")
+    else:
+        log(
+            f"warning: sandbox mode process is weak; recipes can read and write what you can "
+            f"(the probe got out with {', '.join(report['critical_escapes'])}). Use container or landlock mode "
+            "for recipes you do not trust."
+        )
+    return sb, report
+
+
 def open_context(run: RunDir, cfg: dict, log=print) -> Context:
+    sys.dont_write_bytecode = True  # so compiled files that appear in trusted folders can only come from elsewhere
     folder = load_model_folder(resolve(cfg["model"]))
     started = read_json(run.path / "versions.json")
     bad = changed(started, folder)
@@ -80,13 +103,18 @@ def open_context(run: RunDir, cfg: dict, log=print) -> Context:
             f"{', '.join(bad)} changed since run {run.run_id} started; results would not be comparable. "
             "Start a new run instead."
         )
+    entries = select_networks(folder, cfg)
+    sb, report = prepare_sandbox(cfg, folder, run, entries, log)
+    with open(run.path / "sandbox.jsonl", "a") as f:
+        f.write(json.dumps({"at": now(), **sb.describe(), "probe": report}) + "\n")
     return Context(
         cfg=cfg,
         folder=folder,
         run=run,
-        entries=select_networks(folder, cfg),
+        entries=entries,
         versions=started,
         limits=Limits.from_config(cfg),
+        sandbox=sb,
         log=log,
     )
 
@@ -199,7 +227,7 @@ def main(argv=None):
         drive(ctx)
         print(status_text(ctx.run))
         return 0
-    except (LoopError, RoundError, BackendError) as exc:
+    except (LoopError, RoundError, BackendError, SandboxError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 

@@ -17,6 +17,7 @@ DEFAULTS_PATH = REPO_ROOT / "config" / "defaults.yaml"
 REQUIRED = ("run_id", "model")
 BACKENDS = ("fake", "manual", "api")
 METRICS = ("Q", "cost_of_finishing")
+SANDBOX_MODES = ("auto", "container", "landlock", "process")
 FORBIDDEN_KEY_VARIABLES = ("ANTHROPIC_API_KEY",)
 
 
@@ -107,5 +108,9 @@ def validate(cfg: dict, source: str = "run config") -> None:
         errors.append('networks must be "all" or a list of network ids')
     if cfg["sandbox_dir"] is not None and not isinstance(cfg["sandbox_dir"], str):
         errors.append("sandbox_dir must be a path or null")
+    if cfg["sandbox"] not in SANDBOX_MODES:
+        errors.append(f"sandbox must be one of {SANDBOX_MODES}")
+    if not isinstance(cfg["sandbox_image"], str) or not cfg["sandbox_image"]:
+        errors.append("sandbox_image must name a container image")
     if errors:
         raise RunConfigError(f"{source}: " + "; ".join(errors))

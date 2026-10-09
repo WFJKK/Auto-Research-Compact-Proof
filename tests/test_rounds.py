@@ -10,10 +10,8 @@ import yaml
 
 from core import loop
 from core.check.checker import brute_force_proof, check_proof
-from core.check.costs import fill_costs
 from core.model_folder import load_model_folder
 from core.scoring import frontier, q_score, summarize
-from core.train import train_zoo
 from core.zoo import networks
 
 TESTS = Path(__file__).resolve().parent
@@ -22,16 +20,6 @@ BROKEN = TESTS / "broken_responses"
 
 def _quiet(*a, **k):
     pass
-
-
-@pytest.fixture(scope="module")
-def trained_stub(tmp_path_factory) -> Path:
-    dst = tmp_path_factory.mktemp("model") / "stub"
-    shutil.copytree(TESTS / "stub_model", dst, ignore=shutil.ignore_patterns("zoo", "__pycache__"))
-    folder = load_model_folder(dst)
-    train_zoo(folder, log=_quiet)
-    fill_costs(folder, log=_quiet)
-    return dst
 
 
 def _config(tmp_path, model: Path, **over) -> Path:

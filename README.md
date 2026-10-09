@@ -6,7 +6,7 @@ Each round, an agent proposes a circuit claim and a recipe: a program that turns
 
 ## Status
 
-Steps 0 to 4 of the spec are built and tested: the max2 model folder with its trained zoo, the exact checker, the sandbox runner, a fake agent that replays responses from files, and round 0 (the baseline frontier). Next come diagnostics, sandbox hardening, the prompt builder, the API backend and reports (Steps 5 to 9). Nothing needs an API key yet.
+Steps 0 to 6 of the spec are built and tested: the max2 model folder with its trained zoo, the exact checker, the sandbox runner with its hardened modes, a fake agent that replays responses from files, round 0 (the baseline frontier) and diagnostics. Next come the prompt builder, the API backend and reports (Steps 7 to 9). Nothing needs an API key yet.
 
 The first model is the max-of-2 network from the [proof-based approach tutorial](https://github.com/LouisYRYJ/Proof_based_approach_tutorial/blob/master/proof_public.ipynb).
 
@@ -19,7 +19,9 @@ python -m core.loop run --config config/max2-round0.yaml
 python -m core.loop status --run ~/auto-research-compact-proof-runs/max2-round0-fake
 ```
 
-The zoo's weights are in the repository, so nothing needs training. The run replays the three max2 baselines as round 0, then five deliberately broken responses, and prints the frontier. It takes a few minutes, mostly waiting for the response that never ends to time out.
+The zoo's weights are in the repository, so nothing needs training. The run replays the three max2 baselines as round 0, then five deliberately broken responses, and prints the frontier. It takes a few minutes, mostly waiting for the response that never ends to time out. Add `--diagnostics` to `status` to see where each attempt lost accuracy.
+
+Recipes run in a sandbox. On Linux, Landlock keeps them in with no setup. On a Mac, install Docker Desktop and run `python -m core.sandbox build` once; without it, runs fall back to a weak mode and say so. See [docs/SANDBOX.md](docs/SANDBOX.md).
 
 ## Layout
 

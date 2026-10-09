@@ -5,9 +5,13 @@ model.py, helpers.py, weights.npz and input.json, and starts it with
 `python -I -B harness.py`. It sets its own resource limits before the recipe is
 imported, calls make_proof(weights, info, knob), and writes out/proof.json.
 
+In landlock mode, input.json carries a policy, and before anything else the
+harness takes away its own rights for good (no new privileges, seccomp with no
+sockets, Landlock), failing closed with exit code 5 if any step fails.
+
 Its exit code is only a hint to the runner, which trusts nothing written here:
 0 the proof was written, 3 the recipe raised, 4 the proof is not a JSON object
-within the size limit.
+within the size limit, 5 the sandbox could not be set up.
 
 This file uses only the standard library and numpy, and imports nothing from
 the core.
@@ -22,7 +26,108 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "out")
 MAX_ERROR_CHARS = 4000
 
-EXIT_OK, EXIT_RAISED, EXIT_BAD_OUTPUT = 0, 3, 4
+EXIT_OK, EXIT_RAISED, EXIT_BAD_OUTPUT, EXIT_SANDBOX = 0, 3, 4, 5
+# Landlock's system calls have the same numbers on every architecture.
+SYS_LANDLOCK_CREATE_RULESET, SYS_LANDLOCK_ADD_RULE, SYS_LANDLOCK_RESTRICT_SELF = 444, 445, 446
+
+
+# landlock mode: no new privileges, no sockets, and a file-system allow-list ----------------
+def _libc():
+    import ctypes
+
+    libc = ctypes.CDLL(None, use_errno=True)
+    libc.syscall.restype = ctypes.c_long
+    return ctypes, libc
+
+
+def _check(ctypes, result, what):
+    if result != 0:
+        err = ctypes.get_errno()
+        raise OSError(err, f"{what}: {os.strerror(err)}")
+
+
+def _no_sockets(ctypes, libc):
+    """A seccomp filter: socket() fails with EACCES; any other architecture or the x32 ABI fails everything."""
+    import platform
+    import struct
+
+    arch, nr = {"x86_64": (0xC000003E, 41), "aarch64": (0xC00000B7, 198), "arm64": (0xC00000B7, 198)}[platform.machine()]
+    load, jeq, jge, ret = 0x20, 0x15, 0x35, 0x06
+    allow, deny = 0x7FFF0000, 0x00050000 | 13
+    prog = [
+        (load, 0, 0, 4),  # architecture
+        (jeq, 1, 0, arch),
+        (ret, 0, 0, deny),
+        (load, 0, 0, 0),  # system call number
+        (jge, 2, 0, 0x40000000),  # x32 system calls
+        (jeq, 1, 0, nr),
+        (ret, 0, 0, allow),
+        (ret, 0, 0, deny),
+    ]
+    raw = b"".join(struct.pack("HBBI", *ins) for ins in prog)
+    filt = ctypes.create_string_buffer(raw, len(raw))
+
+    class Prog(ctypes.Structure):
+        _fields_ = [("len", ctypes.c_ushort), ("filter", ctypes.c_void_p)]
+
+    fprog = Prog(len(prog), ctypes.cast(filt, ctypes.c_void_p))
+    _check(ctypes, libc.prctl(22, 2, ctypes.byref(fprog), 0, 0), "seccomp")  # PR_SET_SECCOMP, SECCOMP_MODE_FILTER
+
+
+def _landlock(ctypes, libc, read, read_write):
+    import stat
+    import struct
+
+    abi = libc.syscall(SYS_LANDLOCK_CREATE_RULESET, None, ctypes.c_size_t(0), ctypes.c_uint32(1))  # the ABI version
+    if abi < 1:
+        raise OSError(ctypes.get_errno(), "Landlock is not available")
+    handled = (1 << 13) - 1
+    if abi >= 2:
+        handled |= 1 << 13  # refer
+    if abi >= 3:
+        handled |= 1 << 14  # truncate
+    if abi >= 5:
+        handled |= 1 << 15  # ioctl on devices
+    net = 3 if abi >= 4 else 0  # bind and connect TCP
+    scoped = 3 if abi >= 6 else 0  # abstract unix sockets and signals
+    size = 8 if abi < 4 else (16 if abi < 6 else 24)
+    attr = ctypes.create_string_buffer(struct.pack("QQQ", handled, net, scoped), 24)
+    fd = libc.syscall(SYS_LANDLOCK_CREATE_RULESET, attr, ctypes.c_size_t(size), ctypes.c_uint32(0))
+    if fd < 0:
+        raise OSError(ctypes.get_errno(), "landlock_create_ruleset")
+    execute, write_file, read_file, read_dir = 1, 2, 4, 8
+    make_char, make_sock, make_fifo, make_block, make_sym = 1 << 6, 1 << 9, 1 << 10, 1 << 11, 1 << 12
+    file_rights = execute | write_file | read_file | (1 << 14) | (1 << 15)
+    ro = read_file | read_dir | execute
+    rw = handled & ~(make_char | make_sock | make_fifo | make_block | make_sym | execute)
+    for paths, access in ((read, ro), (read_write, rw)):
+        for path in paths:
+            try:
+                pfd = os.open(path, os.O_PATH | os.O_CLOEXEC)
+            except OSError:
+                continue  # a path that does not exist grants nothing
+            try:
+                a = access & handled
+                if not stat.S_ISDIR(os.fstat(pfd).st_mode):
+                    a &= file_rights
+                rule = ctypes.create_string_buffer(struct.pack("=Qi", a, pfd), 12)
+                rc = libc.syscall(SYS_LANDLOCK_ADD_RULE, fd, ctypes.c_int(1), rule, ctypes.c_uint32(0))  # a path rule
+                _check(ctypes, rc, f"landlock_add_rule {path}")
+            finally:
+                os.close(pfd)
+    _check(ctypes, libc.syscall(SYS_LANDLOCK_RESTRICT_SELF, fd, ctypes.c_uint32(0)), "landlock_restrict_self")
+    os.close(fd)
+    return abi
+
+
+def _lockdown(policy):
+    ctypes, libc = _libc()
+    _check(ctypes, libc.prctl(38, 1, 0, 0, 0), "no_new_privs")  # PR_SET_NO_NEW_PRIVS
+    _no_sockets(ctypes, libc)
+    read = list(policy["read"])
+    if policy.get("own_proc"):
+        read.append(os.path.realpath("/proc/self"))  # this process's own entry, nobody else's
+    return _landlock(ctypes, libc, read, policy["read_write"])
 
 
 def _limit(name, value):
@@ -70,6 +175,11 @@ def _plain(obj):
 def main():
     with open(os.path.join(HERE, "input.json")) as f:
         job = json.load(f)
+    if job.get("lockdown") is not None:
+        try:
+            _lockdown(job["lockdown"])
+        except BaseException as exc:  # fail closed: no recipe runs in a half-built sandbox
+            _finish(EXIT_SANDBOX, f"the sandbox could not be set up: {exc!r}")
     limits = job["limits"]
     _limit("RLIMIT_DATA", limits.get("data_bytes"))
     _limit("RLIMIT_FSIZE", limits.get("file_bytes"))

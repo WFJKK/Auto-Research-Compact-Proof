@@ -33,17 +33,18 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Callable
 
 from .agent.parse import ParseError, parse_response
 from .archive import RunDir, knob_label, record_id
-from .check.checker import check_proof
-from .diagnostics import diagnose, float_margins
+from .check.worker import CheckerError, CheckerProcess
 from .model_folder import ModelFolder
 from .runner import Execution, Limits, run_recipe
-from .util import git_state, sha256_bytes
+from .sandbox import Sandbox
+from .util import REPO_ROOT, git_state, sha256_bytes
 from .versions import changed
-from .zoo import correct_mask, load_weights
+from .zoo import load_weights
 
 
 class RoundError(RuntimeError):
@@ -58,9 +59,10 @@ class Context:
     entries: list[dict]
     versions: dict
     limits: Limits
+    sandbox: Sandbox = field(default_factory=lambda: Sandbox("process"))
     log: Callable = print
+    since: float = field(default_factory=time.time)
     _weights: dict = field(default_factory=dict, repr=False)
-    _margins: dict = field(default_factory=dict, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
@@ -73,13 +75,6 @@ class Context:
                 self._weights[network_id] = load_weights(self.folder, network_id)
             return self._weights[network_id]
 
-    def float_view(self, network_id: str):
-        """Float margins and float correctness of every input, for diagnostics only."""
-        with self._lock:
-            if network_id not in self._margins:
-                self._margins[network_id] = (float_margins(self.folder, network_id), correct_mask(self.folder, network_id))
-            return self._margins[network_id]
-
     def info(self, entry: dict) -> dict:
         return {"sizes": self.folder.sizes(entry["setting"]), "input_space": self.folder.input_space(entry["setting"])}
 
@@ -87,6 +82,23 @@ class Context:
         bad = changed(self.versions, self.folder)
         if bad:
             raise RoundError(f"trusted files changed during the run ({', '.join(bad)}); the run halts")
+        planted = compiled_files_since([REPO_ROOT / "core", self.folder.path], self.since)
+        if planted:
+            raise RoundError(f"compiled files appeared in trusted folders during the run ({', '.join(planted[:3])}); the run halts")
+
+
+def compiled_files_since(roots, since: float) -> list[str]:
+    """Bytecode files under roots written after since. The loop writes none (it runs with dont_write_bytecode)."""
+    out = []
+    for root in roots:
+        for p in Path(root).rglob("*"):
+            if (p.suffix in (".pyc", ".pyo") or "__pycache__" in p.parts) and p.is_file():
+                try:
+                    if p.stat().st_mtime >= since:
+                        out.append(str(p))
+                except OSError:
+                    pass
+    return sorted(out)
 
 
 def now() -> str:
@@ -149,25 +161,23 @@ def parse_record(ctx: Context, k: int, j: int, source: str, error: str) -> dict:
     }
 
 
-def _check(ctx: Context, entry: dict, proof: dict, sha: str, cache: dict):
-    """Check a proof (once per network and proof content) and diagnose it; returns (result, diagnosis, seconds)."""
+def _check(ctx: Context, checker: CheckerProcess, entry: dict, proof_path: Path, sha: str, cache: dict):
+    """Check a proof once per network and proof content, in the checker process; returns (result, diagnosis, seconds)."""
     key = (entry["id"], sha)
     if key not in cache:
         ctx.verify_trusted()
         t = time.monotonic()
-        result = check_proof(proof, ctx.folder, entry["id"], rule_set=ctx.rule_set, detail=True)
-        seconds = round(time.monotonic() - t, 3)
-        diag = None
-        if result["status"] == "ok":
-            margins, correct = ctx.float_view(entry["id"])
-            diag = diagnose(ctx.folder, entry, result, margins, correct)
-        result.pop("mask", None)
-        result.pop("outcomes", None)
-        cache[key] = (result, diag, seconds)
+        try:
+            result, diag = checker.check(entry["id"], proof_path, ctx.rule_set)
+        except CheckerError as exc:
+            raise RoundError(f"the checker failed on {entry['id']}: {exc}") from exc
+        cache[key] = (result, diag, round(time.monotonic() - t, 3))
     return cache[key]
 
 
-def execution_record(ctx: Context, k: int, j: int, source: str, entry: dict, knob, ex: Execution, cache: dict) -> dict:
+def execution_record(
+    ctx: Context, k: int, j: int, source: str, entry: dict, knob, ex: Execution, cache: dict, checker: CheckerProcess
+) -> dict:
     nid = entry["id"]
     rec = {
         **_base(ctx, k, j, source),
@@ -197,8 +207,8 @@ def execution_record(ctx: Context, k: int, j: int, source: str, entry: dict, kno
         proof["network"] = nid  # the recipe never learns its network; a proof naming another one is rejected
     data = json.dumps(proof, separators=(",", ":"), ensure_ascii=False).encode()
     sha = sha256_bytes(data)
-    ctx.run.write(k, f"attempt_{j}/proofs/{nid}__{knob_label(knob)}.json.gz", gzip.compress(data, mtime=0))
-    result, diag, seconds = _check(ctx, entry, proof, sha, cache)
+    path = ctx.run.write(k, f"attempt_{j}/proofs/{nid}__{knob_label(knob)}.json.gz", gzip.compress(data, mtime=0))
+    result, diag, seconds = _check(ctx, checker, entry, path, sha, cache)
     rec.update(proof_sha256=sha, checked_by="python", check_s=seconds)
     if result["status"] != "ok":
         rec.update(status="bad_output", error=f"the checker rejected the proof: {result['reason']}")
@@ -219,21 +229,28 @@ def execution_record(ctx: Context, k: int, j: int, source: str, entry: dict, kno
 
 
 # attempts --------------------------------------------------------------------------
-def _execute(ctx: Context, k: int, j: int, source: str, recipe: str, jobs: list, cache: dict) -> list[dict]:
+def _execute(ctx: Context, k: int, j: int, source: str, recipe: str, jobs: list, cache: dict, checker: CheckerProcess) -> list[dict]:
     records = []
     if not jobs:
         return records
 
     def one(entry, knob):
         return run_recipe(
-            recipe, ctx.folder.source(), ctx.weights(entry["id"]), ctx.info(entry), knob, ctx.limits, ctx.cfg["sandbox_dir"]
+            recipe,
+            ctx.folder.source(),
+            ctx.weights(entry["id"]),
+            ctx.info(entry),
+            knob,
+            ctx.limits,
+            ctx.cfg["sandbox_dir"],
+            sandbox=ctx.sandbox,
         )
 
     with ThreadPoolExecutor(max_workers=ctx.cfg["workers"]) as pool:
         futures = {pool.submit(one, entry, knob): (entry, knob) for entry, knob in jobs}
         for fut in as_completed(futures):
             entry, knob = futures[fut]
-            rec = execution_record(ctx, k, j, source, entry, knob, fut.result(), cache)
+            rec = execution_record(ctx, k, j, source, entry, knob, fut.result(), cache, checker)
             records.append(rec)
             ctx.log(_line(rec))
     return records
@@ -270,12 +287,18 @@ def run_attempt(ctx: Context, k: int, j: int, source: str, text: str) -> list[di
         rest = [e for e in ctx.entries if e not in first]
     else:
         first, rest = ctx.entries, []
-    records = _execute(ctx, k, j, source, parsed.recipe, [(e, kn) for e in first for kn in knobs], cache)
-    if rest:
-        if promising(records):
-            records += _execute(ctx, k, j, source, parsed.recipe, [(e, kn) for e in rest for kn in knobs], cache)
-        else:
-            ctx.log(f"  attempt {j}: certified nothing on the screening networks; not run on the rest")
+    ctx.verify_trusted()
+    try:
+        checker = CheckerProcess(ctx.folder.path, ctx.versions)
+    except CheckerError as exc:
+        raise RoundError(f"the checker could not start: {exc}") from exc
+    with checker:
+        records = _execute(ctx, k, j, source, parsed.recipe, [(e, kn) for e in first for kn in knobs], cache, checker)
+        if rest:
+            if promising(records):
+                records += _execute(ctx, k, j, source, parsed.recipe, [(e, kn) for e in rest for kn in knobs], cache, checker)
+            else:
+                ctx.log(f"  attempt {j}: certified nothing on the screening networks; not run on the rest")
     order = {e["id"]: i for i, e in enumerate(ctx.entries)}
     knob_order = {float(kn): i for i, kn in enumerate(knobs)}
     records.sort(key=lambda r: (order[r["network"]], knob_order[r["knob"]]))
@@ -332,7 +355,7 @@ def run_round(ctx: Context, k: int, backend, first_index: int, n_attempts: int, 
         "attempts": attempts,
         "versions": ctx.versions,
         "git": git_state(),
-        "sandbox": "process",
+        "sandbox": ctx.sandbox.describe(),
         "limits": {"time_s": ctx.limits.time_s, "memory_mb": ctx.limits.memory_mb, "max_proof_bytes": ctx.limits.max_proof_bytes},
         "tokens": {"input": tokens_in, "output": tokens_out},
         "cost_usd": round(cost, 4),

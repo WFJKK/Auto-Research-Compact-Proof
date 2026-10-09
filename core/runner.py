@@ -1,15 +1,13 @@
-"""Run one recipe on one network and one knob value, in a separate process.
+"""Run one recipe on one network and one knob value, in a sandbox.
 
 The runner makes a fresh sandbox folder holding only what the recipe may see:
 recipe.py, read-only copies of the model's model.py and the core's helpers.py,
 the harness, the network's weights (weights.npz, no pickle) and input.json
-(info, knob and limits). It starts `python -I -B harness.py` with an empty
+(info, knob and limits). It starts `python -I -B harness.py` in the sandbox mode
+it is given (core.sandbox: container, landlock or process) with an empty
 environment, enforces the wall-clock and memory limits from outside, and reads
 back one proof file as JSON data. Nothing the sandbox writes is executed or
 unpickled, and nothing it reports about itself is trusted.
-
-This is the process mode, the fallback that Step 6 of the spec hardens; a
-container mode comes with Step 6.
 """
 
 from __future__ import annotations
@@ -29,10 +27,12 @@ from pathlib import Path
 import numpy as np
 import psutil
 
+from .sandbox import Sandbox, container_command, landlock_policy
+
 HARNESS = Path(__file__).with_name("harness.py")
 HELPERS = Path(__file__).with_name("helpers.py")
 STATUSES = ("ok", "crash", "timeout", "bad_output")
-MODE = "process"
+PROCESS = Sandbox("process")
 
 MIB = 1 << 20
 POLL_S = 0.05
@@ -46,7 +46,9 @@ ERROR_FILE_BYTES = 1 << 14
 STDERR_TAIL_BYTES = 1 << 13
 
 # Must match the harness's exit codes; they are hints only.
-EXIT_RAISED, EXIT_BAD_OUTPUT = 3, 4
+EXIT_RAISED, EXIT_BAD_OUTPUT, EXIT_SANDBOX = 3, 4, 5
+# A container runtime's own failures, and a container killed by SIGKILL.
+CONTAINER_FAILURES, CONTAINER_KILLED = (125, 126, 127), 137
 
 
 @dataclass(frozen=True)
@@ -74,7 +76,7 @@ class Execution:
     runtime_s: float = 0.0
     peak_rss_mb: float = 0.0
     proof_bytes: int | None = None
-    mode: str = MODE
+    mode: str = "process"
 
 
 class BadOutput(ValueError):
@@ -177,7 +179,7 @@ def _environment(box: Path, threads: int) -> dict:
     }
 
 
-def _prepare(box: Path, recipe_source: str, model_source: str, weights: dict, info: dict, knob: float, limits: Limits):
+def _prepare(box: Path, recipe_source: str, model_source: str, weights: dict, info: dict, knob: float, limits: Limits, sb: Sandbox):
     box.mkdir()
     (box / "out").mkdir()
     (box / "tmp").mkdir()
@@ -195,10 +197,13 @@ def _prepare(box: Path, recipe_source: str, model_source: str, weights: dict, in
             "cpu_s": int(limits.time_s * max(1, limits.threads)) + CPU_MARGIN_S,
             "max_proof_bytes": limits.max_proof_bytes,
         },
+        "lockdown": landlock_policy(box, sb.protected) if sb.mode == "landlock" else None,
     }
     (box / "input.json").write_text(json.dumps(job))
     for name in ("recipe.py", "model.py", "helpers.py", "harness.py", "weights.npz", "input.json"):
         os.chmod(box / name, 0o444)
+    if sb.mode == "container":
+        os.chmod(box / "out", 0o777)  # the container runs as nobody
     os.chmod(box, 0o555)
 
 
@@ -258,24 +263,31 @@ def run_recipe(
     knob: float,
     limits: Limits,
     sandbox_root: str | Path | None = None,
+    sandbox: Sandbox | None = None,
 ) -> Execution:
     """Run make_proof(weights, info, knob) from recipe_source in a fresh sandbox; return what came back."""
+    sb = sandbox or PROCESS
     root = Path(tempfile.mkdtemp(prefix="cpl-sandbox-", dir=sandbox_root))
     box = root / "box"
     try:
-        _prepare(box, recipe_source, model_source, weights, info, knob, limits)
+        _prepare(box, recipe_source, model_source, weights, info, knob, limits, sb)
         (root / "logs").mkdir()
         with open(root / "logs" / "stdout.txt", "w+b") as out_f, open(root / "logs" / "stderr.txt", "w+b") as err_f:
-            return _execute(box, limits, out_f, err_f)
+            start = time.monotonic()
+            if sb.mode == "container":
+                rc, verdict, peak = _wait_container(sb, box, limits, out_f, err_f)
+            else:
+                rc, verdict, peak = _wait_process(box, limits, out_f, err_f)
+            ex = Execution(status="crash", runtime_s=round(time.monotonic() - start, 3), peak_rss_mb=round(peak / MIB, 1), mode=sb.mode)
+            return _interpret(ex, rc, verdict, box, limits, sb, _clean(_tail(err_f, STDERR_TAIL_BYTES), box))
     finally:
         _remove(root)
 
 
-def _execute(box: Path, limits: Limits, out_f, err_f) -> Execution:
-    cmd = [sys.executable, "-I", "-B", str(box / "harness.py")]
-    start = time.monotonic()
+def _wait_process(box: Path, limits: Limits, out_f, err_f):
+    """Start the harness as a separate process in its own process group; watch its time and resident memory."""
     proc = subprocess.Popen(
-        cmd,
+        [sys.executable, "-I", "-B", str(box / "harness.py")],
         cwd=box,
         env=_environment(box, limits.threads),
         stdin=subprocess.DEVNULL,
@@ -284,6 +296,7 @@ def _execute(box: Path, limits: Limits, out_f, err_f) -> Execution:
         start_new_session=True,
         close_fds=True,
     )
+    start = time.monotonic()
     try:
         ps = psutil.Process(proc.pid)
     except psutil.Error:
@@ -303,14 +316,49 @@ def _execute(box: Path, limits: Limits, out_f, err_f) -> Execution:
     finally:
         _kill_group(proc)
         proc.wait()
-    runtime = time.monotonic() - start
-    ex = Execution(status="crash", runtime_s=round(runtime, 3), peak_rss_mb=round(peak / MIB, 1))
+    return proc.returncode, verdict, peak
+
+
+def _wait_container(sb: Sandbox, box: Path, limits: Limits, out_f, err_f):
+    """Start the harness in a container; the runtime enforces memory, CPU and process limits, the runner the time."""
+    name = f"cpl-{os.urandom(8).hex()}"
+    proc = subprocess.Popen(
+        container_command(sb, box, name, limits.memory_mb, limits.threads),
+        stdin=subprocess.DEVNULL,
+        stdout=out_f,
+        stderr=err_f,
+        start_new_session=True,
+        close_fds=True,
+    )
+    start, verdict = time.monotonic(), None
+    try:
+        while proc.poll() is None:
+            if time.monotonic() - start > limits.time_s:
+                verdict = ("timeout", f"the recipe ran longer than the time limit of {limits.time_s:g} s")
+                break
+            time.sleep(POLL_S)
+    finally:
+        if proc.poll() is None:
+            subprocess.run([sb.runtime, "kill", name], capture_output=True, timeout=60)
+            try:
+                proc.wait(timeout=60)
+            except subprocess.TimeoutExpired:
+                _kill_group(proc)
+                proc.wait()
+    rc = proc.returncode
+    if verdict is None and rc == CONTAINER_KILLED:
+        verdict = (
+            "crash",
+            f"the recipe process was killed by signal SIGKILL; in a container that usually means it went over "
+            f"the memory limit of {limits.memory_mb:g} MB",
+        )
+    return rc, verdict, 0
+
+
+def _interpret(ex: Execution, rc: int, verdict, box: Path, limits: Limits, sb: Sandbox, stderr: str) -> Execution:
     if verdict is not None:
         ex.status, ex.error = verdict
         return ex
-
-    rc = proc.returncode
-    stderr = _clean(_tail(err_f, STDERR_TAIL_BYTES), box)
     if rc == 0:
         try:
             data = read_regular(box / "out" / "proof.json", limits.max_proof_bytes)
@@ -332,6 +380,10 @@ def _execute(box: Path, limits: Limits, out_f, err_f) -> Execution:
         ex.status, ex.error = "crash", message or stderr or "the recipe raised an exception"
     elif rc == EXIT_BAD_OUTPUT:
         ex.status, ex.error = "bad_output", message or "the recipe returned no usable proof"
+    elif rc == EXIT_SANDBOX:
+        ex.error = message or f"the {sb.mode} sandbox could not be set up"
+    elif sb.mode == "container" and rc in CONTAINER_FAILURES:
+        ex.error = f"the container could not run the recipe (exit code {rc})" + (f"\n{stderr}" if stderr else "")
     elif rc < 0:
         ex.error = f"the recipe process was killed by signal {_signal_name(rc)}" + (f"\n{stderr}" if stderr else "")
     else:

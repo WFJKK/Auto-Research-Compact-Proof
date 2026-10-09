@@ -12,8 +12,16 @@ from .check.rules import describe
 from .model_folder import ModelFolder
 from .util import REPO_ROOT, sha256_bytes, sha256_files
 
-CHECKER_FILES = ("core/check/*.py", "core/inputs.py", "core/model_folder.py", "core/zoo.py", "core/util.py")
-SANDBOX_FILES = ("core/runner.py", "core/harness.py", "core/helpers.py")
+CHECKER_FILES = (
+    "core/check/*.py",
+    "core/diagnostics.py",
+    "core/inputs.py",
+    "core/model_folder.py",
+    "core/versions.py",
+    "core/zoo.py",
+    "core/util.py",
+)
+SANDBOX_FILES = ("core/runner.py", "core/harness.py", "core/helpers.py", "core/sandbox.py")
 
 
 def _files(patterns) -> list:
