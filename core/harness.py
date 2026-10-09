@@ -185,6 +185,8 @@ def main():
     _limit("RLIMIT_FSIZE", limits.get("file_bytes"))
     _limit("RLIMIT_CPU", limits.get("cpu_s"))
     _limit("RLIMIT_CORE", 0)
+    if limits.get("nproc"):
+        _limit("RLIMIT_NPROC", limits["nproc"])  # a ceiling against a fork bomb
     sys.path.insert(0, HERE)  # -I leaves the script's folder off the path
 
     import numpy as np

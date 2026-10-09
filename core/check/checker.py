@@ -41,6 +41,14 @@ def _fraction_str(f: Fraction) -> str:
     return f"{f.numerator}/{f.denominator}"
 
 
+def _safe_float(x) -> float:
+    """float(x) for a Fraction or int, without raising on an out-of-range value."""
+    try:
+        return float(x)
+    except (OverflowError, ValueError):
+        return float("inf") if x > 0 else float("-inf")
+
+
 def _rejected(reason: str, nid: str, n: int, counter: Counter) -> dict:
     return {
         "status": "rejected",
@@ -206,7 +214,7 @@ def check_proof(
                 good, worst, j = prog.run_interval(l.ranges, int(label), counter, approximations.get(l.approx))
                 if good:
                     accepted.append(l)
-                    outcome(l, True, margin=float(worst), label=int(label), worst_output=int(j))
+                    outcome(l, True, margin=_safe_float(worst), label=int(label), worst_output=int(j))
                 else:
                     rejected.append(
                         {
@@ -216,11 +224,11 @@ def check_proof(
                             "reason": "margin bound not positive",
                             "label": int(label),
                             "worst_output": int(j),
-                            "worst_margin": float(worst),
-                            "shortfall": -float(worst),
+                            "worst_margin": _safe_float(worst),
+                            "shortfall": -_safe_float(worst),
                         }
                     )
-                    outcome(l, False, "margin bound not positive", float(worst), int(label), int(j))
+                    outcome(l, False, "margin bound not positive", _safe_float(worst), int(label), int(j))
 
         # count -------------------------------------------------------------------
         if symmetry:
@@ -237,6 +245,8 @@ def check_proof(
             raise RuntimeError("internal error: more inputs certified than exist")
     except (CheckError, UnsupportedOp) as exc:
         return _rejected(str(exc), network_id, n, counter)
+    except (ArithmeticError, ValueError, TypeError, RecursionError, MemoryError) as exc:
+        return _rejected(f"the proof made the checker fail: {type(exc).__name__}: {str(exc)[:200]}", network_id, n, counter)
 
     acc = Fraction(certified, n)
     rejected.sort(key=lambda r: r.get("worst_margin", float("-inf")))

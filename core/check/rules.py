@@ -57,8 +57,10 @@ RULES = {
 GENERIC_RULES = ("single", "interval", "skip", "contract", "symmetry", "approximate")
 LEAF_RULES = ("single", "interval", "skip")
 NUMBERS = (
-    "Numbers in proof files are integers, strings such as \"-3/4\" or \"1.25\", or finite floats; all are "
-    "read exactly."
+    "Numbers in proof files are dyadic rationals (denominator a power of two), like the float32 weights "
+    "they describe: integers, decimals such as \"1.25\", fractions such as \"-3/4\", or finite floats; all are "
+    "read exactly. No exponent notation (\"1e-9\") and no other denominators (\"1/3\"); keep them within a few "
+    "hundred bits."
 )
 
 

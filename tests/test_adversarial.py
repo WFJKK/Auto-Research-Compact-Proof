@@ -388,3 +388,58 @@ def test_probe_blocks_everything_in_hardened_modes(trained_stub, tmp_path):
         report = probe(sb, folder, networks(folder, "dev")[0]["id"], tmp_path / "run")
         assert report["critical_escapes"] == [] and report["minor_escapes"] == [], (mode, report)
         assert len(report["attempts"]) == 12
+
+
+def _run(model, sb, source, limits):
+    nid = networks(model, "dev")[0]["id"]
+    entry = next(e for e in read_manifest(model)["networks"] if e["id"] == nid)
+    return run_recipe(
+        source, model.source(), load_weights(model, nid),
+        {"sizes": model.sizes(entry["setting"]), "input_space": model.input_space(entry["setting"])},
+        0.0, limits, sandbox=sb,
+    )
+
+
+def test_a_setsid_child_does_not_outlive_the_sandbox(model, tmp_path):
+    """A recipe child that re-sessions to escape the process-group kill is still reaped at teardown."""
+    import time
+
+    for mode in sandbox_modes():  # process, landlock, and container where present
+        flag = tmp_path / f"escaped_{mode}.txt"
+        flag.unlink(missing_ok=True)
+        sb = make_sandbox(mode, (str(model.path),))
+        source = (
+            "import os, time\n"
+            "def make_proof(weights, info, knob):\n"
+            "    if os.fork() == 0:\n"
+            "        os.setsid()\n"
+            "        time.sleep(1.5)\n"
+            f"        open({str(flag)!r}, 'w').write('escaped')\n"
+            "        time.sleep(30)\n"
+            "        os._exit(0)\n"
+            "    while True:\n"
+            "        time.sleep(0.01)\n"
+        )
+        ex = _run(model, sb, source, Limits(time_s=1.0, memory_mb=800, max_proof_bytes=1 << 16))
+        assert ex.status == "timeout"
+        time.sleep(2.5)  # an un-reaped escapee would have written the flag by now
+        survived = flag.exists()
+        flag.unlink(missing_ok=True)
+        assert not survived, f"a setsid child outlived teardown in {mode} mode"
+
+
+def test_the_recipe_has_a_finite_process_limit(model):
+    """A ceiling against a fork bomb: RLIMIT_NPROC is set for the recipe (container uses its own pids-limit)."""
+    from core.runner import MAX_RECIPE_PROCESSES
+
+    source = (
+        "import resource\n"
+        "def make_proof(weights, info, knob):\n"
+        "    soft, hard = resource.getrlimit(resource.RLIMIT_NPROC)\n"
+        "    return {'result': [soft, hard]}\n"
+    )
+    for mode in [m for m in sandbox_modes() if m != "container"]:
+        ex = _run(model, make_sandbox(mode, (str(model.path),)), source, LIMITS)
+        assert ex.status == "ok", ex.error
+        soft = ex.proof["result"][0]
+        assert 0 < soft <= MAX_RECIPE_PROCESSES, (mode, soft)

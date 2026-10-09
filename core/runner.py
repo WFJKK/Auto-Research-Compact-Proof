@@ -37,6 +37,8 @@ PROCESS = Sandbox("process")
 MIB = 1 << 20
 POLL_S = 0.05
 CPU_MARGIN_S = 10
+SANDBOX_ID_VAR = "CPL_SANDBOX_ID"
+MAX_RECIPE_PROCESSES = 2048  # a ceiling against a fork bomb; one recipe needs only a few
 # The memory limit is enforced on resident memory, from outside. The data-size
 # limit set inside is only a backstop, with headroom because importing torch
 # maps several hundred MB that it never touches.
@@ -161,8 +163,51 @@ def _clean(text: str, box: Path) -> str:
     return text[-MAX_ERROR_CHARS:]
 
 
+# keeping a recipe's processes together ------------------------------------------
+_SUBREAPER_SET = False
+
+
+def _become_subreaper() -> None:
+    """Orphaned descendants reparent to this process, not init, so a child that calls setsid() can still be found."""
+    global _SUBREAPER_SET
+    if _SUBREAPER_SET or not sys.platform.startswith("linux"):
+        return
+    _SUBREAPER_SET = True
+    try:
+        import ctypes
+
+        ctypes.CDLL(None, use_errno=True).prctl(36, 1, 0, 0, 0)  # PR_SET_CHILD_SUBREAPER
+    except (OSError, AttributeError):
+        pass
+
+
+def _reap_marked(sandbox_id: str, deadline_s: float = 5.0) -> int:
+    """Kill every surviving process that carries this sandbox's id, including any that escaped the process group."""
+    killed, end = 0, time.monotonic() + deadline_s
+    while True:
+        found = []
+        try:
+            for p in psutil.Process().children(recursive=True):
+                try:
+                    if p.environ().get(SANDBOX_ID_VAR) == sandbox_id:
+                        found.append(p)
+                except (psutil.Error, OSError):
+                    pass
+        except psutil.Error:
+            break
+        for p in found:
+            try:
+                p.kill()
+            except psutil.Error:
+                pass
+        killed += len(found)
+        if not found or time.monotonic() > end:
+            return killed
+        time.sleep(0.05)
+
+
 # the sandbox folder -------------------------------------------------------------
-def _environment(box: Path, threads: int) -> dict:
+def _environment(box: Path, threads: int, sandbox_id: str) -> dict:
     t = str(threads)
     return {
         "PATH": os.defpath,
@@ -171,6 +216,7 @@ def _environment(box: Path, threads: int) -> dict:
         "LANG": "C.UTF-8",
         "LC_ALL": "C.UTF-8",
         "PYTHONDONTWRITEBYTECODE": "1",
+        SANDBOX_ID_VAR: sandbox_id,  # every process the recipe spawns inherits this, so teardown can find them all
         "OMP_NUM_THREADS": t,
         "MKL_NUM_THREADS": t,
         "OPENBLAS_NUM_THREADS": t,
@@ -196,6 +242,7 @@ def _prepare(box: Path, recipe_source: str, model_source: str, weights: dict, in
             "file_bytes": limits.max_proof_bytes + MIB,
             "cpu_s": int(limits.time_s * max(1, limits.threads)) + CPU_MARGIN_S,
             "max_proof_bytes": limits.max_proof_bytes,
+            "nproc": MAX_RECIPE_PROCESSES,
         },
         "lockdown": landlock_policy(box, sb.protected) if sb.mode == "landlock" else None,
     }
@@ -269,6 +316,9 @@ def run_recipe(
     sb = sandbox or PROCESS
     root = Path(tempfile.mkdtemp(prefix="cpl-sandbox-", dir=sandbox_root))
     box = root / "box"
+    sandbox_id = root.name
+    if sb.mode != "container":
+        _become_subreaper()
     try:
         _prepare(box, recipe_source, model_source, weights, info, knob, limits, sb)
         (root / "logs").mkdir()
@@ -277,19 +327,21 @@ def run_recipe(
             if sb.mode == "container":
                 rc, verdict, peak = _wait_container(sb, box, limits, out_f, err_f)
             else:
-                rc, verdict, peak = _wait_process(box, limits, out_f, err_f)
+                rc, verdict, peak = _wait_process(box, limits, out_f, err_f, sandbox_id)
             ex = Execution(status="crash", runtime_s=round(time.monotonic() - start, 3), peak_rss_mb=round(peak / MIB, 1), mode=sb.mode)
             return _interpret(ex, rc, verdict, box, limits, sb, _clean(_tail(err_f, STDERR_TAIL_BYTES), box))
     finally:
+        if sb.mode != "container":
+            _reap_marked(sandbox_id)  # kill anything that escaped the process group (for example via setsid)
         _remove(root)
 
 
-def _wait_process(box: Path, limits: Limits, out_f, err_f):
+def _wait_process(box: Path, limits: Limits, out_f, err_f, sandbox_id: str):
     """Start the harness as a separate process in its own process group; watch its time and resident memory."""
     proc = subprocess.Popen(
         [sys.executable, "-I", "-B", str(box / "harness.py")],
         cwd=box,
-        env=_environment(box, limits.threads),
+        env=_environment(box, limits.threads, sandbox_id),
         stdin=subprocess.DEVNULL,
         stdout=out_f,
         stderr=err_f,

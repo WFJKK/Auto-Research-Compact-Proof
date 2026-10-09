@@ -16,10 +16,32 @@ from fractions import Fraction
 import numpy as np
 
 MAX_NUMBER_CHARS = 200
+# Proof numbers must be dyadic (value = p / 2**k), like the float weights they
+# describe. These bound p and k so that sums and products of proof numbers stay
+# small: an arbitrary rational with a large or coprime denominator could make
+# the exact arithmetic blow up while every operation still counted as 1.
+MAX_NUMBER_BITS = 160
+MAX_DYADIC_EXP = 1100  # comfortably covers float32 (and float64) magnitudes
+
+# Decimals and fractions only; exponent notation is refused before Fraction()
+# sees it, so a short string like "1e-99999999" cannot build a huge number.
+import re as _re  # noqa: E402
+
+_NUMBER_STRING = _re.compile(r"[+-]?(?:[0-9]+|[0-9]+/[0-9]+|[0-9]*\.[0-9]+|[0-9]+\.[0-9]*)")
 
 
 class ProofNumberError(ValueError):
     pass
+
+
+def _check_dyadic(f: Fraction) -> Fraction:
+    """A proof number is p / 2**k with |p| and k bounded; reject anything else."""
+    d = f.denominator
+    if d & (d - 1) != 0:  # not a power of two
+        raise ProofNumberError("numbers must be dyadic (denominator a power of two), like the float weights")
+    if (d.bit_length() - 1) > MAX_DYADIC_EXP or f.numerator.bit_length() > MAX_NUMBER_BITS:
+        raise ProofNumberError("number too large")
+    return f
 
 
 class Exact:
@@ -138,20 +160,24 @@ def parse_number(v) -> Fraction:
     if isinstance(v, bool):
         raise ProofNumberError("booleans are not numbers")
     if isinstance(v, int):
-        if abs(v).bit_length() > 4 * MAX_NUMBER_CHARS:
+        if v.bit_length() > MAX_NUMBER_BITS:
             raise ProofNumberError("number too large")
         return Fraction(v)
     if isinstance(v, float):
         if v != v or v in (float("inf"), float("-inf")):
             raise ProofNumberError("numbers must be finite")
-        return Fraction(v)
+        return _check_dyadic(Fraction(v))  # every finite float is dyadic
     if isinstance(v, str):
-        if len(v) > MAX_NUMBER_CHARS:
+        s = v.strip()
+        if len(s) > MAX_NUMBER_CHARS:
             raise ProofNumberError("number string too long")
+        if not _NUMBER_STRING.fullmatch(s):
+            raise ProofNumberError(f"not a number (integers, p/q or decimals only, no exponents): {v!r}")
         try:
-            return Fraction(v.strip())
+            f = Fraction(s)
         except (ValueError, ZeroDivisionError) as exc:
             raise ProofNumberError(f"not a number: {v!r}") from exc
+        return _check_dyadic(f)
     raise ProofNumberError(f"not a number: {v!r}")
 
 

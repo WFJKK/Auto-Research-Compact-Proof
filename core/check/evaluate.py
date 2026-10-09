@@ -135,8 +135,10 @@ class Program:
         names = {s.name for s in self.steps}
         if not isinstance(cname, str) or not cname or cname in names:
             raise CheckError(f"contraction name {cname!r} is empty or already used")
-        if not isinstance(chain, list) or len(chain) < 2 or len(set(chain)) != len(chain):
-            raise CheckError("a contraction chain lists at least two distinct linear maps")
+        if not isinstance(chain, list) or len(chain) < 2 or not all(isinstance(n, str) for n in chain):
+            raise CheckError("a contraction chain lists at least two linear maps by name")
+        if len(set(chain)) != len(chain):
+            raise CheckError("a contraction chain repeats a map")
         for i, n in enumerate(chain):
             if n not in names or self.step(n).op != "linear":
                 raise CheckError(f"{n!r} is not a linear map of the network")

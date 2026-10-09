@@ -19,7 +19,7 @@ Each operation on exact numbers counts 1: a multiply-add, an addition or subtrac
 
 ## Why these choices
 
-- **Everything the checker does is charged.** That includes reading the proof file and converting weights, so no work can hide in a large proof file or in a hint the checker trusts. The checker trusts nothing a proof claims.
+- **Everything the checker does is charged.** That includes reading the proof file and converting weights, so no work can hide in a large proof file or in a hint the checker trusts. The checker trusts nothing a proof claims. For this charge to be fair, every operation must be on a small number: proof numbers are required to be dyadic and bounded (see `docs/RULES.md`), so a proof cannot make one operation secretly expensive. A proof that is still slow to check, for any reason, is cut off by a per-proof time limit (`check_timeout_s`) and rejected.
 - **Searching is free.** A recipe may spend any amount of floating-point work finding a proof. Only checking it counts, as in Gross et al.
 - **One-hot inputs are lookups.** A linear map applied to a one-hot token costs its output size, the cost of reading one column, not a full matrix-vector product. Brute force is charged the same way, so this choice does not favour any proof.
 - **Bounds cost double.** An interval operation works on a centre and a radius.

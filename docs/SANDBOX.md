@@ -44,9 +44,21 @@ This builds `sandbox/Dockerfile` as `auto-research-compact-proof-sandbox:1`: `py
 - Before every check, the loop also looks for compiled files written into `core/` or the model folder since it started. The loop itself writes none, so any it finds halts the run.
 - The checker loads weights itself, by network id, with hash checks. A proof that names another network is rejected, and proof files have a size limit (`max_proof_mb`).
 
+## Keeping a recipe's processes in
+
+A recipe runs with a wall-clock limit (from outside), a CPU limit, a memory limit, a file-size limit and a process-count ceiling (`RLIMIT_NPROC`, against a fork bomb). A child that calls `setsid()` to leave the harness's process group would escape a plain group-kill, so on Linux the runner makes itself a subreaper and tags every process the recipe starts with a unique id; at teardown it kills everything carrying that id, reparented or not. A test plants a `setsid()` child and checks it does not outlive the sandbox. In `container` mode the PID namespace does this instead, so the whole tree dies with the container.
+
+## The checker cannot be wedged by a proof
+
+The checker is trusted, but it reads an untrusted proof, so a proof must not be able to stall or crash it:
+
+- Every number in a proof is dyadic and bounded, so the exact arithmetic stays cheap (see `docs/RULES.md`); a short string cannot name a huge number.
+- `check_proof` rejects a hostile proof as a whole: any error from proof data, including out-of-range or out-of-memory arithmetic, becomes a rejection, never an exception that reaches the run. The checker's own soundness invariants stay fatal.
+- The checker process has a memory ceiling, and each proof has a wall-clock limit (`check_timeout_s`, default 600 s). A proof that exceeds it is rejected and the worker is restarted, so one slow proof cannot wedge an unattended run.
+
 ## Known limits
 
 - `process` mode protects nothing against a recipe that means harm. Use it only for recipes you trust, such as the baselines and tests.
-- In `landlock` mode, recipes can read system folders such as `/etc` and `/sys`, but none of the pipeline's files and no other process's `/proc` entry. Landlock is refused when the Python installation's folders contain the repository, the runs folder or the model folder.
+- In `landlock` mode, recipes can read system folders such as `/etc` and `/sys`, but none of the pipeline's files and no other process's `/proc` entry. Landlock is refused when the Python installation's folders contain the repository, the runs folder or the model folder. A determined `setsid()` escapee is reaped at teardown on Linux, where the subreaper can find it; the surest containment for fully untrusted recipes is `container` mode, whose PID namespace needs no such sweep.
 - In `container` mode, the runner can't measure a recipe's peak memory, and a recipe killed by the memory limit is reported as killed by SIGKILL.
-- Each hole found later gets its own test in `tests/test_adversarial.py`.
+- Each hole found later gets its own test in `tests/test_adversarial.py` (recipe sandbox) or `tests/test_hardening.py` (the checker).

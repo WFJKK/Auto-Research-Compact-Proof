@@ -290,7 +290,9 @@ def run_attempt(ctx: Context, k: int, j: int, source: str, text: str) -> list[di
         first, rest = ctx.entries, []
     ctx.verify_trusted()
     try:
-        checker = CheckerProcess(ctx.folder.path, ctx.versions, held_out=ctx.held_out)
+        checker = CheckerProcess(
+            ctx.folder.path, ctx.versions, held_out=ctx.held_out, timeout_s=ctx.cfg["check_timeout_s"]
+        )
     except CheckerError as exc:
         raise RoundError(f"the checker could not start: {exc}") from exc
     with checker:

@@ -55,6 +55,8 @@ class Approximation:
         elif self.form == "low_rank":
             self.F = _matrix(spec.get("left"), n_out, None, "left")
             r = self.F.shape[1]
+            if not 0 < r <= min(n_out, n_in):  # a rank above min(rows, cols) is never needed
+                raise ApproximationError(f"low_rank inner dimension must be between 1 and {min(n_out, n_in)}, not {r}")
             self.G = _matrix(spec.get("right"), r, n_in, "right")
             P = np.dot(self.F, self.G)
             counter.add("approximate", n_out * r * n_in)

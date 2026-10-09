@@ -83,7 +83,7 @@ def validate(cfg: dict, source: str = "run config") -> None:
         or len(set(float(k) for k in knobs)) != len(knobs)
     ):
         errors.append("knob_values must be a non-empty list of distinct numbers in [0, 1]")
-    for key in ("time_limit_s", "memory_limit_mb", "max_proof_mb"):
+    for key in ("time_limit_s", "memory_limit_mb", "max_proof_mb", "check_timeout_s"):
         _number(cfg, key, errors, positive=True)
     for key in ("threads_per_recipe", "workers", "recipes_per_round", "rounds_max", "patience", "prompt_budget_tokens"):
         _number(cfg, key, errors, integer=True, minimum=1)

@@ -4,7 +4,9 @@ Every rule here is generic: it works for any model folder whose `model.py` uses 
 
 **What is certified.** The checker certifies the network as a function over the rationals, defined by its float32 weights converted exactly. A float32 forward pass can disagree only on inputs whose margin is within rounding error. On all 20 max2 networks, exact brute force and float32 agree on every input.
 
-**Arithmetic.** Float32 weights are dyadic rationals and convert to integers times a power of two with no rounding (`Exact.from_float`). Every later operation is an integer operation on those, and numbers in proof files are parsed as fractions. Nothing is ever rounded.
+**Arithmetic.** Float32 weights are dyadic rationals and convert to integers times a power of two with no rounding (`Exact.from_float`). Every later operation is an integer operation on those. Numbers supplied by a proof file must be dyadic too (denominator a power of two), with a bounded numerator and exponent (`parse_number`); exponent notation and other denominators are refused, and refused before the value is built, so a short string cannot name a huge number. This keeps every intermediate fraction small, so no proof can make the exact arithmetic slow while every operation still counts as 1. Nothing is ever rounded.
+
+**Robustness.** The checker rejects a malformed or hostile proof as a whole rather than failing: any error from proof-supplied data, including arithmetic that runs out of range or memory, becomes a rejection, while the checker's own internal invariants stay fatal. A proof that is merely expensive to check is cut off by a per-proof time limit and rejected. So no single proof can halt or hang a run.
 
 ## Split tree
 

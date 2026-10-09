@@ -13,6 +13,10 @@ knob_values: [0, 0.25, 0.5, 0.75, 1]
 # Run data lives outside the repository.
 runs_dir: ~/auto-research-compact-proof-runs
 
+# How long the trusted checker may spend on one proof file before it rejects it
+# and moves on (a backstop; honest proofs check in well under a second).
+check_timeout_s: 600
+
 # Sandbox limits, per recipe execution (one network and one knob value).
 time_limit_s: 300
 memory_limit_mb: 2048
