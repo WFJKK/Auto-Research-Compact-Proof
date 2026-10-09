@@ -402,9 +402,15 @@ def _run(model, sb, source, limits):
 
 def test_a_setsid_child_does_not_outlive_the_sandbox(model, tmp_path):
     """A recipe child that re-sessions to escape the process-group kill is still reaped at teardown."""
+    import sys
     import time
 
-    for mode in sandbox_modes():  # process, landlock, and container where present
+    modes = sandbox_modes()  # process, landlock, and container where present
+    if not sys.platform.startswith("linux"):
+        modes = [m for m in modes if m == "container"]  # the reaping sweep needs Linux's subreaper
+        if not modes:
+            pytest.skip("setsid reaping is guaranteed only on Linux or in container mode")
+    for mode in modes:
         flag = tmp_path / f"escaped_{mode}.txt"
         flag.unlink(missing_ok=True)
         sb = make_sandbox(mode, (str(model.path),))
