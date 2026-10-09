@@ -6,6 +6,9 @@ The checker loads the network's weights itself (hash-checked) and builds the
 network from the model folder's model.py. Nothing the proof claims is trusted:
 every bound is recomputed exactly. A malformed proof is rejected as a whole;
 a leaf whose bound fails simply certifies nothing.
+
+With detail=True the result also holds the certified mask and every leaf's
+outcome, for diagnostics (core.diagnostics). Nothing in it changes the score.
 """
 
 from __future__ import annotations
@@ -62,8 +65,10 @@ def check_proof(
     rule_set=GENERIC_RULES,
     allow_held_out: bool = False,
     want_mask: bool = False,
+    detail: bool = False,
 ) -> dict:
     rule_set = tuple(rule_set)
+    want_mask = want_mask or detail
     entry = network_entry(folder, network_id)
     setting = entry["setting"]
     sizes = folder.sizes(setting)
@@ -145,7 +150,24 @@ def check_proof(
                 raise CheckError(f"{leaf.path}: unknown approximation {leaf.approx!r}")
 
         # leaves ----------------------------------------------------------------
+        # Each leaf's outcome: accepted, rejected (with reason and shortfall) or skipped.
         accepted, rejected, skipped = [], [], 0
+        outcomes = [] if detail else None
+
+        def outcome(l, accepted_, reason=None, margin=None, label=None, worst_output=None):
+            if outcomes is not None:
+                outcomes.append(
+                    {
+                        "ranges": l.ranges,
+                        "rule": l.rule,
+                        "accepted": accepted_,
+                        "reason": reason,
+                        "margin": margin,
+                        "label": label,
+                        "worst_output": worst_output,
+                    }
+                )
+
         singles = [l for l in leaves if l.rule == "single"]
         for l in singles:
             if not l.is_single():
@@ -154,33 +176,51 @@ def check_proof(
             tokens = np.array([[lo for lo, _ in l.ranges] for l in singles], dtype=np.int64)
             labels = np.asarray(folder.task.label(tokens, sizes), dtype=np.int64)
             ok, margins = prog.run_singles(tokens, labels, counter)
-            for l, good, m in zip(singles, ok, margins):
+            for l, good, m, lab in zip(singles, ok, margins, labels):
                 if good:
                     accepted.append(l)
+                    outcome(l, True, margin=float(m), label=int(lab))
                 else:
-                    rejected.append({"path": l.path, "rule": "single", "ranges": l.ranges, "worst_margin": float(m)})
+                    rejected.append(
+                        {
+                            "path": l.path,
+                            "rule": "single",
+                            "ranges": l.ranges,
+                            "reason": "margin not positive",
+                            "label": int(lab),
+                            "worst_margin": float(m),
+                            "shortfall": -float(m),
+                        }
+                    )
+                    outcome(l, False, "margin not positive", float(m), int(lab))
         for l in leaves:
             if l.rule == "skip":
                 skipped += 1
+                outcome(l, False, "skipped")
             elif l.rule == "interval":
                 label = folder.task.constant_label(l.ranges, sizes)
                 if label is None:
                     rejected.append({"path": l.path, "rule": "interval", "ranges": l.ranges, "reason": "label not constant"})
+                    outcome(l, False, "label not constant")
                     continue
                 good, worst, j = prog.run_interval(l.ranges, int(label), counter, approximations.get(l.approx))
                 if good:
                     accepted.append(l)
+                    outcome(l, True, margin=float(worst), label=int(label), worst_output=int(j))
                 else:
                     rejected.append(
                         {
                             "path": l.path,
                             "rule": "interval",
                             "ranges": l.ranges,
+                            "reason": "margin bound not positive",
                             "label": int(label),
                             "worst_output": int(j),
                             "worst_margin": float(worst),
+                            "shortfall": -float(worst),
                         }
                     )
+                    outcome(l, False, "margin bound not positive", float(worst), int(label), int(j))
 
         # count -------------------------------------------------------------------
         if symmetry:
@@ -217,6 +257,8 @@ def check_proof(
     }
     if want_mask:
         result["mask"] = mask
+    if detail:
+        result["outcomes"] = outcomes
     return result
 
 

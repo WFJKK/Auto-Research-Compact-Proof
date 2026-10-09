@@ -34,10 +34,12 @@ def defaults() -> dict:
     return dict(read_yaml(DEFAULTS_PATH))
 
 
-def load_run_config(path: str | Path) -> dict:
+def load_run_config(path: str | Path, run_id: str | None = None) -> dict:
     raw = read_yaml(Path(path))
     if not isinstance(raw, dict):
         raise RunConfigError(f"{path}: a run config is a mapping")
+    if run_id is not None:
+        raw = {**raw, "run_id": run_id}
     return merge(raw, source=str(path))
 
 

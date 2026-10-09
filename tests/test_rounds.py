@@ -80,6 +80,10 @@ def test_baselines_reproduce_the_checker(finished_run):
     for r in sym:
         b = next(x for x in brute if x["network"] == r["network"])
         assert r["status"] == "ok" and r["certified"] == b["certified"] and r["length"] < 0.75 * b["length"]
+    for r in brute + sym:  # diagnostics: the only uncertified inputs are the wrong ones
+        s = r["uncertified_summary"]
+        assert s["uncertified_correct"] == 0 and s["wrong"] == r["n_inputs"] - r["real_correct"]
+        assert sum(d["wrong"] for d in r["uncertified_by_group"].values()) == s["wrong"]
 
 
 def test_broken_responses_get_the_right_status(finished_run):
@@ -99,6 +103,15 @@ def test_broken_responses_get_the_right_status(finished_run):
     for r in _by_round(records, 4):
         assert r["leaves"]["rejected"] > 0 and r["rejected"]
         assert r["certified"] <= r["real_correct"]
+        assert r["rejected_summary"]["by_reason"]["label not constant"] > 0
+        whys = {w for d in r["uncertified_by_group"].values() for w in d.get("why", {})}
+        assert "label not constant" in whys
+    from core.diagnostics import render_attempt
+
+    text = render_attempt(_by_round(records, 4), "smallest token")
+    assert "correct but uncertified" in text and "label not constant" in text
+    assert render_attempt(_by_round(records, 1)).startswith("status parse")
+    assert "timeout x2" in render_attempt(_by_round(records, 3))
     assert finished_run.run.done_rounds() == [0, 1, 2, 3, 4, 5]
 
 

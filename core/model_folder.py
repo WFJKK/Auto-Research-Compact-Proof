@@ -6,7 +6,9 @@ Everything model-specific lives in one folder, `models/<name>/`:
                  constructor takes the sizes as keyword arguments
     task.py      the task (see TASK_ATTRIBUTES and TASK_FUNCTIONS); optionally
                  LABEL_SYMMETRIC = True if reordering an input's positions never
-                 changes its label (needed by the symmetry rule)
+                 changes its label (needed by the symmetry rule), and
+                 GROUP_LABEL, a short name for a diagnostic group such as
+                 "largest token" (default "group")
     config.yaml  sizes, training, seeds, split, zoo path, cost model, hygiene
     rules.py     optional rules of the model's own (trusted)
     baselines/   optional fake-agent responses for round 0
@@ -142,6 +144,10 @@ class ModelFolder:
 
     def folder_hash(self) -> str:
         return sha256_files(self.path, [p for p in self.identity_files() if self.path in p.parents])
+
+    def group_label(self) -> str:
+        label = getattr(self.task, "GROUP_LABEL", None)
+        return label if isinstance(label, str) and label else "group"
 
     def hygiene_terms(self) -> list[str]:
         return [str(t) for t in self.config.get("hygiene", []) or []]

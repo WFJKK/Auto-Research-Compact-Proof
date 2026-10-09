@@ -22,6 +22,7 @@ from pathlib import Path
 
 from .agent.backends import BackendError
 from .agent.backends.fake import FakeBackend
+from .diagnostics import render_attempt
 from .archive import RunDir
 from .model_folder import load_model_folder
 from .rounds import Context, RoundError, now, run_round
@@ -90,8 +91,8 @@ def open_context(run: RunDir, cfg: dict, log=print) -> Context:
     )
 
 
-def start(config_path: str | Path, log=print) -> Context:
-    cfg = load_run_config(config_path)
+def start(config_path: str | Path, log=print, run_id: str | None = None) -> Context:
+    cfg = load_run_config(config_path, run_id=run_id)
     folder = load_model_folder(resolve(cfg["model"]))
     select_networks(folder, cfg)  # fail early
     run = RunDir(resolve(cfg["runs_dir"]), cfg["run_id"])
@@ -134,10 +135,14 @@ def drive(ctx: Context) -> None:
 
 
 # status ------------------------------------------------------------------------
-def status_text(run: RunDir) -> str:
+def status_text(run: RunDir, diagnostics: bool = False) -> str:
     cfg = run.config()
     lines = [f"run {run.run_id}: model {cfg['model']}, backend {cfg['backend']}, rounds done {run.done_rounds()}"]
     records = run.read_archive()
+    try:
+        grouping = load_model_folder(resolve(cfg["model"])).group_label()
+    except Exception:
+        grouping = "group"
     for k in sorted({r["round"] for r in records}):
         for j in sorted({r["attempt"] for r in records if r["round"] == k}):
             rs = [r for r in records if r["round"] == k and r["attempt"] == j]
@@ -148,7 +153,10 @@ def status_text(run: RunDir) -> str:
             text = ", ".join(f"{s} {c}" for s, c in sorted(counts.items()))
             errs = sorted({(r["error"] or "").splitlines()[-1][:100] for r in rs if r["error"]})
             lines.append(f"  round {k} attempt {j} ({rs[0]['source']}, {meta.get('source', '')}): {text}")
-            lines += [f"      {e}" for e in errs[:2]]
+            if diagnostics:
+                lines += ["      " + ln for ln in render_attempt(rs, grouping).splitlines()]
+            else:
+                lines += [f"      {e}" for e in errs[:2]]
     try:
         folder = load_model_folder(resolve(cfg["model"]))
         entries = select_networks(folder, cfg)
@@ -176,16 +184,18 @@ def main(argv=None):
     sub = ap.add_subparsers(dest="cmd", required=True)
     p_run = sub.add_parser("run", help="start a run from a run config")
     p_run.add_argument("--config", required=True)
+    p_run.add_argument("--run-id", help="use this run id instead of the config's, e.g. to repeat a run")
     for name in ("resume", "status"):
         p = sub.add_parser(name)
         p.add_argument("--run", required=True, help="the run's folder, <runs_dir>/<run_id>")
+    sub.choices["status"].add_argument("--diagnostics", action="store_true", help="show each attempt's diagnostics")
     args = ap.parse_args(argv)
     try:
         if args.cmd == "status":
             path = Path(args.run).expanduser().resolve()
-            print(status_text(RunDir(path.parent, path.name)))
+            print(status_text(RunDir(path.parent, path.name), diagnostics=args.diagnostics))
             return 0
-        ctx = start(args.config) if args.cmd == "run" else resume(args.run)
+        ctx = start(args.config, run_id=args.run_id) if args.cmd == "run" else resume(args.run)
         drive(ctx)
         print(status_text(ctx.run))
         return 0

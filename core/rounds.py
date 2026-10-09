@@ -38,11 +38,12 @@ from typing import Callable
 from .agent.parse import ParseError, parse_response
 from .archive import RunDir, knob_label, record_id
 from .check.checker import check_proof
+from .diagnostics import diagnose, float_margins
 from .model_folder import ModelFolder
 from .runner import Execution, Limits, run_recipe
 from .util import git_state, sha256_bytes
 from .versions import changed
-from .zoo import load_weights
+from .zoo import correct_mask, load_weights
 
 
 class RoundError(RuntimeError):
@@ -59,6 +60,7 @@ class Context:
     limits: Limits
     log: Callable = print
     _weights: dict = field(default_factory=dict, repr=False)
+    _margins: dict = field(default_factory=dict, repr=False)
     _lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
 
     @property
@@ -70,6 +72,13 @@ class Context:
             if network_id not in self._weights:
                 self._weights[network_id] = load_weights(self.folder, network_id)
             return self._weights[network_id]
+
+    def float_view(self, network_id: str):
+        """Float margins and float correctness of every input, for diagnostics only."""
+        with self._lock:
+            if network_id not in self._margins:
+                self._margins[network_id] = (float_margins(self.folder, network_id), correct_mask(self.folder, network_id))
+            return self._margins[network_id]
 
     def info(self, entry: dict) -> dict:
         return {"sizes": self.folder.sizes(entry["setting"]), "input_space": self.folder.input_space(entry["setting"])}
@@ -105,6 +114,9 @@ def _base(ctx: Context, k: int, j: int, source: str) -> dict:
 
 def _empty_result_fields() -> dict:
     return {
+        "uncertified_by_group": None,
+        "uncertified_summary": None,
+        "rejected_summary": None,
         "certified": None,
         "certified_accuracy": None,
         "certified_accuracy_float": None,
@@ -137,13 +149,21 @@ def parse_record(ctx: Context, k: int, j: int, source: str, error: str) -> dict:
     }
 
 
-def _check(ctx: Context, network_id: str, proof: dict, sha: str, cache: dict):
-    key = (network_id, sha)
+def _check(ctx: Context, entry: dict, proof: dict, sha: str, cache: dict):
+    """Check a proof (once per network and proof content) and diagnose it; returns (result, diagnosis, seconds)."""
+    key = (entry["id"], sha)
     if key not in cache:
         ctx.verify_trusted()
         t = time.monotonic()
-        result = check_proof(proof, ctx.folder, network_id, rule_set=ctx.rule_set)
-        cache[key] = (result, round(time.monotonic() - t, 3))
+        result = check_proof(proof, ctx.folder, entry["id"], rule_set=ctx.rule_set, detail=True)
+        seconds = round(time.monotonic() - t, 3)
+        diag = None
+        if result["status"] == "ok":
+            margins, correct = ctx.float_view(entry["id"])
+            diag = diagnose(ctx.folder, entry, result, margins, correct)
+        result.pop("mask", None)
+        result.pop("outcomes", None)
+        cache[key] = (result, diag, seconds)
     return cache[key]
 
 
@@ -178,7 +198,7 @@ def execution_record(ctx: Context, k: int, j: int, source: str, entry: dict, kno
     data = json.dumps(proof, separators=(",", ":"), ensure_ascii=False).encode()
     sha = sha256_bytes(data)
     ctx.run.write(k, f"attempt_{j}/proofs/{nid}__{knob_label(knob)}.json.gz", gzip.compress(data, mtime=0))
-    result, seconds = _check(ctx, nid, proof, sha, cache)
+    result, diag, seconds = _check(ctx, entry, proof, sha, cache)
     rec.update(proof_sha256=sha, checked_by="python", check_s=seconds)
     if result["status"] != "ok":
         rec.update(status="bad_output", error=f"the checker rejected the proof: {result['reason']}")
@@ -193,6 +213,7 @@ def execution_record(ctx: Context, k: int, j: int, source: str, entry: dict, kno
         pieces_accepted=result["leaves"]["accepted"],
         rejected=result["rejected_pieces"],
         symmetry=result.get("symmetry", False),
+        **diag,
     )
     return rec
 
