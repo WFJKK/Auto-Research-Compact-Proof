@@ -20,13 +20,19 @@ def _model_folders():
 
 
 def _sizes(folder):
+    """Distinctive size values (small ones like 8 or 16 also appear in generic code)."""
     cfg = yaml.safe_load((folder / "config.yaml").read_text())
     vals = set()
     for sizes in cfg.get("size_settings", {}).values():
         for v in sizes.values():
-            if isinstance(v, int) and not isinstance(v, bool) and v > 2:
+            if isinstance(v, int) and not isinstance(v, bool) and v >= 32:
                 vals.add(v)
     return vals
+
+
+def _size_names(folder):
+    cfg = yaml.safe_load((folder / "config.yaml").read_text())
+    return {k for sizes in cfg.get("size_settings", {}).values() for k in sizes}
 
 
 def test_core_names_no_model():
@@ -52,4 +58,17 @@ def test_core_hardcodes_no_size():
         for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and type(node.value) is int and node.value in sizes:
                 offenders.append(f"{py.relative_to(REPO)}:{node.lineno} literal {node.value}")
+    assert not offenders, offenders
+
+
+def test_core_names_no_size_parameter():
+    names = set()
+    for folder in _model_folders():
+        names |= _size_names(folder)
+    offenders = []
+    for py in CORE.rglob("*.py"):
+        text = py.read_text()
+        for name in names:
+            if re.search(rf"\b{re.escape(name)}\b", text):
+                offenders.append(f"{py.relative_to(REPO)} mentions {name}")
     assert not offenders, offenders
