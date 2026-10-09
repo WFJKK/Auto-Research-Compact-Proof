@@ -20,7 +20,7 @@ A run stops at rounds_max, after `patience` agent rounds in a row without a
 gain in the agent-facing metric, after max_consecutive_refusals refused
 attempts in a row, when the fake backend runs out of responses, or when the API
 reports something waiting cannot fix (a spend limit, say); `resume` continues.
-A run with the API backend starts only from a clean commit.
+A run with the api or claude_code backend starts only from a clean commit.
 """
 
 from __future__ import annotations
@@ -32,6 +32,7 @@ from pathlib import Path
 
 from .agent.backends import BackendError
 from .agent.backends.api import ApiBackend, StopRun
+from .agent.backends.claude_code import ClaudeCodeBackend
 from .agent.backends.fake import FakeBackend
 from .agent.backends.manual import ManualBackend
 from .agent.build_prompt import Prompt, PromptError, build_prompt
@@ -113,6 +114,8 @@ def make_backend(cfg, log=print):
         return ManualBackend(log=log)
     if cfg["backend"] == "api":
         return ApiBackend(cfg, log=log)
+    if cfg["backend"] == "claude_code":
+        return ClaudeCodeBackend(cfg, log=log)
     raise LoopError(f"unknown backend {cfg['backend']!r}")
 
 
@@ -210,11 +213,11 @@ def preflight(cfg: dict, folder) -> None:
     baseline_files(folder, cfg["baselines"])  # a misspelt baseline name fails here
     if cfg["lean_spot_check"] and lean_command(folder) is None:
         raise LoopError(f"lean_spot_check is on, but {folder.name} has no Lean checker (lean_check in its config.yaml)")
-    if cfg["backend"] == "api":
+    if cfg["backend"] in ("api", "claude_code"):
         g = git_state()
         if g["commit"] is None or g["dirty"]:
-            raise LoopError("a run with the API backend starts only from a clean commit; commit or stash your changes first")
-        make_backend(cfg)  # fails here, before the run exists, if the key is missing
+            raise LoopError(f"a run with the {cfg['backend']} backend starts only from a clean commit; commit or stash your changes first")
+        make_backend(cfg)  # fails here, before the run exists, if the key is missing or the CLI is not logged in
 
 
 def start(config_path: str | Path, log=print, run_id: str | None = None) -> Context:

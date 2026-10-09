@@ -163,6 +163,12 @@ def build_report(run_path: str | Path, reference_path: str | Path | None = None)
     tokens_in = sum((m.get("tokens") or {}).get("input", 0) for m in metas)
     tokens_out = sum((m.get("tokens") or {}).get("output", 0) for m in metas)
     cost = sum(m.get("cost_usd") or 0 for m in metas)
+    equivalent = 0.0
+    for k in run.done_rounds():
+        j = 0
+        while (run.round_path(k) / f"attempt_{j}").is_dir():
+            equivalent += float((run.read(k, f"attempt_{j}/response_meta.json") or {}).get("api_equivalent_usd") or 0)
+            j += 1
     modes = sorted({(m.get("sandbox") or {}).get("mode", "?") for m in metas if m.get("sandbox")})
     statuses: dict[str, int] = {}
     for r in records:
@@ -177,7 +183,8 @@ def build_report(run_path: str | Path, reference_path: str | Path | None = None)
         f"- Rounds done: {len([k for k in run.done_rounds() if k > 0])} agent rounds after round 0; metric {cfg['metric']}",
         f"- Code: commit {(versions.get('git') or {}).get('commit')}" + (" (with uncommitted changes)" if (versions.get("git") or {}).get("dirty") else ""),
         f"- Cost model {versions.get('cost_model')}, rule set {versions.get('rule_set')}, prompt template {cfg['prompt_template']}, sandbox {', '.join(modes) or 'unknown'}",
-        f"- API use: {tokens_in:,} input and {tokens_out:,} output tokens, about ${cost:.2f}",
+        f"- Agent use: {tokens_in:,} input and {tokens_out:,} output tokens, about ${cost:.2f} billed"
+        + (f" (about ${equivalent:.2f} at API prices, covered by a subscription)" if equivalent and not cost else ""),
         "- Every number is Python-checked: this model has no Lean checker yet."
         if lean_command(folder) is None
         else f"- Numbers are Python-checked; Lean spot checks on frontier entries are in lean.jsonl ({lean_lines(run)} so far).",

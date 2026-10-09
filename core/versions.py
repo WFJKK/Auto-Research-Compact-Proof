@@ -57,7 +57,7 @@ def collect(folder: ModelFolder, cfg: dict, config_sha: str) -> dict:
         "cost_model": COST_VERSION,
         "rule_set": rule_set_id(cfg["rule_set"], folder),
         "prompt_template": cfg["prompt_template"],
-        "agent_model": cfg["agent_model"] if cfg["backend"] == "api" else cfg["backend"],
+        "agent_model": cfg["agent_model"] if cfg["backend"] in ("api", "claude_code") else cfg["backend"],
         "config": config_sha,
     }
 

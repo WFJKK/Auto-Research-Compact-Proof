@@ -15,7 +15,7 @@ from .util import REPO_ROOT, read_yaml
 
 DEFAULTS_PATH = REPO_ROOT / "config" / "defaults.yaml"
 REQUIRED = ("run_id", "model")
-BACKENDS = ("fake", "manual", "api")
+BACKENDS = ("fake", "manual", "api", "claude_code")
 METRICS = ("Q", "cost_of_finishing")
 SANDBOX_MODES = ("auto", "container", "landlock", "process")
 THINKING_TYPES = ("adaptive", "enabled", "disabled")
@@ -99,6 +99,8 @@ def validate(cfg: dict, source: str = "run config") -> None:
         errors.append(f"backend must be one of {BACKENDS}")
     if not isinstance(cfg["fake_responses"], list) or not all(isinstance(p, str) for p in cfg["fake_responses"]):
         errors.append("fake_responses must be a list of paths")
+    if not isinstance(cfg["claude_code_command"], str) or not cfg["claude_code_command"]:
+        errors.append("claude_code_command must name the Claude Code executable")
     if not isinstance(cfg["api_key_env"], str) or not cfg["api_key_env"]:
         errors.append("api_key_env must name an environment variable")
     elif cfg["api_key_env"] in FORBIDDEN_KEY_VARIABLES:

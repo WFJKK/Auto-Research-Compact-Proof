@@ -48,8 +48,13 @@ shown_last_attempts: 3
 # builder leaves out recipe code, then cuts diagnostics, then notes.
 prompt_budget_tokens: 40000
 
-# fake, manual or api.
+# fake, manual, api or claude_code. api bills an API key per token;
+# claude_code runs the official Claude Code CLI headless under your own
+# Claude subscription login instead (see docs/BACKENDS.md and Anthropic's
+# current terms for Claude Code before relying on it).
 backend: fake
+# The Claude Code executable for the claude_code backend.
+claude_code_command: claude
 # Files or folders of responses the fake backend replays, in order.
 fake_responses: []
 
