@@ -8,6 +8,7 @@ DESCRIPTION = (
 )
 GROUPING = "by the largest token"
 ENCODING = "one_hot"
+LABEL_SYMMETRIC = True  # reordering the tokens never changes the label
 
 
 def input_space(sizes):

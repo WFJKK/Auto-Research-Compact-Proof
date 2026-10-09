@@ -4,7 +4,9 @@ Everything model-specific lives in one folder, `models/<name>/`:
 
     model.py     the architecture: exactly one torch nn.Module, whose
                  constructor takes the sizes as keyword arguments
-    task.py      the task (see TASK_ATTRIBUTES and TASK_FUNCTIONS)
+    task.py      the task (see TASK_ATTRIBUTES and TASK_FUNCTIONS); optionally
+                 LABEL_SYMMETRIC = True if reordering an input's positions never
+                 changes its label (needed by the symmetry rule)
     config.yaml  sizes, training, seeds, split, zoo path, cost model, hygiene
     rules.py     optional rules of the model's own (trusted)
     baselines/   optional fake-agent responses for round 0
@@ -232,4 +234,10 @@ def load_model_folder(path: str | Path) -> ModelFolder:
             raise ModelFolderError(f"{path.name}: the module must return (batch, outputs) logits")
         if labels.shape != (len(tokens),) or labels.min() < 0 or labels.max() >= out.shape[1]:
             raise ModelFolderError(f"{path.name}: labels must be one output index per input")
+        if getattr(task_mod, "LABEL_SYMMETRIC", False):
+            many = inputs.random_inputs(space, 256, rng)
+            base = np.asarray(task_mod.label(many, folder.sizes(setting)))
+            for perm in ([len(space) - 1 - i for i in range(len(space))], list(np.roll(np.arange(len(space)), 1))):
+                if not np.array_equal(base, np.asarray(task_mod.label(many[:, perm], folder.sizes(setting)))):
+                    raise ModelFolderError(f"{path.name}: LABEL_SYMMETRIC is declared but reordering changes labels")
     return folder

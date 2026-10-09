@@ -2,9 +2,10 @@
   "model": "max2",
   "networks": [
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s0.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.007504325360059738,
       "id": "max2-v128-s0",
       "n_inputs": 16384,
@@ -19,9 +20,10 @@
       "weights": "max2-v128-s0.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s1.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.006752013694494963,
       "id": "max2-v128-s1",
       "n_inputs": 16384,
@@ -36,9 +38,10 @@
       "weights": "max2-v128-s1.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s2.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.007680958136916161,
       "id": "max2-v128-s2",
       "n_inputs": 16384,
@@ -53,9 +56,10 @@
       "weights": "max2-v128-s2.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s3.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.007006756961345673,
       "id": "max2-v128-s3",
       "n_inputs": 16384,
@@ -70,9 +74,10 @@
       "weights": "max2-v128-s3.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s4.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.0077394344843924046,
       "id": "max2-v128-s4",
       "n_inputs": 16384,
@@ -87,9 +92,10 @@
       "weights": "max2-v128-s4.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s5.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.0065256450325250626,
       "id": "max2-v128-s5",
       "n_inputs": 16384,
@@ -104,9 +110,10 @@
       "weights": "max2-v128-s5.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s6.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.0073242527432739735,
       "id": "max2-v128-s6",
       "n_inputs": 16384,
@@ -121,9 +128,10 @@
       "weights": "max2-v128-s6.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s7.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.009115064516663551,
       "id": "max2-v128-s7",
       "n_inputs": 16384,
@@ -138,9 +146,10 @@
       "weights": "max2-v128-s7.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s8.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.00659364927560091,
       "id": "max2-v128-s8",
       "n_inputs": 16384,
@@ -155,9 +164,10 @@
       "weights": "max2-v128-s8.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 40407555,
+      "E": 4352,
       "correct": "max2-v128-s9.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.006921772845089436,
       "id": "max2-v128-s9",
       "n_inputs": 16384,
@@ -172,9 +182,10 @@
       "weights": "max2-v128-s9.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s0.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.020717281848192215,
       "id": "max2-v64-s0",
       "n_inputs": 4096,
@@ -189,9 +200,10 @@
       "weights": "max2-v64-s0.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s1.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.025583764538168907,
       "id": "max2-v64-s1",
       "n_inputs": 4096,
@@ -206,9 +218,10 @@
       "weights": "max2-v64-s1.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s2.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.037243470549583435,
       "id": "max2-v64-s2",
       "n_inputs": 4096,
@@ -223,9 +236,10 @@
       "weights": "max2-v64-s2.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s3.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.020466379821300507,
       "id": "max2-v64-s3",
       "n_inputs": 4096,
@@ -240,9 +254,10 @@
       "weights": "max2-v64-s3.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s4.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.02716897800564766,
       "id": "max2-v64-s4",
       "n_inputs": 4096,
@@ -257,9 +272,10 @@
       "weights": "max2-v64-s4.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s5.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.021405378356575966,
       "id": "max2-v64-s5",
       "n_inputs": 4096,
@@ -274,9 +290,10 @@
       "weights": "max2-v64-s5.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s6.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.03780258446931839,
       "id": "max2-v64-s6",
       "n_inputs": 4096,
@@ -291,9 +308,10 @@
       "weights": "max2-v64-s6.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s7.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.03396683558821678,
       "id": "max2-v64-s7",
       "n_inputs": 4096,
@@ -308,9 +326,10 @@
       "weights": "max2-v64-s7.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s8.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.025034481659531593,
       "id": "max2-v64-s8",
       "n_inputs": 4096,
@@ -325,9 +344,10 @@
       "weights": "max2-v64-s8.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 2696387,
+      "E": 1088,
       "correct": "max2-v64-s9.correct.npy",
+      "cost_model": "cost-v1",
       "final_loss": 0.020294981077313423,
       "id": "max2-v64-s9",
       "n_inputs": 4096,

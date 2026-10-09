@@ -1,0 +1,265 @@
+"""Check one proof file for one network.
+
+    python -m core.check.checker models/<name> <network id> proof.json
+
+The checker loads the network's weights itself (hash-checked) and builds the
+network from the model folder's model.py. Nothing the proof claims is trusted:
+every bound is recomputed exactly. A malformed proof is rejected as a whole;
+a leaf whose bound fails simply certifies nothing.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+from fractions import Fraction
+
+import numpy as np
+
+from .. import inputs
+from ..model_folder import ModelFolder, load_model_folder
+from ..zoo import load_weights, network_entry
+from .approx import Approximation, ApproximationError
+from .cost import VERSION as COST_VERSION
+from .cost import Counter, count_scalars
+from .evaluate import CheckError, Program
+from .proof import SCHEMA, TOP_KEYS, certified_mask, full_tree, sorted_orbit_count, walk
+from .rules import GENERIC_RULES, LEAF_RULES
+from .trace import UnsupportedOp, build_graph
+
+MAX_REJECTED_REPORTED = 50
+
+
+def limits(n_inputs: int) -> dict:
+    return {"max_scalars": 50 * n_inputs + 10**6, "max_nodes": 4 * n_inputs + 10**4}
+
+
+def _fraction_str(f: Fraction) -> str:
+    return f"{f.numerator}/{f.denominator}"
+
+
+def _rejected(reason: str, nid: str, n: int, counter: Counter) -> dict:
+    return {
+        "status": "rejected",
+        "reason": reason,
+        "network": nid,
+        "n_inputs": n,
+        "certified": 0,
+        "certified_accuracy": "0/1",
+        "certified_accuracy_float": 0.0,
+        "length": counter.total,
+        "length_by_rule": counter.as_dict(),
+        "leaves": {"total": 0, "accepted": 0, "rejected": 0, "skipped": 0},
+        "rejected_pieces": [],
+        "cost_model": COST_VERSION,
+    }
+
+
+def check_proof(
+    proof,
+    folder: ModelFolder,
+    network_id: str,
+    rule_set=GENERIC_RULES,
+    allow_held_out: bool = False,
+    want_mask: bool = False,
+) -> dict:
+    rule_set = tuple(rule_set)
+    entry = network_entry(folder, network_id)
+    setting = entry["setting"]
+    sizes = folder.sizes(setting)
+    space = folder.input_space(setting)
+    n = inputs.n_inputs(space)
+    lim = limits(n)
+    counter = Counter()
+    try:
+        # read --------------------------------------------------------------
+        if not isinstance(proof, dict):
+            raise CheckError("a proof file is a JSON object")
+        n_scalars = count_scalars(proof, limit=lim["max_scalars"])
+        if n_scalars > lim["max_scalars"]:
+            raise CheckError(f"the proof file has more than {lim['max_scalars']} numbers and strings")
+        counter.add("read", n_scalars)
+        extra = set(proof) - TOP_KEYS
+        if extra:
+            raise CheckError(f"unknown top-level keys {sorted(extra)}")
+        if proof.get("schema") != SCHEMA:
+            raise CheckError(f"schema must be {SCHEMA!r}")
+        if proof.get("network") != network_id:
+            raise CheckError(f"the proof names network {proof.get('network')!r}, not {network_id!r}")
+        if "tree" not in proof:
+            raise CheckError("the proof has no tree")
+
+        # network -------------------------------------------------------------
+        weights = load_weights(folder, network_id, allow_held_out=allow_held_out)
+        graph = build_graph(folder.build(setting))
+        prog = Program(graph, weights, counter)
+
+        # global rules --------------------------------------------------------
+        symmetry = proof.get("symmetry", False)
+        if not isinstance(symmetry, bool):
+            raise CheckError("symmetry must be true or false")
+        if symmetry:
+            if "symmetry" not in rule_set:
+                raise CheckError("the symmetry rule is not allowed in this run")
+            if not graph.summed_over_positions_first():
+                raise CheckError("symmetry does not hold: the input is not used only through a sum over positions")
+            if getattr(folder.task, "LABEL_SYMMETRIC", False) is not True:
+                raise CheckError("symmetry does not hold: the task does not declare that reordering keeps the label")
+        contractions = proof.get("contract", [])
+        if contractions and "contract" not in rule_set:
+            raise CheckError("the contract rule is not allowed in this run")
+        if not isinstance(contractions, list):
+            raise CheckError("contract must be a list")
+        for c in contractions:
+            if not isinstance(c, dict) or set(c) != {"name", "chain"}:
+                raise CheckError('each contraction is {"name": ..., "chain": [...]}')
+            prog.contract(c["name"], c["chain"], counter)
+        approximations = {}
+        approx_specs = proof.get("approximate", [])
+        if approx_specs and "approximate" not in rule_set:
+            raise CheckError("the approximate rule is not allowed in this run")
+        if not isinstance(approx_specs, list):
+            raise CheckError("approximate must be a list")
+        for a in approx_specs:
+            if not isinstance(a, dict) or not isinstance(a.get("name"), str) or not isinstance(a.get("of"), str):
+                raise CheckError('each approximation has a "name" and an "of"')
+            if a["name"] in approximations:
+                raise CheckError(f"approximation {a['name']!r} is defined twice")
+            try:
+                lin = prog.linear(a["of"])
+            except KeyError:
+                raise CheckError(f"approximation of unknown linear map {a['of']!r}") from None
+            spec = {k: v for k, v in a.items() if k not in ("name", "of")}
+            try:
+                approximations[a["name"]] = Approximation(a["name"], a["of"], spec, lin.W, counter)
+            except ApproximationError as exc:
+                raise CheckError(f"approximation {a['name']!r}: {exc}") from exc
+
+        # tree ------------------------------------------------------------------
+        leaves, n_nodes = walk(proof["tree"], space, lim["max_nodes"])
+        counter.add("tree", n_nodes)
+        for leaf in leaves:
+            if leaf.rule not in LEAF_RULES or leaf.rule not in rule_set + ("skip",):
+                raise CheckError(f"{leaf.path}: rule {leaf.rule!r} is not allowed in this run")
+            if leaf.approx is not None and leaf.approx not in approximations:
+                raise CheckError(f"{leaf.path}: unknown approximation {leaf.approx!r}")
+
+        # leaves ----------------------------------------------------------------
+        accepted, rejected, skipped = [], [], 0
+        singles = [l for l in leaves if l.rule == "single"]
+        for l in singles:
+            if not l.is_single():
+                raise CheckError(f"{l.path}: a single leaf must hold exactly one input")
+        if singles:
+            tokens = np.array([[lo for lo, _ in l.ranges] for l in singles], dtype=np.int64)
+            labels = np.asarray(folder.task.label(tokens, sizes), dtype=np.int64)
+            ok, margins = prog.run_singles(tokens, labels, counter)
+            for l, good, m in zip(singles, ok, margins):
+                if good:
+                    accepted.append(l)
+                else:
+                    rejected.append({"path": l.path, "rule": "single", "ranges": l.ranges, "worst_margin": float(m)})
+        for l in leaves:
+            if l.rule == "skip":
+                skipped += 1
+            elif l.rule == "interval":
+                label = folder.task.constant_label(l.ranges, sizes)
+                if label is None:
+                    rejected.append({"path": l.path, "rule": "interval", "ranges": l.ranges, "reason": "label not constant"})
+                    continue
+                good, worst, j = prog.run_interval(l.ranges, int(label), counter, approximations.get(l.approx))
+                if good:
+                    accepted.append(l)
+                else:
+                    rejected.append(
+                        {
+                            "path": l.path,
+                            "rule": "interval",
+                            "ranges": l.ranges,
+                            "label": int(label),
+                            "worst_output": int(j),
+                            "worst_margin": float(worst),
+                        }
+                    )
+
+        # count -------------------------------------------------------------------
+        if symmetry:
+            certified = sum(sorted_orbit_count(l.ranges) for l in accepted)
+            counter.add("symmetry", len(accepted))
+        else:
+            certified = sum(l.size for l in accepted)
+        mask = None
+        if want_mask:
+            mask = certified_mask(space, [l.ranges for l in accepted], symmetry)
+            if int(mask.sum()) != certified:
+                raise RuntimeError("internal error: certified count and mask disagree")
+        if certified > n:
+            raise RuntimeError("internal error: more inputs certified than exist")
+    except (CheckError, UnsupportedOp) as exc:
+        return _rejected(str(exc), network_id, n, counter)
+
+    acc = Fraction(certified, n)
+    rejected.sort(key=lambda r: r.get("worst_margin", float("-inf")))
+    result = {
+        "status": "ok",
+        "reason": None,
+        "network": network_id,
+        "n_inputs": n,
+        "certified": int(certified),
+        "certified_accuracy": _fraction_str(acc),
+        "certified_accuracy_float": float(acc),
+        "length": counter.total,
+        "length_by_rule": counter.as_dict(),
+        "leaves": {"total": len(leaves), "accepted": len(accepted), "rejected": len(rejected), "skipped": skipped},
+        "rejected_pieces": rejected[:MAX_REJECTED_REPORTED],
+        "cost_model": COST_VERSION,
+        "symmetry": symmetry,
+    }
+    if want_mask:
+        result["mask"] = mask
+    return result
+
+
+def brute_force_proof(folder: ModelFolder, network_id: str) -> dict:
+    space = folder.input_space(network_entry(folder, network_id)["setting"])
+    return {"schema": SCHEMA, "network": network_id, "tree": full_tree(space)}
+
+
+def extraction_and_brute_force_costs(folder: ModelFolder, network_id: str, allow_held_out: bool = True) -> tuple[int, int]:
+    """E and B under the cost model, computed without running brute force.
+
+    B is the length the checker reports for brute_force_proof; a test checks
+    that the two agree on a small model.
+    """
+    entry = network_entry(folder, network_id)
+    space = folder.input_space(entry["setting"])
+    n = inputs.n_inputs(space)
+    weights = load_weights(folder, network_id, allow_held_out=allow_held_out)
+    counter = Counter()
+    prog = Program(build_graph(folder.build(entry["setting"])), weights, counter)
+    E = counter.total
+    one = Counter()
+    tok = np.zeros((1, len(space)), dtype=np.int64)
+    lab = np.asarray(folder.task.label(tok, folder.sizes(entry["setting"])), dtype=np.int64)
+    prog.run_singles(tok, lab, one)
+    proof = brute_force_proof(folder, network_id)
+    _, n_nodes = walk(proof["tree"], space, limits(n)["max_nodes"])
+    B = E + count_scalars(proof) + n_nodes + n * one.total
+    return E, B
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("model_folder")
+    ap.add_argument("network")
+    ap.add_argument("proof")
+    args = ap.parse_args(argv)
+    folder = load_model_folder(args.model_folder)
+    with open(args.proof) as f:
+        proof = json.load(f)
+    res = check_proof(proof, folder, args.network)
+    print(json.dumps(res, indent=2))
+
+
+if __name__ == "__main__":
+    main()

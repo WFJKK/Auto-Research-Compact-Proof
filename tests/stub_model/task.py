@@ -5,6 +5,7 @@ import numpy as np
 DESCRIPTION = "Each input is a sequence of tokens; the correct output is the smallest token."
 GROUPING = "by the smallest token"
 ENCODING = "one_hot"
+LABEL_SYMMETRIC = True  # reordering the tokens never changes the label
 
 
 def input_space(sizes):
