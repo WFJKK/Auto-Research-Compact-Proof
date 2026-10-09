@@ -14,8 +14,11 @@ Recipes run in the sandbox the run config asks for (core.sandbox). Each start
 and resume first runs the sandbox probe; a hardened mode that lets anything
 critical out is refused, and the weak process mode is reported.
 
-Prompt building (Step 7), patience and the API backend (Step 8) come later;
-until then the fake backend stands in for the agent.
+A run stops at rounds_max, after `patience` agent rounds in a row without a
+gain in the agent-facing metric, after max_consecutive_refusals refused
+attempts in a row, when the fake backend runs out of responses, or when the API
+reports something waiting cannot fix (a spend limit, say); `resume` continues.
+A run with the API backend starts only from a clean commit.
 """
 
 from __future__ import annotations
@@ -26,17 +29,19 @@ import sys
 from pathlib import Path
 
 from .agent.backends import BackendError
+from .agent.backends.api import ApiBackend, StopRun
 from .agent.backends.fake import FakeBackend
 from .agent.backends.manual import ManualBackend
 from .agent.build_prompt import Prompt, PromptError, build_prompt
 from .diagnostics import render_attempt
+from .lean import LeanError, lean_command, spot_check
 from .archive import RunDir
 from .model_folder import load_model_folder
 from .rounds import Context, RoundError, now, run_round
 from .run_config import load_run_config, resolve
 from .runner import Limits
 from .sandbox import SandboxError, check_probe, choose, probe, protected_paths
-from .scoring import summarize
+from .scoring import frontier, summarize
 from .util import git_state, read_json, write_json
 from .versions import changed, collect
 from .zoo import networks
@@ -78,7 +83,45 @@ def make_backend(cfg, log=print):
         return FakeBackend([resolve(p) for p in cfg["fake_responses"]])
     if cfg["backend"] == "manual":
         return ManualBackend(log=log)
-    raise LoopError(f"the {cfg['backend']} backend is not built yet")
+    if cfg["backend"] == "api":
+        return ApiBackend(cfg, log=log)
+    raise LoopError(f"unknown backend {cfg['backend']!r}")
+
+
+def metric_by_setting(records: list[dict], entries: list[dict], metric: str) -> dict:
+    key = "cost_of_finishing_median" if metric == "cost_of_finishing" else "Q_median"
+    return {s: v[key] for s, v in summarize(records, entries).items()}
+
+
+def rounds_without_gain(run: RunDir, entries: list[dict], metric: str) -> int:
+    """Agent rounds in a row, counting back from the last, that raised the metric in no size setting."""
+    records = run.read_archive()
+    done = [k for k in run.done_rounds() if k > 0]
+    best = metric_by_setting([r for r in records if r["round"] == 0], entries, metric)
+    since = 0
+    for k in done:
+        now_ = metric_by_setting([r for r in records if r["round"] <= k], entries, metric)
+        if any(now_[s] > best.get(s, 0.0) + 1e-12 for s in now_):
+            since = 0
+        else:
+            since += 1
+        best = {s: max(best.get(s, 0.0), v) for s, v in now_.items()}
+    return since
+
+
+def consecutive_refusals(run: RunDir) -> int:
+    n = 0
+    for k in reversed([k for k in run.done_rounds() if k > 0]):
+        metas = []
+        j = 0
+        while (run.round_path(k) / f"attempt_{j}").is_dir():
+            metas.append(run.read(k, f"attempt_{j}/response_meta.json") or {})
+            j += 1
+        for m in reversed(metas):
+            if m.get("stop_reason") != "refusal":
+                return n
+            n += 1
+    return n
 
 
 def round_prompt(ctx: Context, k: int) -> Prompt:
@@ -133,10 +176,22 @@ def open_context(run: RunDir, cfg: dict, log=print) -> Context:
     )
 
 
+def preflight(cfg: dict, folder) -> None:
+    """Checks that must pass before a run folder is made."""
+    select_networks(folder, cfg)
+    if cfg["lean_spot_check"] and lean_command(folder) is None:
+        raise LoopError(f"lean_spot_check is on, but {folder.name} has no Lean checker (lean_check in its config.yaml)")
+    if cfg["backend"] == "api":
+        g = git_state()
+        if g["commit"] is None or g["dirty"]:
+            raise LoopError("a run with the API backend starts only from a clean commit; commit or stash your changes first")
+        make_backend(cfg)  # fails here, before the run exists, if the key is missing
+
+
 def start(config_path: str | Path, log=print, run_id: str | None = None) -> Context:
     cfg = load_run_config(config_path, run_id=run_id)
     folder = load_model_folder(resolve(cfg["model"]))
-    select_networks(folder, cfg)  # fail early
+    preflight(cfg, folder)
     run = RunDir(resolve(cfg["runs_dir"]), cfg["run_id"])
     run.create(cfg)
     config_sha = (run.path / "config.sha256").read_text().strip()
@@ -169,10 +224,24 @@ def drive(ctx: Context) -> None:
     while k <= cfg["rounds_max"]:
         first = (k - 1) * per_round
         fresh = not run.round_done(k) and run.read(k, "attempt_0/response.md") is None
-        if fresh and not backend.available(first):
-            ctx.log(f"the {backend.name} backend has no more responses; stopping after round {k - 1}")
-            break
+        if fresh:
+            stale = rounds_without_gain(run, ctx.entries, cfg["metric"])
+            if stale >= cfg["patience"]:
+                ctx.log(f"no gain in {stale} rounds (patience {cfg['patience']}); stopping after round {k - 1}")
+                break
+            refused = consecutive_refusals(run)
+            if refused >= cfg["max_consecutive_refusals"]:
+                ctx.log(f"the model declined {refused} attempts in a row; stopping after round {k - 1}")
+                break
+            if not backend.available(first):
+                ctx.log(f"the {backend.name} backend has no more responses; stopping after round {k - 1}")
+                break
+        before = {p["record_id"] for pts in frontier(run.read_archive()).values() for p in pts}
         run_round(ctx, k, backend, first, per_round, "agent", prompt=round_prompt(ctx, k))
+        if cfg["lean_spot_check"]:
+            entered = [r for r in run.read_archive() if r["round"] == k and r["record_id"] not in before]
+            new_points = {p["record_id"] for pts in frontier(run.read_archive()).values() for p in pts}
+            spot_check(ctx, k, [r for r in entered if r["record_id"] in new_points])
         k += 1
 
 
@@ -241,7 +310,10 @@ def main(argv=None):
         drive(ctx)
         print(status_text(ctx.run))
         return 0
-    except (LoopError, RoundError, BackendError, SandboxError, PromptError) as exc:
+    except StopRun as exc:
+        print(f"stopped: {exc}\nFix the cause, then continue with: python -m core.loop resume --run <the run's folder>", file=sys.stderr)
+        return 3
+    except (LoopError, RoundError, BackendError, SandboxError, PromptError, LeanError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 

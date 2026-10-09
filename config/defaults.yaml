@@ -48,11 +48,21 @@ backend: fake
 fake_responses: []
 
 agent_model: claude-fable-5-1
-# Set in Step 8 from the current API documentation.
-thinking: null
-max_output_tokens: null
+# Passed to the Messages API as `thinking`; adaptive lets the model decide how
+# much to think, guided by effort (low, medium, high, xhigh or max), which goes
+# into `output_config`. null leaves either out.
+thinking: {type: adaptive}
+effort: xhigh
+# A hard cap on thinking plus answer; responses stream, so a large one is fine.
+max_output_tokens: 64000
 # The variable holding the API key. Never ANTHROPIC_API_KEY.
 api_key_env: CPL_ANTHROPIC_KEY
+# Retries for errors that pass by themselves (overloaded, server errors, rate
+# limits with a retry-after, lost connections); waits double from first_wait_s.
+# Spend limits, billing, authentication and malformed requests stop the run.
+api_retries: {tries: 6, first_wait_s: 10, max_wait_s: 300, timeout_s: 1800}
+# Stop when this many attempts in a row were refused by the model.
+max_consecutive_refusals: 3
 
 prompt_template: v1
 rule_set: [single, interval, skip, contract, symmetry, approximate]

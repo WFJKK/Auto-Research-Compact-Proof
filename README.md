@@ -6,7 +6,7 @@ Each round, an agent proposes a circuit claim and a recipe: a program that turns
 
 ## Status
 
-Steps 0 to 6 of the spec are built and tested: the max2 model folder with its trained zoo, the exact checker, the sandbox runner with its hardened modes, a fake agent that replays responses from files, round 0 (the baseline frontier) and diagnostics. Next come the prompt builder, the API backend and reports (Steps 7 to 9). Nothing needs an API key yet.
+Steps 0 to 8 of the spec are built and tested: the max2 model folder with its trained zoo, the exact checker, the sandbox with its hardened modes, diagnostics, the prompt builder, and the loop with fake, manual and API backends (the API one tested against a mock only). Next come reports and the final held-out evaluation (Step 9), then the first real runs with an API key (Step 10).
 
 The first model is the max-of-2 network from the [proof-based approach tutorial](https://github.com/LouisYRYJ/Proof_based_approach_tutorial/blob/master/proof_public.ipynb).
 
@@ -33,4 +33,27 @@ Open a Claude Code session in this repository and ask it to follow `docs/SPEC.md
 
 ## Running with your own API key
 
-Once the loop exists (Step 8 of the spec), keep your Anthropic API key outside the repository and export it as `CPL_ANTHROPIC_KEY`, never as `ANTHROPIC_API_KEY`. Run data goes to a folder outside the repository, set by `runs_dir` in the run config.
+1. Put the key in a file outside the repository, readable only by you:
+
+   ```bash
+   mkdir -p ~/.config/auto-research-compact-proof
+   printf 'CPL_ANTHROPIC_KEY=%s\n' 'sk-ant-...' > ~/.config/auto-research-compact-proof/env
+   chmod 600 ~/.config/auto-research-compact-proof/env
+   ```
+
+2. Load it into the shell that starts the run. Never use `ANTHROPIC_API_KEY`: Claude Code would bill its own work to that key.
+
+   ```bash
+   set -a; . ~/.config/auto-research-compact-proof/env; set +a
+   ```
+
+3. Commit your changes (an API run starts only from a clean commit), then start the run and check on it:
+
+   ```bash
+   python -m core.loop run --config config/<run>.yaml
+   python -m core.loop status --run ~/auto-research-compact-proof-runs/<run_id> --diagnostics
+   ```
+
+A run stops at `rounds_max`, after `patience` rounds without a gain, or when the API reports something waiting can't fix (a spend limit, say). Ctrl-C is safe at any point; `python -m core.loop resume --run <runs_dir>/<run_id>` continues without paying for any saved response again. Each round's `meta.json` records the tokens used and the estimated cost, priced from `config/prices.yaml`.
+
+To try the loop without a key, `config/max2-manual.yaml` lets you play the agent: each round writes a prompt for you to paste into Claude, and waits for you to save the answer as `response.md`.

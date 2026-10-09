@@ -18,6 +18,8 @@ REQUIRED = ("run_id", "model")
 BACKENDS = ("fake", "manual", "api")
 METRICS = ("Q", "cost_of_finishing")
 SANDBOX_MODES = ("auto", "container", "landlock", "process")
+THINKING_TYPES = ("adaptive", "enabled", "disabled")
+EFFORTS = ("low", "medium", "high", "xhigh", "max")
 FORBIDDEN_KEY_VARIABLES = ("ANTHROPIC_API_KEY",)
 
 
@@ -103,6 +105,20 @@ def validate(cfg: dict, source: str = "run config") -> None:
         errors.append(f"rule_set must be a non-empty list drawn from {list(GENERIC_RULES)}")
     if not isinstance(cfg["prompt_template"], str) or not (REPO_ROOT / "core" / "agent" / "prompts" / f"{cfg['prompt_template']}.md").is_file():
         errors.append(f"prompt_template {cfg['prompt_template']!r} is not in core/agent/prompts")
+    thinking = cfg["thinking"]
+    if thinking is not None and (not isinstance(thinking, dict) or thinking.get("type") not in THINKING_TYPES):
+        errors.append(f"thinking must be null or a mapping whose type is one of {THINKING_TYPES}")
+    if cfg["effort"] is not None and cfg["effort"] not in EFFORTS:
+        errors.append(f"effort must be null or one of {EFFORTS}")
+    if cfg["max_output_tokens"] is not None:
+        _number(cfg, "max_output_tokens", errors, integer=True, minimum=1)
+    retries = cfg["api_retries"]
+    if not isinstance(retries, dict) or set(retries) != {"tries", "first_wait_s", "max_wait_s", "timeout_s"}:
+        errors.append("api_retries must give tries, first_wait_s, max_wait_s and timeout_s")
+    else:
+        for key in retries:
+            _number(retries, key, errors, positive=True)
+    _number(cfg, "max_consecutive_refusals", errors, integer=True, minimum=1)
     if cfg["metric"] not in METRICS:
         errors.append(f"metric must be one of {METRICS}")
     nets = cfg["networks"]
