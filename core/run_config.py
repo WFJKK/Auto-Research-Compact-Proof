@@ -83,7 +83,7 @@ def validate(cfg: dict, source: str = "run config") -> None:
         errors.append("knob_values must be a non-empty list of distinct numbers in [0, 1]")
     for key in ("time_limit_s", "memory_limit_mb", "max_proof_mb"):
         _number(cfg, key, errors, positive=True)
-    for key in ("threads_per_recipe", "workers", "recipes_per_round", "rounds_max", "patience"):
+    for key in ("threads_per_recipe", "workers", "recipes_per_round", "rounds_max", "patience", "prompt_budget_tokens"):
         _number(cfg, key, errors, integer=True, minimum=1)
     for key in ("shown_top_recipes", "shown_last_attempts", "seed"):
         _number(cfg, key, errors, integer=True, minimum=0)
@@ -101,6 +101,8 @@ def validate(cfg: dict, source: str = "run config") -> None:
     rules = cfg["rule_set"]
     if not isinstance(rules, list) or not rules or not set(rules) <= set(GENERIC_RULES):
         errors.append(f"rule_set must be a non-empty list drawn from {list(GENERIC_RULES)}")
+    if not isinstance(cfg["prompt_template"], str) or not (REPO_ROOT / "core" / "agent" / "prompts" / f"{cfg['prompt_template']}.md").is_file():
+        errors.append(f"prompt_template {cfg['prompt_template']!r} is not in core/agent/prompts")
     if cfg["metric"] not in METRICS:
         errors.append(f"metric must be one of {METRICS}")
     nets = cfg["networks"]

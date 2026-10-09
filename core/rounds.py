@@ -320,14 +320,19 @@ def attempt_summary(records: list[dict], response_meta: dict | None) -> dict:
 
 
 # rounds ----------------------------------------------------------------------------
-def run_round(ctx: Context, k: int, backend, first_index: int, n_attempts: int, source: str, prompt: str | None = None) -> dict:
-    """Run round k with up to n_attempts responses from backend, numbered from first_index; then mark it done."""
+def run_round(ctx: Context, k: int, backend, first_index: int, n_attempts: int, source: str, prompt=None) -> dict:
+    """Run round k with up to n_attempts responses from backend, numbered from first_index; then mark it done.
+
+    prompt is a core.agent.build_prompt.Prompt; the round keeps the first one it was given, so a resumed
+    round sends exactly the prompt it saved.
+    """
     if ctx.run.round_done(k):
         return ctx.run.read(k, "meta.json")
     started, t0 = now(), time.monotonic()
     ctx.log(f"round {k} ({source})")
-    if prompt is not None and ctx.run.read(k, "prompt.md") is None:
-        ctx.run.write(k, "prompt.md", prompt)
+    if prompt is not None and ctx.run.read(k, "prompt.json") is None:
+        ctx.run.write(k, "prompt.md", prompt.text)
+        ctx.run.write(k, "prompt.json", prompt.as_json())
     attempts, tokens_in, tokens_out, cost = [], 0, 0, 0.0
     for j in range(n_attempts):
         rel = f"attempt_{j}"
@@ -335,7 +340,9 @@ def run_round(ctx: Context, k: int, backend, first_index: int, n_attempts: int, 
         if text is None:
             if not backend.available(first_index + j):
                 break
-            resp = backend.respond(prompt, first_index + j)
+            where = ctx.run.round_path(k) / rel
+            where.mkdir(parents=True, exist_ok=True)
+            resp = backend.respond(prompt, first_index + j, where)
             ctx.run.write(k, f"{rel}/response.md", resp.text)  # first, so a paid response is never lost
             ctx.run.write(k, f"{rel}/response_meta.json", resp.meta)
             text = resp.text
@@ -357,6 +364,7 @@ def run_round(ctx: Context, k: int, backend, first_index: int, n_attempts: int, 
         "git": git_state(),
         "sandbox": ctx.sandbox.describe(),
         "limits": {"time_s": ctx.limits.time_s, "memory_mb": ctx.limits.memory_mb, "max_proof_bytes": ctx.limits.max_proof_bytes},
+        "prompt": (ctx.run.read(k, "prompt.json") or {}).get("stats"),
         "tokens": {"input": tokens_in, "output": tokens_out},
         "cost_usd": round(cost, 4),
         "started": started,

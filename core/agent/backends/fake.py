@@ -33,7 +33,7 @@ class FakeBackend:
     def available(self, index: int) -> bool:
         return 0 <= index < len(self.items)
 
-    def respond(self, prompt: str | None, index: int) -> Response:
+    def respond(self, prompt, index: int, where=None) -> Response:
         if not self.available(index):
             raise BackendError(f"the fake backend has {len(self.items)} responses; asked for number {index + 1}")
         path, text = self.items[index]

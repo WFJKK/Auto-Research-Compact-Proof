@@ -27,6 +27,8 @@ from pathlib import Path
 
 from .agent.backends import BackendError
 from .agent.backends.fake import FakeBackend
+from .agent.backends.manual import ManualBackend
+from .agent.build_prompt import Prompt, PromptError, build_prompt
 from .diagnostics import render_attempt
 from .archive import RunDir
 from .model_folder import load_model_folder
@@ -71,10 +73,22 @@ def select_networks(folder, cfg) -> list[dict]:
     return chosen
 
 
-def make_backend(cfg):
+def make_backend(cfg, log=print):
     if cfg["backend"] == "fake":
         return FakeBackend([resolve(p) for p in cfg["fake_responses"]])
+    if cfg["backend"] == "manual":
+        return ManualBackend(log=log)
     raise LoopError(f"the {cfg['backend']} backend is not built yet")
+
+
+def round_prompt(ctx: Context, k: int) -> Prompt:
+    """The prompt round k sent, if it has one already; otherwise a new one from the archive."""
+    saved = ctx.run.read(k, "prompt.json")
+    if saved is not None:
+        return Prompt.from_json(saved)
+    p = build_prompt(ctx.cfg, ctx.folder, ctx.entries, ctx.run, k)
+    ctx.log(f"  prompt: about {p.stats['tokens_estimate']:,} tokens" + (f"; trimmed {', '.join(p.stats['trimmed'])}" if p.stats["trimmed"] else ""))
+    return p
 
 
 def prepare_sandbox(cfg: dict, folder, run: RunDir, entries: list[dict], log=print):
@@ -149,7 +163,7 @@ def drive(ctx: Context) -> None:
             run_round(ctx, 0, fake, 0, len(fake), "baseline")
         else:
             run_round(ctx, 0, _NoResponses(), 0, 0, "baseline")
-    backend = make_backend(cfg)
+    backend = make_backend(cfg, ctx.log)
     per_round = cfg["recipes_per_round"]
     k = max(run.next_round(), 1)
     while k <= cfg["rounds_max"]:
@@ -158,7 +172,7 @@ def drive(ctx: Context) -> None:
         if fresh and not backend.available(first):
             ctx.log(f"the {backend.name} backend has no more responses; stopping after round {k - 1}")
             break
-        run_round(ctx, k, backend, first, per_round, "agent")
+        run_round(ctx, k, backend, first, per_round, "agent", prompt=round_prompt(ctx, k))
         k += 1
 
 
@@ -227,7 +241,7 @@ def main(argv=None):
         drive(ctx)
         print(status_text(ctx.run))
         return 0
-    except (LoopError, RoundError, BackendError, SandboxError) as exc:
+    except (LoopError, RoundError, BackendError, SandboxError, PromptError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 

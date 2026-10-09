@@ -129,7 +129,7 @@ def _pct(x: float) -> str:
     return f"{100 * x:.3f}%"
 
 
-def _share(v: float, total: float) -> str:
+def share(v: float, total: float) -> str:
     x = 100 * v / total if total else 0.0
     return f"{x:.1f}%" if x >= 0.05 else "<0.1%"
 
@@ -148,7 +148,7 @@ def _median(values):
     return statistics.median(values) if values else None
 
 
-def _knob_lines(ok: list[dict]) -> tuple[list[str], float]:
+def knob_lines(ok: list[dict]) -> tuple[list[str], float]:
     """One line per knob value (identical neighbours merged), and the knob with the best median result."""
     rows, best_knob, best_key = [], None, None
     for k in dict.fromkeys(r["knob"] for r in ok):
@@ -191,16 +191,16 @@ def render_attempt(records: list[dict], grouping: str = "group") -> str:
         ok = [r for r in rs if r["status"] == "ok"]
         if not ok:
             continue
-        knob_lines, best = _knob_lines(ok)
-        lines += knob_lines
+        knob_lines_, best = knob_lines(ok)
+        lines += knob_lines_
         kr = [r for r in ok if r["knob"] == best]
-        at = f" at knob {_knob(best)}" if len(knob_lines) > 1 else ""
+        at = f" at knob {_knob(best)}" if len(knob_lines_) > 1 else ""
 
         mid = sorted(kr, key=lambda r: r["length"])[len(kr) // 2]
         parts = [(c, mid["length_by_rule"].get(c, 0)) for c in RULE_ORDER if mid["length_by_rule"].get(c)]
         lines.append(
             f"  length by rule{at} ({mid['network']}): "
-            + ", ".join(f"{c} {_share(v, mid['length'])}" for c, v in parts)
+            + ", ".join(f"{c} {share(v, mid['length'])}" for c, v in parts)
         )
 
         rej = [r.get("rejected_summary") or {} for r in kr]

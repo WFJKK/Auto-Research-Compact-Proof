@@ -38,6 +38,9 @@ screen: true
 
 shown_top_recipes: 3
 shown_last_attempts: 3
+# The prompt's size budget, in tokens estimated as characters / 4. Over it, the
+# builder leaves out recipe code, then cuts diagnostics, then notes.
+prompt_budget_tokens: 40000
 
 # fake, manual or api.
 backend: fake
