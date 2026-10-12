@@ -3,12 +3,13 @@
 This lets a run draw on a Claude subscription (Pro or Max) through the user's
 own Claude Code login instead of billing an API key. Each attempt runs
 
-    claude -p --bare --tools "" --output-format json --no-session-persistence
+    claude -p --tools "" --output-format json --no-session-persistence
+           --setting-sources "" --disable-slash-commands --strict-mcp-config
            --model <agent_model> --effort <effort> --system-prompt <short>
 
 with the prompt on stdin and an empty temporary folder as the working
 directory, so the CLI behaves as a plain model call: no tools, no files, no
-hooks, no project settings. The JSON result gives the response text and the
+project settings, no MCP servers. The JSON result gives the response text and the
 tokens used; the CLI's own dollar figure is recorded as api_equivalent_usd,
 while cost_usd stays 0 because nothing is billed per call.
 
@@ -87,7 +88,10 @@ class ClaudeCodeBackend:
         return True
 
     def command_line(self) -> list[str]:
-        cmd = [self.command, "-p", "--bare", "--tools", "", "--output-format", "json", "--no-session-persistence"]
+        # Not --bare: that mode skips keychain reads and accepts only an API key, so a subscription
+        # login would look logged out. These flags give the same isolation without touching auth.
+        cmd = [self.command, "-p", "--tools", "", "--output-format", "json", "--no-session-persistence"]
+        cmd += ["--setting-sources", "", "--disable-slash-commands", "--strict-mcp-config"]
         cmd += ["--system-prompt", SYSTEM_PROMPT, "--model", self.cfg["agent_model"]]
         if self.cfg["effort"] is not None:
             cmd += ["--effort", self.cfg["effort"]]

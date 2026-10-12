@@ -69,8 +69,10 @@ def test_the_cli_is_run_as_a_plain_model_call():
     call = cli.calls[0]
     cmd = call["cmd"]
     assert cmd[:2] == ["claude", "-p"]
-    for flag in ("--bare", "--no-session-persistence"):
+    for flag in ("--no-session-persistence", "--disable-slash-commands", "--strict-mcp-config"):
         assert flag in cmd
+    assert "--bare" not in cmd  # --bare would ignore the subscription login
+    assert cmd[cmd.index("--setting-sources") + 1] == ""
     assert cmd[cmd.index("--tools") + 1] == ""  # no tools at all
     assert cmd[cmd.index("--output-format") + 1] == "json"
     assert cmd[cmd.index("--model") + 1] == "claude-fable-5-1" and cmd[cmd.index("--effort") + 1] == "high"
