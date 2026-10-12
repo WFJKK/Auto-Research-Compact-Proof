@@ -45,9 +45,17 @@ def test_exp_bounds_enclose_the_true_value():
             assert decimal.Decimal(H - L) <= max(decimal.Decimal(4), true * decimal.Decimal(2) ** -100), (X, e)
 
 
-def test_exp_refuses_huge_arguments():
+def test_exp_refuses_huge_positive_arguments_and_encloses_huge_negative_ones():
     with pytest.raises(ArithmeticError):
         exp_bounds(1, 13)
+    assert exp_bounds(-1, 13) == (0, 1)  # exp(-8192) * 2**PRECISION lies in (0, 1)
+    assert exp_bounds(-(2**40), 0) == (0, 1)
+
+
+def test_softmax_with_one_dominant_entry_far_below_the_rest():
+    z = IT.exact(np.array([[0, -(2**20), 5]], dtype=object), 0)
+    s = softmax(z, 1)
+    assert int(s.lo[0, 1]) == 0 and int(s.hi[0, 1]) >= 0
 
 
 # interval arithmetic ---------------------------------------------------------------------
@@ -250,3 +258,43 @@ def test_general_evaluator_agrees_with_the_linear_one_on_max2():
     ok_lin, m_lin = Program(build_graph(module), w, Counter()).run_singles(toks, labels, Counter())
     ok_gen, m_gen = GeneralProgram(build_general_graph(module), w, Counter(), space).run_singles(toks, labels, Counter())
     assert np.array_equal(ok_lin, ok_gen) and np.allclose(m_lin, m_gen, rtol=0, atol=1e-12)
+
+
+def test_unknown_keyword_arguments_are_refused_not_ignored():
+    """torch.stack(..., axis=1) must not be read as dim 0 (found by the soundness review)."""
+
+    class Axis(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.a = torch.nn.Parameter(torch.tensor([1.0, 0.0]))
+            self.b = torch.nn.Parameter(torch.tensor([2.0, 0.0]))
+
+        def forward(self, x):
+            return x.sum(dim=1) @ torch.stack([self.a, self.b], axis=1)
+
+    with pytest.raises(UnsupportedOp, match="axis"):
+        build_any(Axis())
+
+
+def test_functional_softmax_and_keyword_forms_are_accepted():
+    class F(torch.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.w = torch.nn.Parameter(torch.randn(2, 3))
+
+        def forward(self, x):
+            h = torch.nn.functional.softmax(x @ self.w, dim=-1)
+            return h.sum(dim=1).transpose(dim0=0, dim1=1).transpose(0, 1)[:, 0:2] * x.size(dim=1)
+
+    m = F()
+    g = build_any(m)
+    assert getattr(g, "general", False)
+    w = {k: v.detach().numpy() for k, v in m.state_dict().items()}
+    prog = make_program(g, w, Counter(), [2, 2])
+    toks = np.array([[0, 1], [1, 1]])
+    with torch.no_grad():
+        ref = m(torch.nn.functional.one_hot(torch.as_tensor(toks), 2).float()).numpy()
+    labels = ref.argmax(axis=1)
+    ok, margins = prog.run_singles(toks, labels, Counter())
+    true = np.sort(ref, axis=1)[:, -1] - np.sort(ref, axis=1)[:, -2]
+    assert np.allclose(margins, true, atol=1e-5)

@@ -25,7 +25,7 @@ from functools import lru_cache
 import numpy as np
 
 PRECISION = 120  # exp and softmax results are multiples of 2**-PRECISION, rounded outwards
-MAX_EXP_LOG2 = 12  # exp is refused for arguments of absolute value 2**12 or more
+MAX_EXP_LOG2 = 12  # exp is refused for arguments of 2**12 or more; below -2**12 it is enclosed by [0, 2**-PRECISION]
 
 
 class IntervalError(ArithmeticError):
@@ -169,8 +169,8 @@ class IT:
     def expand(self, shape) -> "IT":
         shape = list(shape)
         lead = len(shape) - self.ndim
-        if lead < 0:
-            raise IntervalError("expand to fewer dimensions")
+        if lead < 0 or any(s == -1 for s in shape[:lead]):
+            raise IntervalError("expand to fewer dimensions, or -1 for a new dimension")
         full = [s if s != -1 else self.shape[i - lead] for i, s in enumerate(shape)]
         lo = np.broadcast_to(self.lo, full)
         return self._new(lo, None if self.is_exact else _obj(np.broadcast_to(self.hi, full)), self.exp)
@@ -223,7 +223,9 @@ def exp_bounds(X: int, e: int) -> tuple[int, int]:
     A = -X if neg else X
     bl = A.bit_length()  # |x| < 2**(bl + e)
     if bl + e > MAX_EXP_LOG2:
-        raise IntervalError(f"exp of a number of absolute value 2**{MAX_EXP_LOG2} or more")
+        if neg:  # x <= -2**12, so 0 < exp(x) * 2**P < 1
+            return 0, 1
+        raise IntervalError(f"exp of a number of 2**{MAX_EXP_LOG2} or more")
     m = max(0, bl + e + 8)
     W = P + m + 32
     s = e - m + W  # y * 2**W = A * 2**s

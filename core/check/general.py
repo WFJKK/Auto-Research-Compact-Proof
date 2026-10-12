@@ -46,6 +46,41 @@ _FUNCTIONS = {
     operator.matmul: "matmul",
 }
 _METHODS = {"unsqueeze", "expand", "sum", "softmax", "exp", "size", "transpose"}
+
+# Per operation: the most positional arguments and the keyword arguments accepted. Anything else is
+# refused when the graph is traced, so no argument is ever silently ignored (torch.cat(..., axis=1),
+# say, would otherwise be read as dim 0).
+_SIGNATURES = {
+    "getitem": (2, set()),
+    "getattr": (2, set()),
+    "add": (2, set()),
+    "sub": (2, set()),
+    "mul": (2, set()),
+    "neg": (1, set()),
+    "matmul": (2, set()),
+    "linear": (1, set()),
+    "cat": (2, {"dim"}),
+    "stack": (2, {"dim"}),
+    "softmax": (2, {"dim", "dtype", "_stacklevel"}),
+    "exp": (1, set()),
+    "sum": (2, {"dim"}),
+    "zeros_like": (1, set()),
+    "unsqueeze": (2, {"dim"}),
+    "expand": (None, set()),
+    "size": (2, {"dim"}),
+    "transpose": (3, {"dim0", "dim1"}),
+}
+
+
+def _check_signature(name: str, kind: str, args, kwargs) -> None:
+    most, allowed = _SIGNATURES[kind]
+    extra = set(kwargs) - allowed
+    if extra:
+        raise UnsupportedOp(f"{name}: {kind} with keyword arguments {sorted(extra)}")
+    if most is not None and len(args) > most:
+        raise UnsupportedOp(f"{name}: {kind} with {len(args)} arguments")
+    if kind == "softmax" and kwargs.get("dtype") is not None:
+        raise UnsupportedOp(f"{name}: softmax with a dtype")
 _ATTRIBUTES = {"shape", "T"}
 
 
@@ -128,15 +163,18 @@ def build_general_graph(module) -> GeneralGraph:
                 raise UnsupportedOp(f"function {getattr(fx.target, '__name__', fx.target)}")
             if kind == "getattr" and (len(args) != 2 or args[1] not in _ATTRIBUTES):
                 raise UnsupportedOp(f"attribute {args[1:]!r}")
+            _check_signature(fx.name, kind, args, kwargs)
             nodes.append(Node(fx.name, kind, args, kwargs))
         elif fx.op == "call_module":
             sub = gm.get_submodule(fx.target)
             if not isinstance(sub, torch.nn.Linear) or len(args) != 1 or kwargs:
                 raise UnsupportedOp(f"module {fx.target} of type {type(sub).__name__}")
+            _check_signature(fx.name, "linear", args, kwargs)
             nodes.append(Node(fx.name, "linear", args, {}, fx.target))
         elif fx.op == "call_method":
             if fx.target not in _METHODS:
                 raise UnsupportedOp(f"method {fx.target}")
+            _check_signature(fx.name, fx.target, args, kwargs)
             nodes.append(Node(fx.name, fx.target, args, kwargs))
         elif fx.op == "output":
             out = conv(fx.args[0])
@@ -269,7 +307,8 @@ class GeneralProgram:
             return self._tensor(x)[idx]
         if k == "size":
             x = args[0]
-            return tuple(x.shape) if len(args) < 2 else x.shape[args[1]]
+            dim = kwargs.get("dim", args[1] if len(args) > 1 else None)
+            return tuple(x.shape) if dim is None else x.shape[int(dim)]
         if any(isinstance(a, OneHotBox) for a in args) and not (k in ("matmul", "linear") and isinstance(args[0], OneHotBox)):
             raise UnsupportedOp("in interval leaves the input may only be multiplied by a weight matrix")
         if k == "matmul":
@@ -303,8 +342,12 @@ class GeneralProgram:
             return self._tensor(args[0]).expand([int(s) for s in sizes])
         if k == "transpose":
             x = self._tensor(args[0])
-            d0, d1 = int(args[1]), int(args[2])
-            if x.ndim != 2 or {d0 % 2, d1 % 2} != {0, 1}:
+            d0 = kwargs.get("dim0", args[1] if len(args) > 1 else None)
+            d1 = kwargs.get("dim1", args[2] if len(args) > 2 else None)
+            if d0 is None or d1 is None:
+                raise UnsupportedOp("transpose needs two dimensions")
+            d0, d1 = int(d0), int(d1)
+            if x.ndim != 2 or not (-2 <= d0 < 2 and -2 <= d1 < 2) or d0 % 2 == d1 % 2:
                 raise UnsupportedOp("transpose of something other than a matrix")
             return x.T
         if k in ("cat", "stack"):
@@ -327,8 +370,6 @@ class GeneralProgram:
             charge(math.prod(x.shape))
             return exp(x)
         if k == "softmax":
-            if set(kwargs) - {"dim", "dtype"} or kwargs.get("dtype") is not None:
-                raise UnsupportedOp("softmax with extra arguments")
             x = self._tensor(args[0])
             dim = int(_dim(args, kwargs, 1))
             charge(3 * math.prod(x.shape))
@@ -406,6 +447,8 @@ class GeneralProgram:
         if approx is not None:
             raise CheckError("the approximate rule needs a network built only from linear maps")
         out = self._run(OneHotBox(ranges, self._n_values), counter, "interval", 2)
+        if out.shape[0] != 1:
+            raise UnsupportedOp("the network's output must be (batch, outputs) logits")
         n_out = out.shape[1]
         if not 0 <= label < n_out:
             raise CheckError("label outside the network's outputs")
