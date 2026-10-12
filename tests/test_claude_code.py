@@ -17,7 +17,7 @@ from tests.test_api import RESPONSE_TEXT
 PROMPT = Prompt("PART ONE", "PART TWO", {})
 
 
-def result_json(text=RESPONSE_TEXT, is_error=False, **extra):
+def result_event(text=RESPONSE_TEXT, is_error=False, **extra):
     d = {
         "type": "result",
         "subtype": "success" if not is_error else "error_during_execution",
@@ -29,7 +29,28 @@ def result_json(text=RESPONSE_TEXT, is_error=False, **extra):
         "usage": {"input_tokens": 5000, "output_tokens": 20000, "cache_creation_input_tokens": 0, "cache_read_input_tokens": 3600},
     }
     d.update(extra)
-    return json.dumps(d)
+    return d
+
+
+def assistant_event(text, stop_reason="end_turn"):
+    return {
+        "type": "assistant",
+        "message": {"role": "assistant", "content": [{"type": "thinking", "thinking": "..."}, {"type": "text", "text": text}], "stop_reason": stop_reason},
+        "session_id": "sess_123",
+    }
+
+
+def stream(*events):
+    """What the CLI prints with --output-format stream-json --verbose: one JSON object per line."""
+    init = {"type": "system", "subtype": "init", "session_id": "sess_123"}
+    return "\n".join(json.dumps(e) for e in (init, *events)) + "\n"
+
+
+def result_json(text=RESPONSE_TEXT, is_error=False, **extra):
+    """A whole answer in one assistant message, then the result event."""
+    if is_error:
+        return stream(result_event(text, is_error=True, **extra))
+    return stream(assistant_event(text), result_event(text, **extra))
 
 
 class Completed:
@@ -74,7 +95,7 @@ def test_the_cli_is_run_as_a_plain_model_call():
     assert "--bare" not in cmd  # --bare would ignore the subscription login
     assert cmd[cmd.index("--setting-sources") + 1] == ""
     assert cmd[cmd.index("--tools") + 1] == ""  # no tools at all
-    assert cmd[cmd.index("--output-format") + 1] == "json"
+    assert cmd[cmd.index("--output-format") + 1] == "stream-json" and "--verbose" in cmd
     assert cmd[cmd.index("--model") + 1] == "claude-fable-5-1" and cmd[cmd.index("--effort") + 1] == "high"
     assert call["prompt"] == PROMPT.text  # the whole prompt, on stdin
     assert call["cwd"] and "cpl-claude-code-" in call["cwd"]
@@ -94,10 +115,39 @@ def test_response_is_saved_raw_and_tokens_recorded(tmp_path):
     b, _, _, _ = backend([Completed(result_json())])
     r = b.respond(PROMPT, 0, tmp_path)
     raw = json.loads((tmp_path / "response_raw.json").read_text())
-    assert raw["session_id"] == "sess_123"
+    assert raw["session_id"] == "sess_123" and [m["text"] for m in raw["assistant_messages"]] == [RESPONSE_TEXT]
     m = r.meta
     assert m["backend"] == "claude_code" and m["input_tokens"] == 5000 and m["output_tokens"] == 20000
     assert m["cost_usd"] == 0.0 and m["api_equivalent_usd"] == 0.42 and m["stop_reason"] == "end_turn"
+
+
+def test_a_long_answer_split_over_several_messages_is_joined():
+    """The CLI continues an answer that hit its output limit in a new assistant message, and the
+    result event's text holds only the last piece. The response is all pieces, joined exactly."""
+    head, tail = RESPONSE_TEXT[:40], RESPONSE_TEXT[40:]
+    out = stream(assistant_event(head, stop_reason="max_tokens"), assistant_event(tail), result_event(tail, num_turns=2))
+    b, _, _, _ = backend([Completed(out)])
+    r = b.respond(PROMPT, 0)
+    assert r.text == RESPONSE_TEXT
+    assert r.meta["assistant_messages"] == 2 and r.meta["num_turns"] == 2 and r.meta["stop_reason"] == "end_turn"
+
+
+def test_messages_that_ended_on_their_own_are_joined_on_a_new_line():
+    out = stream(assistant_event("CLAIM: a"), assistant_event("NOTES: b"), result_event("NOTES: b"))
+    b, _, _, _ = backend([Completed(out)])
+    assert b.respond(PROMPT, 0).text == "CLAIM: a\nNOTES: b"
+
+
+def test_a_plain_json_result_still_parses():
+    """The old one-object output: no assistant events, so the result's own text is used."""
+    b, _, _, _ = backend([Completed(json.dumps(result_event()))])
+    assert b.respond(PROMPT, 0).text == RESPONSE_TEXT
+
+
+def test_noise_around_the_stream_is_ignored():
+    out = "some warning line\n" + stream(assistant_event(RESPONSE_TEXT), result_event()) + "trailing text\n"
+    b, _, _, _ = backend([Completed(out)])
+    assert b.respond(PROMPT, 0).text == RESPONSE_TEXT
 
 
 def test_usage_limits_are_retried_with_growing_waits():

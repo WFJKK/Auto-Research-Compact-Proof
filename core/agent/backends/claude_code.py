@@ -3,15 +3,19 @@
 This lets a run draw on a Claude subscription (Pro or Max) through the user's
 own Claude Code login instead of billing an API key. Each attempt runs
 
-    claude -p --tools "" --output-format json --no-session-persistence
+    claude -p --tools "" --output-format stream-json --verbose --no-session-persistence
            --setting-sources "" --disable-slash-commands --strict-mcp-config
            --model <agent_model> --effort <effort> --system-prompt <short>
 
 with the prompt on stdin and an empty temporary folder as the working
 directory, so the CLI behaves as a plain model call: no tools, no files, no
-project settings, no MCP servers. The JSON result gives the response text and the
-tokens used; the CLI's own dollar figure is recorded as api_equivalent_usd,
-while cost_usd stays 0 because nothing is billed per call.
+project settings, no MCP servers. The streamed output holds every assistant
+message and a final result event. A long answer arrives as several assistant
+messages, because the CLI continues when one hits its output limit, and the
+result's own text field holds only the last of them; so the response text is
+joined from the assistant messages, and the result event gives the tokens
+used. The CLI's own dollar figure is recorded as api_equivalent_usd, while
+cost_usd stays 0 because nothing is billed per call.
 
 The CLI's environment has ANTHROPIC_API_KEY and the pipeline's key variable
 removed, so it cannot fall back to billing an API key. Usage-limit and
@@ -46,6 +50,51 @@ KEY_VARIABLES = ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")
 LIMIT_WORDS = ("usage limit", "rate limit", "rate_limit", "overloaded", "too many requests", "capacity", "529", "429")
 LOGIN_WORDS = ("not logged in", "login", "authenticat", "unauthorized", "invalid api key", "401", "403")
 STDERR_TAIL = 2000
+
+
+def _parse_output(out: str) -> tuple[dict | None, list[dict]]:
+    """The CLI's result event and every assistant message's text, in order.
+
+    stream-json prints one JSON object per line. Lines that are not JSON
+    objects are ignored. A plain `json` result (one object) parses the same way.
+    """
+    result, messages = None, []
+    for line in out.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            ev = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(ev, dict):
+            continue
+        if ev.get("type") == "assistant":
+            msg = ev.get("message") if isinstance(ev.get("message"), dict) else {}
+            content = msg.get("content")
+            parts = []
+            if isinstance(content, str):
+                parts.append(content)
+            elif isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "text" and isinstance(block.get("text"), str):
+                        parts.append(block["text"])
+            if parts:
+                messages.append({"text": "".join(parts), "stop_reason": msg.get("stop_reason")})
+        elif ev.get("type") == "result":
+            result = ev
+    return result, messages
+
+
+def _join(messages: list[dict]) -> str:
+    """Assistant messages in order. A message cut off at the output limit continues
+    exactly where it stopped, so nothing goes between it and the next; otherwise a newline."""
+    text = ""
+    for i, m in enumerate(messages):
+        if i and messages[i - 1].get("stop_reason") != "max_tokens" and not text.endswith("\n"):
+            text += "\n"
+        text += m["text"]
+    return text
 
 
 def _run_cli(cmd, prompt_text, env, cwd, timeout_s):
@@ -90,7 +139,7 @@ class ClaudeCodeBackend:
     def command_line(self) -> list[str]:
         # Not --bare: that mode skips keychain reads and accepts only an API key, so a subscription
         # login would look logged out. These flags give the same isolation without touching auth.
-        cmd = [self.command, "-p", "--tools", "", "--output-format", "json", "--no-session-persistence"]
+        cmd = [self.command, "-p", "--tools", "", "--output-format", "stream-json", "--verbose", "--no-session-persistence"]
         cmd += ["--setting-sources", "", "--disable-slash-commands", "--strict-mcp-config"]
         cmd += ["--system-prompt", SYSTEM_PROMPT, "--model", self.cfg["agent_model"]]
         if self.cfg["effort"] is not None:
@@ -127,13 +176,9 @@ class ClaudeCodeBackend:
                     raise StopRun(f"could not run the Claude Code CLI: {exc}") from exc
             if r is not None:
                 out = (r.stdout or "").strip()
-                data = None
-                if out:
-                    try:
-                        data = json.loads(out)
-                    except ValueError:
-                        data = None
-                if r.returncode == 0 and isinstance(data, dict) and not data.get("is_error") and data.get("result") is not None:
+                data, messages = _parse_output(out)
+                text = _join(messages) if messages else (data or {}).get("result")
+                if r.returncode == 0 and isinstance(data, dict) and not data.get("is_error") and text is not None:
                     break
                 message = ""
                 if isinstance(data, dict):
@@ -152,14 +197,15 @@ class ClaudeCodeBackend:
         if where is not None:
             Path(where).mkdir(parents=True, exist_ok=True)
             tmp = Path(where) / "response_raw.json.tmp"
-            tmp.write_text(json.dumps(data))
+            tmp.write_text(json.dumps({**data, "assistant_messages": messages}))
             tmp.replace(Path(where) / "response_raw.json")
         usage = data.get("usage") or {}
+        last_stop = messages[-1].get("stop_reason") if messages else None
         meta = {
             "backend": self.name,
             "source": data.get("session_id"),
             "model": self.cfg["agent_model"],
-            "stop_reason": data.get("stop_reason") or ("end_turn" if not data.get("is_error") else "error"),
+            "stop_reason": last_stop or data.get("stop_reason") or ("end_turn" if not data.get("is_error") else "error"),
             "input_tokens": int(usage.get("input_tokens") or 0),
             "output_tokens": int(usage.get("output_tokens") or 0),
             "cache_creation_input_tokens": int(usage.get("cache_creation_input_tokens") or 0),
@@ -167,8 +213,9 @@ class ClaudeCodeBackend:
             "cost_usd": 0.0,  # a subscription is not billed per call
             "api_equivalent_usd": data.get("total_cost_usd"),
             "num_turns": data.get("num_turns"),
-            "request": {"command": cmd[:1] + cmd[1:9]},
+            "assistant_messages": len(messages),
+            "request": {"command": cmd[:1] + cmd[1:10]},
             "failed_tries": failures,
             "seconds": round(time.monotonic() - t0, 1),
         }
-        return Response(text=str(data["result"]), meta=meta)
+        return Response(text=str(text), meta=meta)
