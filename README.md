@@ -70,3 +70,5 @@ In the real-run configs (`max2-smoke`, `max2-pilot`, `max2-manual`) round 0 hold
 **No API key, but a Claude subscription?** `config/max2-pilot-subscription.yaml` runs the same pilot through your own Claude Code login (`backend: claude_code`): the loop runs the official CLI headless with no tools, nothing is billed per call, and usage counts against your subscription's limits (the loop waits and resumes when it hits one). It needs `claude` installed and signed in. Anthropic's terms for Claude Code decide whether this is allowed for your account; see [docs/BACKENDS.md](docs/BACKENDS.md).
 
 To try the loop without a key, `config/max2-manual.yaml` lets you play the agent: each round writes a prompt for you to paste into Claude, and waits for you to save the answer as `response.md`.
+
+**Lean.** Every result is currently labelled Python-checked: the checker is exact rational arithmetic in Python, with an informal soundness argument per rule in [docs/RULES.md](docs/RULES.md). The plan for a verified Lean checker, which would turn every proof file the agent produces into a formal certificate, is [docs/LEAN.md](docs/LEAN.md).
