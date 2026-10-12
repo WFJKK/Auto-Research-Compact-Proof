@@ -2,7 +2,7 @@
 
 Define make_proof(weights, info, knob) and return a proof (a JSON-serialisable dict).
 
-    weights  dict of numpy float32 arrays, keyed by the module's parameter names
+    weights  dict of numpy float32 (or float64) arrays, keyed by the module's parameter names
     info     {"sizes": the module's constructor arguments, "input_space": number of tokens per position}
     knob     float in [0, 1]: trade proof length against certified accuracy
 

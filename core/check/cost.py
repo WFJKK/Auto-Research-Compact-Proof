@@ -25,6 +25,17 @@ comparison) counts 1. Specifically:
   box it costs 3*in*outputs.
 - symmetry: 1 per leaf, for counting the inputs it certifies.
 
+Networks with operations beyond linear maps (softmax attention, say) are
+evaluated by core.check.general and counted the same way, operation by
+operation. single, per input: 1 per multiply-add of a matrix product (a one-hot
+input times a weight matrix is a lookup: its output size per position), 1 per
+entry of a sum, difference, product or exp, (size - 1) per entry of a sum over
+a dimension, 3 per entry of a softmax, and (outputs - 1) for the final
+comparison. interval: 2 for each of these (lower and upper bound), and the
+input lookup costs 2*out per allowed token at a position (out for a single
+token). The parts that do not depend on the input are computed once per proof
+and charged to extract, which then also counts their operations.
+
 E is the extract cost. B is the length of the brute-force proof, which checks
 every input with the single rule and nothing else.
 """

@@ -88,10 +88,12 @@ def module_class():
 
 
 def float_module(weights: dict, info: dict):
-    """The network as a torch module (float32), built from model.py."""
+    """The network as a torch module, built from model.py (float64 if the weights are)."""
     import torch
 
     m = module_class()(**info["sizes"])
+    if any(np.asarray(v).dtype == np.float64 for v in weights.values()):
+        m = m.double()
     m.load_state_dict({k: torch.from_numpy(np.asarray(v)) for k, v in weights.items()})
     m.eval()
     return m
@@ -118,6 +120,7 @@ def logits(weights: dict, info: dict, tokens: np.ndarray) -> np.ndarray:
     import torch
 
     m = float_module(weights, info)
-    x = torch.nn.functional.one_hot(torch.as_tensor(np.asarray(tokens, dtype=np.int64)), num_classes=info["input_space"][0]).float()
+    x = torch.nn.functional.one_hot(torch.as_tensor(np.asarray(tokens, dtype=np.int64)), num_classes=info["input_space"][0])
+    x = x.to(next(m.parameters()).dtype)
     with torch.no_grad():
         return m(x).numpy()

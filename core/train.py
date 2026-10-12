@@ -7,12 +7,22 @@ on fresh uniformly random inputs each step, with the settings in the model's
 config.yaml. Training is resumable: finished networks are skipped unless their
 training settings changed or --force is given. The manifest is rewritten
 atomically after each network.
+
+Optional training settings, all off by default:
+
+- full_batch: true trains on every input at every step instead of random batches.
+- dtype: float64 builds and trains the module in float64 (the initial weights are
+  drawn in float64 too) and stores float64 weights.
+- keep_best: true keeps the parameters with the highest accuracy on all inputs,
+  and among those the lowest loss, over all steps.
 """
 
 from __future__ import annotations
 
 import argparse
 import time
+
+import torch
 
 import numpy as np
 
@@ -42,9 +52,17 @@ def train_network(folder: ModelFolder, setting: str, seed: int, log=print):
     import torch
 
     cfg = folder.config["training"]
+    dtype = getattr(torch, str(cfg.get("dtype", "float32")))
+    if dtype not in (torch.float32, torch.float64):
+        raise ValueError("training dtype must be float32 or float64")
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
-    module = folder.build(setting)
+    previous = torch.get_default_dtype()
+    torch.set_default_dtype(dtype)  # so the initial weights are drawn in the training dtype
+    try:
+        module = folder.build(setting).to(dtype)
+    finally:
+        torch.set_default_dtype(previous)
     opt_cls = getattr(torch.optim, cfg["optimizer"])
     opt_kwargs = {"lr": cfg["lr"]}
     if "weight_decay" in cfg:
@@ -53,22 +71,49 @@ def train_network(folder: ModelFolder, setting: str, seed: int, log=print):
     space = folder.input_space(setting)
     sizes = folder.sizes(setting)
     loss_fn = torch.nn.CrossEntropyLoss()
+    full_batch = bool(cfg.get("full_batch", False))
+    keep_best = bool(cfg.get("keep_best", False))
+    if full_batch or keep_best:
+        all_tokens = inputs.all_inputs(space)
+        x_all = folder.encode(all_tokens, setting).to(dtype)
+        y_all = torch.as_tensor(np.asarray(folder.task.label(all_tokens, sizes), dtype=np.int64))
+    best, best_state = None, None
     module.train()
     steps = int(cfg["steps"])
     report_every = max(1, steps // 5)
     loss = None
     for step in range(steps):
-        tokens = inputs.random_inputs(space, int(cfg["batch_size"]), rng)
-        x = folder.encode(tokens, setting)
-        y = torch.as_tensor(np.asarray(folder.task.label(tokens, sizes), dtype=np.int64))
+        if full_batch:
+            x, y = x_all, y_all
+        else:
+            tokens = inputs.random_inputs(space, int(cfg["batch_size"]), rng)
+            x = folder.encode(tokens, setting).to(dtype)
+            y = torch.as_tensor(np.asarray(folder.task.label(tokens, sizes), dtype=np.int64))
         loss = loss_fn(module(x), y)
         opt.zero_grad()
         loss.backward()
         opt.step()
+        if keep_best:
+            with torch.no_grad():
+                logits = module(x_all)
+                own = logits.gather(1, y_all[:, None])[:, 0]
+                others = logits.scatter(1, y_all[:, None], float("-inf")).max(dim=1).values
+                score = (float((own > others).double().mean()), -float(loss_fn(logits, y_all)))
+            if best is None or score > best:
+                best = score
+                best_state = {k: v.detach().clone() for k, v in module.state_dict().items()}
         if (step + 1) % report_every == 0:
             log(f"    step {step + 1}/{steps} loss {loss.item():.4f}")
+    if best_state is not None:
+        module.load_state_dict(best_state)
+        module.eval()
+        return module, -best[1]
     module.eval()
     return module, float(loss.item()) if loss is not None else float("nan")
+
+
+def module_dtype(module):
+    return next(module.parameters()).dtype
 
 
 def float_correct(folder: ModelFolder, setting: str, module, batch: int = 8192) -> np.ndarray:
@@ -82,7 +127,7 @@ def float_correct(folder: ModelFolder, setting: str, module, batch: int = 8192) 
     with torch.no_grad():
         for i in range(0, len(toks), batch):
             t = toks[i : i + batch]
-            logits = module(folder.encode(t, setting)).numpy()
+            logits = module(folder.encode(t, setting).to(module_dtype(module))).numpy()
             lab = np.asarray(folder.task.label(t, sizes))
             own = logits[np.arange(len(t)), lab]
             others = logits.copy()
@@ -115,7 +160,8 @@ def train_zoo(folder: ModelFolder, settings=None, seeds=None, force=False, log=p
             log(f"{nid}: training")
             t0 = time.time()
             module, final_loss = train_network(folder, setting, seed, log=log)
-            weights = {k: v.detach().cpu().numpy().astype(np.float32) for k, v in module.state_dict().items()}
+            store = np.float64 if module_dtype(module) == torch.float64 else np.float32
+            weights = {k: v.detach().cpu().numpy().astype(store) for k, v in module.state_dict().items()}
             np.savez(wpath, **weights)
             correct = float_correct(folder, setting, module)
             cpath = folder.zoo_dir() / f"{nid}.correct.npy"

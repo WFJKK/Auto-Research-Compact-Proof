@@ -1,6 +1,6 @@
 # Soundness of the generic rules
 
-Every rule here is generic: it works for any model folder whose `model.py` uses the supported operations (linear maps, sums over one dimension, additions) and whose inputs are one-hot tokens. The rules' short descriptions, shown to the agent, are in `core/check/rules.py`. None of these arguments has a Lean proof yet, so every result is labelled Python-checked.
+Every rule here is generic: it works for any model folder whose `model.py` uses the supported operations (linear maps, sums over one dimension, additions) and whose inputs are one-hot tokens. The rules' short descriptions, shown to the agent, are in `core/check/rules.py`. Networks with other operations, such as softmax attention, are covered by the last section. None of these arguments has a Lean proof yet, so every result is labelled Python-checked.
 
 **What is certified.** The checker certifies the network as a function over the rationals, defined by its float32 weights converted exactly. A float32 forward pass can disagree only on inputs whose margin is within rounding error. On all 20 max2 networks, exact brute force and float32 agree on every input.
 
@@ -54,3 +54,19 @@ All three are tested against exact brute force on random leaves and random appro
 ## skip
 
 It certifies nothing.
+
+## Networks beyond linear maps
+
+A network whose model.py uses operations other than nn.Linear, sums and additions (the xorformer model's softmax attention, for example) is traced with torch.fx and evaluated by `core/check/general.py`. Only a fixed list of operations is accepted: parameters, indexing and reshaping (getitem, unsqueeze, expand, transpose, cat, stack, zeros_like), sums, differences, products, matrix products, sums over a dimension, exp and softmax. Anything else stops the check with its name. `contract`, `approximate` and `symmetry` are refused for such networks.
+
+**Interval tensors.** Every value is a pair of integer arrays lo and hi with one shared power-of-two exponent, standing for the intervals [lo·2^e, hi·2^e]. The weights are exact (lo = hi), converted from floats without rounding. Sums, differences and products of intervals are computed exactly from the endpoints: a sum adds lower ends and upper ends; a product takes the smallest and largest of the four endpoint products (two when one side is exact); a matrix product splits the exact side into its positive and negative entries. So if every input of an operation lies in its interval, so does the output. Nothing in these operations is rounded.
+
+**exp.** For x = X·2^e, write y = |x|/2^m with m chosen so that y ≤ 2^-8. The series of exp(y) has positive terms, each at most y times the one before, so the terms after the k-th sum to at most twice the k-th. The terms are computed as integers at 2^-W, the lower sum rounding every step down and the upper sum rounding up and adding twice the last term. For x < 0, exp(x) = 1/exp(|x|), with the division rounded outwards. Then exp(x) is the m-th repeated square of exp(±y); each squaring of [L, H] with L ≥ 0 gives [L², H²], again rounded outwards. The final bounds are multiples of 2^-120. Arguments of absolute value 4096 or more are refused. Because exp is increasing, the exp of an interval [a, b] lies in [lower(exp a), upper(exp b)]. A test compares these bounds with correctly rounded values at 200 digits.
+
+**softmax.** softmax(z) = softmax(z − c) for any c, so each row is first shifted by the largest upper end, an exact subtraction. The weight of entry j, e_j / (e_j + Σ_{k≠j} e_k), grows with e_j and shrinks with every other e_k. It is therefore at least lower(e_j) / (lower(e_j) + Σ_{k≠j} upper(e_k)) and at most upper(e_j) / (upper(e_j) + Σ_{k≠j} lower(e_k)); both divisions round outwards to 2^-120, and the weights are kept within [0, 1].
+
+**The input.** For a single leaf the input is the exact one-hot tensor. For an interval leaf the input may only be multiplied by a weight matrix W, a lookup of W's rows: at a position whose tokens are lo..hi the result is one of the rows lo..hi, so it lies in the box of their entrywise minimum and maximum. Any other use of the input in an interval leaf stops the check.
+
+**Deciding.** A leaf is certified if the lower end of the label's output is strictly larger than the upper end of every other output, for every input in the leaf (the task confirms a constant label, as for linear networks). Since every true value lies in its interval, every input in a certified leaf is classified correctly. The interval bounds treat different entries as independent, which is sound but loses precision on wide boxes; a proof can split them.
+
+**Input-free parts.** Nodes that do not depend on the input (the xorformer query vector, say) are evaluated once per proof by the same interval arithmetic and charged to extract.

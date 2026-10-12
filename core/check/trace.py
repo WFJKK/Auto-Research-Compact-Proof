@@ -134,3 +134,25 @@ def build_graph(module) -> Graph:
     if inp is None or out is None:
         raise UnsupportedOp("the module needs one input and one output")
     return Graph(nodes=nodes, input=inp, output=out)
+
+
+def build_any(module):
+    """The network's graph: linear (core.check.evaluate) when it uses only nn.Linear, sums and
+    additions, otherwise general (core.check.general), or UnsupportedOp naming what is missing."""
+    try:
+        return build_graph(module)
+    except UnsupportedOp:
+        from .general import build_general_graph
+
+        return build_general_graph(module)
+
+
+def make_program(graph, weights, counter, space):
+    """The evaluator for a graph from build_any."""
+    if getattr(graph, "general", False):
+        from .general import GeneralProgram
+
+        return GeneralProgram(graph, weights, counter, space)
+    from .evaluate import Program
+
+    return Program(graph, weights, counter)

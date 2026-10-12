@@ -41,7 +41,8 @@ def float_margins(folder: ModelFolder, network_id: str, allow_held_out: bool = F
     out = np.empty(len(toks))
     for i in range(0, len(toks), CHUNK):
         with torch.no_grad():
-            logits = module(folder.encode(toks[i : i + CHUNK], setting)).double().numpy()
+            x = folder.encode(toks[i : i + CHUNK], setting).to(next(module.parameters()).dtype)
+            logits = module(x).double().numpy()
         lab = labels[i : i + CHUNK]
         rows = np.arange(len(lab))
         own = logits[rows, lab].copy()

@@ -25,10 +25,10 @@ from ..zoo import load_weights, network_entry
 from .approx import Approximation, ApproximationError
 from .cost import VERSION as COST_VERSION
 from .cost import Counter, count_scalars
-from .evaluate import CheckError, Program
+from .evaluate import CheckError
 from .proof import SCHEMA, TOP_KEYS, certified_mask, full_tree, sorted_orbit_count, walk
 from .rules import GENERIC_RULES, LEAF_RULES
-from .trace import UnsupportedOp, build_graph
+from .trace import UnsupportedOp, build_any, make_program
 
 MAX_REJECTED_REPORTED = 50
 
@@ -104,8 +104,8 @@ def check_proof(
 
         # network -------------------------------------------------------------
         weights = load_weights(folder, network_id, allow_held_out=allow_held_out)
-        graph = build_graph(folder.build(setting))
-        prog = Program(graph, weights, counter)
+        graph = build_any(folder.build(setting))
+        prog = make_program(graph, weights, counter, space)
 
         # global rules --------------------------------------------------------
         symmetry = proof.get("symmetry", False)
@@ -291,7 +291,7 @@ def extraction_and_brute_force_costs(folder: ModelFolder, network_id: str) -> tu
     module = folder.build(entry["setting"])
     weights = {k: v.detach().numpy() for k, v in module.state_dict().items()}
     counter = Counter()
-    prog = Program(build_graph(module), weights, counter)
+    prog = make_program(build_any(module), weights, counter, space)
     E = counter.total
     one = Counter()
     tok = np.zeros((1, len(space)), dtype=np.int64)

@@ -84,6 +84,8 @@ def load_module(folder: ModelFolder, network_id: str, allow_held_out: bool = Fal
     entry = network_entry(folder, network_id)
     weights = load_weights(folder, network_id, allow_held_out=allow_held_out)
     module = folder.build(entry["setting"])
+    if any(v.dtype == np.float64 for v in weights.values()):
+        module = module.double()  # weights stored in float64 stay float64
     module.load_state_dict({k: torch.from_numpy(v) for k, v in weights.items()})
     module.eval()
     return module
