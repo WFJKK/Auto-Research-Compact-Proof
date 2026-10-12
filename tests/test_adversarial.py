@@ -14,6 +14,7 @@ import importlib.util
 import json
 import marshal
 import os
+import sys
 import socket
 import threading
 import time
@@ -343,7 +344,8 @@ def test_the_loop_halts_when_compiled_files_appear(trained_stub, tmp_path):
     path.write_text(yaml.safe_dump(cfg))
     ctx = loop.start(path, log=lambda *a: None)
     ctx.verify_trusted()
-    planted = REPO_ROOT / "core" / "__pycache__" / f"planted-{os.urandom(4).hex()}.cpython-313.pyc"
+    tag = sys.implementation.cache_tag
+    planted = REPO_ROOT / "core" / "__pycache__" / f"planted-{os.urandom(4).hex()}.{tag}.pyc"
     planted.parent.mkdir(exist_ok=True)
     planted.write_bytes(b"not really bytecode")
     try:
@@ -351,6 +353,52 @@ def test_the_loop_halts_when_compiled_files_appear(trained_stub, tmp_path):
             ctx.verify_trusted()
     finally:
         planted.unlink()
+    # Bytecode outside __pycache__ counts whatever its name.
+    loose = REPO_ROOT / "core" / f"planted-{os.urandom(4).hex()}.pyc"
+    loose.write_bytes(b"not really bytecode")
+    try:
+        with pytest.raises(loop.RoundError, match="compiled files appeared"):
+            ctx.verify_trusted()
+    finally:
+        loose.unlink()
+
+
+def test_another_pythons_bytecode_does_not_halt_the_loop(trained_stub, tmp_path):
+    """A second run started from a different interpreter writes files this run never loads."""
+    cfg = {
+        "run_id": "other-python",
+        "model": str(trained_stub),
+        "runs_dir": str(tmp_path / "runs"),
+        "sandbox": "process",
+        "fake_responses": [],
+        "rounds_max": 1,
+    }
+    path = tmp_path / "other.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+    ctx = loop.start(path, log=lambda *a: None)
+    other = "cpython-399" if sys.implementation.cache_tag != "cpython-399" else "cpython-398"
+    planted = REPO_ROOT / "core" / "__pycache__" / f"loop.{other}.pyc"
+    planted.parent.mkdir(exist_ok=True)
+    planted.write_bytes(b"another interpreter's cache")
+    try:
+        ctx.verify_trusted()
+    finally:
+        planted.unlink()
+
+
+def test_starting_the_loop_writes_no_bytecode_into_the_core(tmp_path):
+    """Whatever the shell sets, importing the loop compiles nothing into core/ but core/__init__ itself."""
+    import subprocess
+
+    env = {k: v for k, v in os.environ.items() if k != "PYTHONDONTWRITEBYTECODE"}
+    prefix = tmp_path / "pycache"
+    subprocess.run(
+        [sys.executable, "-X", f"pycache_prefix={prefix}", "-c", "import core.loop, core.report, core.final"],
+        cwd=REPO_ROOT, env=env, check=True,
+    )
+    core_dir = str((REPO_ROOT / "core").resolve()).lstrip("/")
+    written = [p for p in prefix.rglob("*.pyc") if core_dir in str(p)]
+    assert [p.name.split(".")[0] for p in written] in ([], ["__init__"]), written
 
 
 def test_process_mode_is_reported_as_weak(trained_stub, tmp_path):

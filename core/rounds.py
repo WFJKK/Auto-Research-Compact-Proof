@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import sys
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -89,16 +90,28 @@ class Context:
 
 
 def compiled_files_since(roots, since: float) -> list[str]:
-    """Bytecode files under roots written after since. The loop writes none (it runs with dont_write_bytecode)."""
+    """Bytecode files under roots, written after since, that this interpreter could load.
+
+    The pipeline writes none (core/__init__.py turns bytecode writing off). In a
+    __pycache__ folder an interpreter only ever loads files with its own cache tag
+    (cpython-313, say), so a file another Python version wrote there, for example
+    a second run started from a different interpreter, cannot change this run and
+    is ignored. Files with this interpreter's tag, and bytecode outside __pycache__,
+    always count.
+    """
+    tag = sys.implementation.cache_tag
     out = []
     for root in roots:
         for p in Path(root).rglob("*"):
-            if p.suffix in (".pyc", ".pyo") and p.is_file():  # only files Python could load as bytecode
-                try:
-                    if p.stat().st_mtime >= since:
-                        out.append(str(p))
-                except OSError:
-                    pass
+            if p.suffix not in (".pyc", ".pyo") or not p.is_file():
+                continue
+            if tag is not None and p.parent.name == "__pycache__" and f".{tag}." not in p.name:
+                continue  # another interpreter's cache
+            try:
+                if p.stat().st_mtime >= since:
+                    out.append(str(p))
+            except OSError:
+                pass
     return sorted(out)
 
 
