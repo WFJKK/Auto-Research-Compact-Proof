@@ -32,7 +32,9 @@ python -m core.report --run ~/auto-research-compact-proof-runs/<run_id> --result
 
 The report (tables, frontier plots, progress, the frontier recipes' claims) lands in the run folder; `--results` copies it into `results/<run_id>/` and adds a line to `results/RESULTS.md`, ready to commit.
 
-Recipes run in a sandbox. On Linux, Landlock keeps them in with no setup. On a Mac, install Docker Desktop and run `python -m core.sandbox build` once; without it, runs fall back to a weak mode and say so. See [docs/SANDBOX.md](docs/SANDBOX.md).
+When the cost model changes (see [docs/COST_MODEL.md](docs/COST_MODEL.md)), `python -m core.remeasure --run <run folder>` checks a finished run's proofs again under the current one and writes the new lengths next to the run, so old runs stay comparable with new ones. Runs themselves are never rewritten. [docs/REWARD_HACKING.md](docs/REWARD_HACKING.md) records what the loop guards against and the one exploit an agent found.
+
+Recipes run in a sandbox. On Linux, Landlock keeps them in with no setup. On a Mac, install Docker Desktop and run `python -m core.sandbox build` once. The quick-try configs fall back to a weak mode without it and say so; the real-run configs (`sandbox: hardened`) refuse to start instead. See [docs/SANDBOX.md](docs/SANDBOX.md).
 
 ## Layout
 

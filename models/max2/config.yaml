@@ -28,7 +28,7 @@ training:
   steps: 4000
 
 zoo_path: zoo
-cost_model: cost-v1
+cost_model: cost-v2
 control_networks: []
 
 # Strings the agent's prompt must never contain.

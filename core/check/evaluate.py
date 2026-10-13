@@ -380,6 +380,7 @@ class Program:
                         counter.add("interval", n_out)
                     else:
                         lower = lower + (approx.row_min_diffs(label, lo, hi, counter) - 2 * approx.eps)
+                        counter.add("interval", n_out)  # subtracting the error from every output
                 if lin.b is not None:
                     lower = lower + _to_frac(lin.b.ints[label] - lin.b.ints, lin.b.exp)
                     counter.add("interval", n_out)

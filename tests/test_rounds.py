@@ -206,3 +206,46 @@ def test_held_out_networks_cannot_be_selected(trained_stub, tmp_path):
     held = networks(folder, "held_out")[0]["id"]
     with pytest.raises(loop.LoopError, match="not development networks"):
         loop.start(_config(tmp_path, trained_stub, networks=[held]), log=_quiet)
+
+
+def test_certifying_a_wrong_input_halts_the_run(finished_run):
+    """The one invariant a proof cannot fake: a sound checker never certifies more than the network gets right."""
+    from core.check.checker import brute_force_proof
+    from core.check.worker import CheckerProcess
+    from core.rounds import RoundError, execution_record
+    from core.runner import Execution
+
+    ctx = finished_run
+    entry = dict(ctx.entries[0])
+    ex = Execution(status="ok", proof=brute_force_proof(ctx.folder, entry["id"]))
+    with CheckerProcess(ctx.folder.path, ctx.versions, timeout_s=120) as checker:
+        rec = execution_record(ctx, 90, 0, "test", entry, 0, ex, {}, checker)
+        assert rec["status"] == "ok" and rec["certified"] == entry["real_correct"]
+        entry["real_correct"] -= 1  # as if the zoo said the network gets one input fewer right
+        with pytest.raises(RoundError, match="gets only"):
+            execution_record(ctx, 91, 0, "test", entry, 0, ex, {}, checker)
+
+
+def test_remeasure_reproduces_the_archive(finished_run, tmp_path):
+    """Under the same cost model, re-measuring gives the archived lengths and certified counts."""
+    from core import remeasure
+    from core.check.cost import VERSION
+
+    ctx = finished_run
+    out = tmp_path / "again"
+    assert remeasure.main(["--run", str(ctx.run.path), "--out", str(out), "--workers", "2"]) == 0
+    old = {r["record_id"]: r for r in ctx.run.read_archive()}
+    new = [json.loads(line) for line in (out / "archive.jsonl").read_text().splitlines()]
+    assert [r["record_id"] for r in new] == list(old)
+    checked = 0
+    for r in new:
+        o = old[r["record_id"]]
+        assert r["status"] == o["status"] and r["certified"] == o["certified"]
+        if o["status"] == "ok":
+            assert r["length"] == o["length"] == r["length_archived"] and r["cost_model"] == VERSION
+            checked += 1
+    assert checked > 0
+    summary = json.loads((out / "summary.json").read_text())
+    assert summary["cost_model"] == VERSION and "0" in summary["development"]
+    # Never inside the run, never over it.
+    assert remeasure.main(["--run", str(ctx.run.path), "--out", str(ctx.run.path / "x")]) == 2

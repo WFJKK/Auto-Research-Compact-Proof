@@ -56,10 +56,14 @@ RULES = {
         "linear map M (usually a contraction), in one of three forms: dense (\"values\": the full "
         'matrix), low_rank ("left": outputs x r, "right": r x inputs) or row_segments ("rows": for '
         "each output row, [start, end, value] triples covering every column in order). The checker "
-        "computes eps = max |M - P| exactly. Interval leaves with \"approx\": P then bound the minimum "
-        "over a position's tokens t of M[l,t] - M[j,t] by the same minimum for P, minus 2 eps, "
-        "computed from P's form: row_segments costs about one step per segment touched, low_rank about "
-        "r per output. Only for networks built from nn.Linear maps, sums and additions."
+        "computes eps = max |M - P| exactly, at 2 per entry (row_segments: 3 per entry plus 2 per "
+        "segment, for a column index), plus the file's numbers read. Interval leaves with \"approx\": P "
+        "then bound the minimum over a position's tokens t of M[l,t] - M[j,t] by the same minimum for P, "
+        "minus 2 eps, computed from P's form: dense costs 2 per token per output (like the exact check); "
+        "row_segments costs 2 per merge step of the two rows' segments plus 2 per output to locate its "
+        "segments (so it pays only where segments are long); low_rank costs 2r per token plus 3r per "
+        "output; each then costs 1 per output for the eps. Only for networks built from nn.Linear maps, "
+        "sums and additions."
     ),
 }
 

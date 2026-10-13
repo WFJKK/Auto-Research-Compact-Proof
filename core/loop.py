@@ -39,6 +39,7 @@ from .agent.build_prompt import Prompt, PromptError, build_prompt
 from .diagnostics import render_attempt
 from .lean import LeanError, lean_command, spot_check
 from .archive import RunDir
+from .check.cost import VERSION as COST_VERSION
 from .model_folder import load_model_folder
 from .rounds import Context, RoundError, now, run_round
 from .run_config import load_run_config, resolve
@@ -78,6 +79,12 @@ def select_networks(folder, cfg) -> list[dict]:
     missing = [e["id"] for e in chosen if e.get("E") is None or e.get("B") is None]
     if missing:
         raise LoopError(f"E and B are missing for {missing}; run python -m core.check.costs on the model folder")
+    stale = sorted({e.get("cost_model") for e in chosen if e.get("cost_model") != COST_VERSION})
+    if stale:
+        raise LoopError(
+            f"E and B in the manifest were computed under {', '.join(map(str, stale))} but the checker is {COST_VERSION}; "
+            "run python -m core.check.costs on the model folder"
+        )
     return chosen
 
 

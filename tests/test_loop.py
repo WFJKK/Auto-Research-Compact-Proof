@@ -187,3 +187,18 @@ def test_brute_force_only_round_zero_hides_the_other_baselines(trained_stub, tmp
 def test_unknown_baseline_name_is_an_error(trained_stub, tmp_path):
     with pytest.raises(loop.LoopError, match="no baseline named"):
         loop.start(write_config(tmp_path, trained_stub, "bad-name", baselines=["contraction"]), log=lambda *a: None)
+
+
+def test_a_manifest_from_another_cost_model_is_refused(trained_stub, tmp_path):
+    """E and B must come from the checker's own cost model, or Q would mix two measures."""
+    from core.model_folder import load_model_folder
+    from core.zoo import read_manifest, write_manifest
+
+    dst = tmp_path / "stub"
+    shutil.copytree(trained_stub, dst)
+    folder = load_model_folder(dst)
+    m = read_manifest(folder)
+    m["networks"][0]["cost_model"] = "cost-v0"
+    write_manifest(folder, m)
+    with pytest.raises(loop.LoopError, match="computed under cost-v0"):
+        loop.start(write_config(tmp_path, dst, "stale-costs"), log=lambda *a: None)

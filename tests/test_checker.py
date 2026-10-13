@@ -384,3 +384,109 @@ def test_symmetry_needs_a_symmetric_label(tmp_path):
 
     with pytest.raises(ModelFolderError, match="LABEL_SYMMETRIC"):
         load_model_folder(dst)
+
+
+def test_an_exact_segment_approximation_is_never_cheaper_than_the_dense_check(zoo):
+    """cost-v2: writing the contracted matrix itself as one-entry row segments (error 0) does the same
+    work as the dense range check, so it must not be charged less (cost-v1 charged it half)."""
+    from core.zoo import load_weights
+
+    con = [{"name": "M", "chain": ["inp", "out"]}]
+    checked = False
+    ids = ["perfect"] + [n["id"] for n in trained(zoo)]
+    for nid in ids:
+        w = load_weights(zoo, nid)
+        M = (Exact.from_float(w["out.weight"]).matmul(Exact.from_float(w["inp.weight"]))).to_fractions()
+        rows = [[[t, t, f"{M[i, t].numerator}/{M[i, t].denominator}"] for t in range(V)] for i in range(V)]
+        approx = [{"name": "A", "of": "M", "form": "row_segments", "rows": rows}]
+
+        def tree(leaf):
+            # the stub's label is the smaller token: group a holds the sorted inputs (a, t) with t >= a
+            def group(a):
+                if a == 0:
+                    return dict(leaf)
+                return {"split": {"position": 1, "cuts": [a]}, "children": [{"leaf": "skip"}, dict(leaf)]}
+
+            return {"split": {"position": 0, "cuts": list(range(1, V))}, "children": [group(a) for a in range(V)]}
+
+        dense = check_proof(P(nid, tree({"leaf": "interval"}), contract=con, symmetry=True), zoo, nid)
+        seg = check_proof(P(nid, tree({"leaf": "interval", "approx": "A"}), contract=con, symmetry=True, approximate=approx), zoo, nid)
+        assert dense["status"] == seg["status"] == "ok"
+        assert seg["certified"] == dense["certified"] > 1
+        assert seg["length_by_rule"]["interval"] >= dense["length_by_rule"]["interval"]
+        assert seg["length"] > dense["length"]
+        checked = True
+    assert checked
+
+
+def test_approximation_ranges_are_charged_for_what_they_do():
+    """cost-v2: each form's range charge is what the checker does, so none is cheaper than its work."""
+    from core.check.approx import Approximation
+
+    rng = np.random.default_rng(3)
+    n_out, n_in = 4, 6
+    W = Exact.from_float(rng.normal(size=(n_out, n_in)).astype(np.float32))
+    Wf = W.to_fractions()
+
+    def charged(spec, lo, hi):
+        c = Counter()
+        a = Approximation("A", "M", spec, W, c)
+        setup = c.total
+        c = Counter()
+        out = a.row_min_diffs(0, lo, hi, c)
+        return setup, c.total, out
+
+    # dense: 2 per token per output, like the exact check
+    dense = {"form": "dense", "values": [[str(x) for x in row] for row in Wf]}
+    setup, cost, out = charged(dense, 1, 4)
+    assert setup == 2 * n_out * n_in and cost == 2 * n_out * 4
+    assert all(out[j] == min(Wf[0, t] - Wf[j, t] for t in range(1, 5)) for j in range(n_out))
+
+    # low_rank: 2r per token plus 3r per output (difference, sign test, multiply-add per factor)
+    r = 2
+    left = [[str(x) for x in row] for row in Wf[:, :r]]
+    right = [[1 if i == k else 0 for k in range(n_in)] for i in range(r)]
+    setup, cost, _ = charged({"form": "low_rank", "left": left, "right": right}, 0, 5)
+    assert setup == n_out * r * n_in + 2 * n_out * n_in and cost == 2 * r * 6 + 3 * n_out * r
+
+    # row_segments: setup 3 per entry plus 2 per segment; a range 2 per merge step plus 2 per row
+    rows = [[[0, 2, "1"], [3, 5, "0"]], [[0, 5, "0"]], [[0, 0, "1"], [1, 5, "-1"]], [[0, 3, "1/2"], [4, 5, "1/2"]]]
+    setup, cost, out = charged({"form": "row_segments", "rows": rows}, 0, 5)
+    assert setup == 3 * n_out * n_in + 2 * 7
+    # merge steps of row 0 (ends 2, 5) against rows: 0 -> 2, 1 -> 2, 2 -> 3, 3 -> 3; two lookups per row plus the label row
+    assert cost == 2 * (2 + 2 + 3 + 3) + 2 * (n_out + 1)
+    assert list(out) == [Fraction(0), Fraction(0), Fraction(0), Fraction(-1, 2)]
+    # a range inside one segment of every row costs the same whatever its width
+    setup, narrow, _ = charged({"form": "row_segments", "rows": rows}, 4, 4)
+    setup, wide, _ = charged({"form": "row_segments", "rows": rows}, 4, 5)
+    assert narrow == wide == 2 * n_out + 2 * (n_out + 1)
+
+
+def test_segments_are_located_by_index(zoo):
+    """Random segmentations: the index finds the same segments as a scan, and the bound is the true minimum of P."""
+    from core.check.approx import Approximation
+
+    rng = np.random.default_rng(4)
+    n_out, n_in = 3, 9
+    W = Exact.from_float(rng.normal(size=(n_out, n_in)).astype(np.float32))
+    for _ in range(30):
+        rows, P = [], np.empty((n_out, n_in), dtype=object)
+        for i in range(n_out):
+            cuts = sorted(set(rng.choice(range(1, n_in), size=int(rng.integers(0, n_in - 1))).tolist()))
+            b = [0] + cuts + [n_in]
+            segs = [[b[k], b[k + 1] - 1, str(int(rng.integers(-3, 4)))] for k in range(len(b) - 1)]
+            rows.append(segs)
+            for a_, b_, v in segs:
+                P[i, a_ : b_ + 1] = Fraction(v)
+        a = Approximation("A", "M", {"form": "row_segments", "rows": rows}, W, Counter())
+        for _ in range(10):
+            lo = int(rng.integers(0, n_in))
+            hi = int(rng.integers(lo, n_in))
+            for i in range(n_out):
+                scan = [k for k in range(len(rows[i])) if rows[i][k][0] <= hi and rows[i][k][1] >= lo]
+                got = a._clip(i, lo, hi)
+                assert [max(rows[i][k][0], lo) for k in scan] == [g[0] for g in got]
+                assert [min(rows[i][k][1], hi) for k in scan] == [g[1] for g in got]
+            l = int(rng.integers(0, n_out))
+            out = a.row_min_diffs(l, lo, hi, Counter())
+            assert all(out[j] == min(P[l, t] - P[j, t] for t in range(lo, hi + 1)) for j in range(n_out))

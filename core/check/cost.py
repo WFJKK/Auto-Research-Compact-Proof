@@ -1,4 +1,4 @@
-"""Cost model cost-v1: a proof's length is the work the checker does to check it.
+"""Cost model cost-v2: a proof's length is the work the checker does to check it.
 
 Each operation on exact numbers (one multiply-add, addition, subtraction or
 comparison) counts 1. Specifically:
@@ -10,7 +10,14 @@ comparison) counts 1. Specifically:
 - contract: multiplying an a x b by a b x c matrix costs a*b*c; pushing a
   bias through costs one matrix-vector product.
 - approximate: 2 per entry of the approximated matrix (difference and
-  comparison), plus a*r*c to multiply out low-rank factors.
+  comparison), plus a*r*c to multiply out low-rank factors; row_segments also
+  costs 1 per entry and 2 per segment, for the column index that locates a
+  range's segments. An interval range bounded through an approximation costs,
+  for dense, 2 per token per output; for low_rank, 2r per token plus 3r per
+  output; for row_segments, 2 per merge step of the two rows' segments (a
+  difference and a comparison, the same as a dense range per token, so it pays
+  only where segments are long) plus 2 per output to locate its segments; and
+  then 1 per output to subtract the error.
 - single: running the network on one input. A linear map applied to a one-hot
   input costs its output size per position (a column lookup); applied to a
   vector, in*out; a bias, a sum or an addition costs its output size; the
@@ -44,7 +51,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-VERSION = "cost-v1"
+VERSION = "cost-v2"
+# cost-v2 (13 Oct 2026) differs from cost-v1 in the approximate rule only: a row_segments merge step
+# costs 2, not 1 (under cost-v1 an exact approximation with one segment per entry made the dense range
+# check look half as long while doing the same work; an agent found and used this), locating a row's
+# segments is charged (two lookups in an index that costs 1 per entry and 2 per segment to build),
+# and the error subtraction and the low-rank differences are charged. E and B are unchanged.
 
 CATEGORIES = ("extract", "read", "tree", "contract", "approximate", "single", "interval", "symmetry")
 
