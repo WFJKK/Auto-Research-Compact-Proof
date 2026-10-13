@@ -16,7 +16,10 @@ Three modes, strongest first:
                fresh folder and resource limits. Weak: the recipe runs as you and
                can read and write whatever you can. Only for recipes you trust.
 
-`auto` takes the strongest mode that works here. Every run starts with
+`auto` takes the strongest mode that works here, falling back to process;
+`hardened` does the same but never falls back: with neither container nor
+landlock available it refuses to start, which is what an unattended run
+wants (a stopped Docker otherwise turns the next resume weak). Every run starts with
 probe(), which tries real escapes in the chosen mode; a hardened mode that lets
 anything critical out is refused.
 
@@ -132,12 +135,13 @@ def protected_paths(cfg: dict | None = None, folder=None, run_path: Path | None 
 
 
 def choose(cfg: dict, protected: tuple = ()) -> Sandbox:
-    """The sandbox a run config asks for: a mode name, or auto for the strongest that works here."""
+    """The sandbox a run config asks for: a mode name, auto for the strongest that works here, or
+    hardened for the strongest of container and landlock, refusing to fall back to process."""
     want = cfg.get("sandbox", "auto")
     image = cfg.get("sandbox_image") or DEFAULT_IMAGE
-    if want not in ("auto",) + MODES:
-        raise SandboxError(f"sandbox must be auto or one of {MODES}, not {want!r}")
-    if want in ("auto", "container"):
+    if want not in ("auto", "hardened") + MODES:
+        raise SandboxError(f"sandbox must be auto, hardened or one of {MODES}, not {want!r}")
+    if want in ("auto", "hardened", "container"):
         rt = container_runtime()
         iid = image_id(rt, image) if rt else None
         if rt and iid:
@@ -145,13 +149,18 @@ def choose(cfg: dict, protected: tuple = ()) -> Sandbox:
         if want == "container":
             why = "no docker or podman is running" if not rt else f"the image {image} is missing"
             raise SandboxError(f"container mode needs a container runtime and its image: {why}. Build it with python -m core.sandbox build")
-    if want in ("auto", "landlock"):
+    if want in ("auto", "hardened", "landlock"):
         if landlock_available():
             sb = Sandbox("landlock", protected=protected)
             landlock_policy(Path(tempfile.gettempdir()) / "box", protected)  # refuses if the policy would expose a protected path
             return sb
         if want == "landlock":
             raise SandboxError("landlock mode needs Linux with Landlock enabled on x86_64 or aarch64")
+    if want == "hardened":
+        raise SandboxError(
+            "no hardened sandbox is available here: start Docker (or Podman) with the image built "
+            "(python -m core.sandbox build), or use Linux with Landlock. The run refuses to fall back to process mode."
+        )
     return Sandbox("process", protected=protected)
 
 
@@ -454,7 +463,7 @@ def main(argv=None):
     b.add_argument("--runtime", choices=["docker", "podman"])
     b.add_argument("--image", default=DEFAULT_IMAGE)
     p = sub.add_parser("probe")
-    p.add_argument("--mode", default="auto", choices=("auto",) + MODES)
+    p.add_argument("--mode", default="auto", choices=("auto", "hardened") + MODES)
     p.add_argument("--model", required=True, help="a model folder with a trained zoo")
     p.add_argument("--image", default=DEFAULT_IMAGE)
     args = ap.parse_args(argv)

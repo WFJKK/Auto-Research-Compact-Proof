@@ -26,8 +26,9 @@ threads_per_recipe: 1
 workers: 2
 # Where sandbox folders are made; null means the system's temporary folder.
 sandbox_dir: null
-# How recipes are kept in: auto (the strongest that works here), container,
-# landlock or process (weak). See core/sandbox.py and docs/SANDBOX.md.
+# How recipes are kept in: auto (the strongest that works here, else process),
+# hardened (container or landlock, never process: refuses to start without one),
+# container, landlock or process (weak). See core/sandbox.py and docs/SANDBOX.md.
 sandbox: auto
 sandbox_image: auto-research-compact-proof-sandbox:1
 

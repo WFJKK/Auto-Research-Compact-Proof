@@ -497,3 +497,14 @@ def test_the_recipe_has_a_finite_process_limit(model):
         assert ex.status == "ok", ex.error
         soft = ex.proof["result"][0]
         assert 0 < soft <= MAX_RECIPE_PROCESSES, (mode, soft)
+
+
+def test_hardened_mode_never_falls_back_to_process(monkeypatch):
+    """A stopped Docker must make an unattended resume refuse, not run recipes in the weak mode."""
+    from core import sandbox as sbx
+
+    monkeypatch.setattr(sbx, "container_runtime", lambda: None)
+    monkeypatch.setattr(sbx, "landlock_available", lambda: False)
+    with pytest.raises(sbx.SandboxError, match="refuses to fall back"):
+        sbx.choose({"sandbox": "hardened"})
+    assert sbx.choose({"sandbox": "auto"}).mode == "process"  # auto still falls back, with a warning

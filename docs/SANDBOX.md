@@ -12,7 +12,7 @@ Recipes are code written by an agent, so they run apart from everything trusted:
 
 Every mode also gets: a wall-clock limit enforced from outside, a memory limit, limits on file size and CPU time, and a proof file read back as JSON data only (no links, pipes, NaN or duplicate keys; never executed or unpickled).
 
-The run config's `sandbox` key picks the mode. The default, `auto`, takes the strongest one that works on the machine: `container` if a runtime and the image are present, then `landlock`, then `process`.
+The run config's `sandbox` key picks the mode. The default, `auto`, takes the strongest one that works on the machine: `container` if a runtime and the image are present, then `landlock`, then `process`. `hardened` does the same but never falls back to `process`: with neither available, the run refuses to start. The configs for real agent runs use it, so a Docker that stopped while the machine slept makes a resume refuse instead of quietly running recipes in the weak mode.
 
 ## The probe
 

@@ -9,3 +9,5 @@ rounds_max: 30
 patience: 10
 # The agent starts from brute force only; symmetry and contraction are its to find.
 baselines: [brute_force]
+# Recipes are an agent's code: refuse to start without container or landlock isolation.
+sandbox: hardened

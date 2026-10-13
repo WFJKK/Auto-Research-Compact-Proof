@@ -13,3 +13,5 @@ patience: 10
 api_retries: {tries: 12, first_wait_s: 60, max_wait_s: 1800, timeout_s: 3600}
 # The agent starts from brute force only; symmetry and contraction are its to find.
 baselines: [brute_force]
+# Recipes are an agent's code: refuse to start without container or landlock isolation.
+sandbox: hardened
