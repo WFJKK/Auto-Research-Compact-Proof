@@ -214,3 +214,23 @@ def test_a_subscription_run_records_zero_cost_and_resumes(trained_stub, tmp_path
     ctx2 = loop.resume(ctx.run.path, log=lambda *a: None)
     loop.drive(ctx2)
     assert ctx2.run.done_rounds() == [0, 1, 2, 3] and len(cli.calls) == 6
+
+
+def test_a_stream_cut_off_mid_line_is_joined_exactly():
+    """The CLI resumes an interrupted stream in a new message with no stop reason, in the middle
+    of a line: nothing goes between the pieces (three real cases from the first max2 runs)."""
+    from core.agent.backends.claude_code import _join
+
+    text = RESPONSE_TEXT
+    for marker, offset in (("make_proof", 4), ("knob", 2)):
+        at = text.index(marker) + offset
+        pieces = [assistant_event(text[:at], stop_reason=None), assistant_event(text[at:], stop_reason=None)]
+        b, _, _, _ = backend([Completed(stream(*pieces, result_event(text[at:], num_turns=2)))])
+        assert b.respond(PROMPT, 0).text == text
+    # A resume that repeats a few characters from before the cut: dropped when that is what makes the recipe parse.
+    at = text.index("make_proof") + 4
+    assert _join([{"stop_reason": None, "text": text[:at]}, {"stop_reason": None, "text": text[at - 8 :]}]) == text
+    # A cut inside indentation with a clean resume keeps every space.
+    code_line = next(l for l in text.splitlines() if l.startswith("    "))
+    at = text.index(code_line) + 2
+    assert _join([{"stop_reason": None, "text": text[:at]}, {"stop_reason": None, "text": text[at:]}]) == text

@@ -11,10 +11,11 @@ with the prompt on stdin and an empty temporary folder as the working
 directory, so the CLI behaves as a plain model call: no tools, no files, no
 project settings, no MCP servers. The streamed output holds every assistant
 message and a final result event. A long answer arrives as several assistant
-messages, because the CLI continues when one hits its output limit, and the
-result's own text field holds only the last of them; so the response text is
-joined from the assistant messages, and the result event gives the tokens
-used. The CLI's own dollar figure is recorded as api_equivalent_usd, while
+messages, because the CLI continues when one hits its output limit or when its
+stream is cut off, and the result's own text field holds only the last of
+them; so the response text is joined from the assistant messages (see _join:
+a cut falls in the middle of a line as often as not, so the pieces are
+concatenated exactly), and the result event gives the tokens used. The CLI's own dollar figure is recorded as api_equivalent_usd, while
 cost_usd stays 0 because nothing is billed per call.
 
 The CLI's environment has ANTHROPIC_API_KEY and the pipeline's key variable
@@ -86,15 +87,58 @@ def _parse_output(out: str) -> tuple[dict | None, list[dict]]:
     return result, messages
 
 
-def _join(messages: list[dict]) -> str:
-    """Assistant messages in order. A message cut off at the output limit continues
-    exactly where it stopped, so nothing goes between it and the next; otherwise a newline."""
+MAX_RESUME_OVERLAP = 4096
+
+
+def _overlap(a: str, b: str) -> int:
+    """The longest k with a ending in b[:k]: what a resumed stream repeated before the cut."""
+    for k in range(min(len(a), len(b), MAX_RESUME_OVERLAP), 0, -1):
+        if a.endswith(b[:k]):
+            return k
+    return 0
+
+
+def _concat(messages: list[dict], drop_overlap: bool) -> str:
     text = ""
     for i, m in enumerate(messages):
-        if i and messages[i - 1].get("stop_reason") != "max_tokens" and not text.endswith("\n"):
-            text += "\n"
-        text += m["text"]
+        part = m["text"]
+        if i:
+            cut = messages[i - 1].get("stop_reason") in (None, "max_tokens")
+            if cut and drop_overlap:
+                part = part[_overlap(text, part) :]
+            elif not cut and not text.endswith("\n"):
+                text += "\n"
+        text += part
     return text
+
+
+def _join(messages: list[dict]) -> str:
+    """Assistant messages in order, as one answer.
+
+    The CLI splits an answer when its stream is cut off (a message with no stop reason,
+    or max_tokens at the output limit) and continues it in the next message, at the exact
+    character where it stopped, in the middle of a line as often as not. So nothing goes
+    between such pieces. A resumed stream sometimes repeats a few characters from before
+    the cut; when the plain join holds no recipe that parses, the join that drops the
+    repetition is tried, and kept if it does. Messages that ended on their own are
+    separated by a newline.
+    """
+    plain = _concat(messages, drop_overlap=False)
+    if len(messages) < 2 or not any(m.get("stop_reason") in (None, "max_tokens") for m in messages[:-1]):
+        return plain
+    from ..parse import ParseError, parse_response
+
+    try:
+        parse_response(plain)
+        return plain
+    except ParseError:
+        pass
+    trimmed = _concat(messages, drop_overlap=True)
+    try:
+        parse_response(trimmed)
+        return trimmed
+    except ParseError:
+        return plain
 
 
 def _run_cli(cmd, prompt_text, env, cwd, timeout_s):
