@@ -66,7 +66,7 @@ def remeasure_archive(run: RunDir, folder_path: str, entries: list[dict], rule_s
     """Re-check every ok record's proof; write out/archive.jsonl; return the new records."""
     records = run.read_archive()
     real = {e["id"]: e.get("real_correct") for e in entries}
-    jobs, by_id = [], {}
+    jobs, same = [], {}  # the same proof at several knob values is checked once
     for r in scored(records):
         if r["network"] not in real:
             continue
@@ -74,16 +74,28 @@ def remeasure_archive(run: RunDir, folder_path: str, entries: list[dict], rule_s
         if not p.exists():
             log(f"  WARNING: {r['record_id']}: proof file missing, record kept as archived")
             continue
+        key = (r["network"], r.get("proof_sha256") or r["record_id"])
+        if key in same:
+            same[key].append(r["record_id"])
+            continue
+        same[key] = [r["record_id"]]
         jobs.append((folder_path, r["network"], str(p), list(rule_set), held_out, r["record_id"]))
-        by_id[r["record_id"]] = r
-    log(f"{run.path}: {len(jobs)} proofs to re-measure under {COST_VERSION} with {workers} workers")
-    new = {r["record_id"]: dict(r) for r in records}
+    log(f"{run.path}: {sum(map(len, same.values()))} records, {len(jobs)} distinct proofs to re-measure under {COST_VERSION} with {workers} workers")
+    orig = {r["record_id"]: r for r in records}
+    new = {rid: dict(r) for rid, r in orig.items()}
     problems = {"certified_changed": [], "rejected": [], "unsound": []}
     done = 0
+    results = {}
     with ProcessPoolExecutor(max_workers=workers, mp_context=get_context("spawn")) as ex:
         for rid, res, err in ex.map(_measure, jobs, chunksize=1):
             done += 1
-            old = by_id[rid]
+            if done % 50 == 0 or done == len(jobs):
+                log(f"  {done}/{len(jobs)}")
+            results[rid] = (res, err)
+    for key, rids in same.items():
+        res, err = results.get(rids[0], (None, "not measured"))
+        for rid in rids:
+            old = orig[rid]
             if err or res is None or res["status"] != "ok":
                 problems["rejected"].append((rid, err or res.get("reason")))
                 new[rid].update(status="bad_output", error=f"re-measurement: {err or res.get('reason')}", length_archived=old["length"])
@@ -99,8 +111,6 @@ def remeasure_archive(run: RunDir, folder_path: str, entries: list[dict], rule_s
                 cost_model_archived=(old.get("versions") or {}).get("cost_model"),
                 cost_model=COST_VERSION,
             )
-            if done % 50 == 0 or done == len(jobs):
-                log(f"  {done}/{len(jobs)}")
     out.mkdir(parents=True, exist_ok=True)
     atomic_write(out / "archive.jsonl", "".join(json.dumps(new[r["record_id"]]) + "\n" for r in records))
     for kind, items in problems.items():
