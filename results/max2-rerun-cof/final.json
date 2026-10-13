@@ -1,0 +1,168 @@
+{
+  "checked_by": "Python",
+  "recipes": [
+    [
+      8,
+      0
+    ],
+    [
+      9,
+      0
+    ],
+    [
+      10,
+      0
+    ]
+  ],
+  "run_id": "max2-rerun-cof",
+  "settings": {
+    "v128": {
+      "development": {
+        "Q_median": 0.34774023895002915,
+        "Q_worst": 0.3449296975596286,
+        "cost_of_finishing_median": 19.079894259020694,
+        "cost_of_finishing_worst": 18.7713716705627,
+        "shortest_full_over_B_median": 0.05241120132113908
+      },
+      "held_out": {
+        "Q_median": 0.34755461516710384,
+        "Q_worst": 0.34681102990366147,
+        "cost_of_finishing_median": 19.089217951051474,
+        "cost_of_finishing_worst": 18.845875623686517,
+        "shortest_full_over_B_median": 0.05238714641358529
+      },
+      "held_out_networks": {
+        "max2-v128-s2": {
+          "B": 40407555,
+          "E": 4352,
+          "Q": 0.34681102990366147,
+          "best_accuracy": 0.99981689453125,
+          "cost_of_finishing": 18.845875623686517,
+          "real_accuracy": 0.99981689453125,
+          "shortest_full": 2144106,
+          "within": {
+            "B/10": 0.99981689453125,
+            "B/100": 0.01568603515625,
+            "B/1000": 0.0
+          }
+        },
+        "max2-v128-s3": {
+          "B": 40407555,
+          "E": 4352,
+          "Q": 0.34999586423669327,
+          "best_accuracy": 0.99993896484375,
+          "cost_of_finishing": 19.32429039551913,
+          "real_accuracy": 0.99993896484375,
+          "shortest_full": 2091024,
+          "within": {
+            "B/10": 0.99993896484375,
+            "B/100": 0.0186767578125,
+            "B/1000": 0.0
+          }
+        },
+        "max2-v128-s4": {
+          "B": 40407555,
+          "E": 4352,
+          "Q": 0.3479915663848769,
+          "best_accuracy": 0.99993896484375,
+          "cost_of_finishing": 19.193170693708144,
+          "real_accuracy": 0.99993896484375,
+          "shortest_full": 2105309,
+          "within": {
+            "B/10": 0.99993896484375,
+            "B/100": 0.0155029296875,
+            "B/1000": 0.0
+          }
+        },
+        "max2-v128-s9": {
+          "B": 40407555,
+          "E": 4352,
+          "Q": 0.34711766394933075,
+          "best_accuracy": 0.99993896484375,
+          "cost_of_finishing": 18.985265208394804,
+          "real_accuracy": 0.99993896484375,
+          "shortest_full": 2128364,
+          "within": {
+            "B/10": 0.99993896484375,
+            "B/100": 0.0157470703125,
+            "B/1000": 0.0
+          }
+        }
+      }
+    },
+    "v64": {
+      "development": {
+        "Q_median": 0.3249689798130685,
+        "Q_worst": 0.32287744634725785,
+        "cost_of_finishing_median": 9.145015956843931,
+        "cost_of_finishing_worst": 8.970404575048155,
+        "shortest_full_over_B_median": 0.10935151371075442
+      },
+      "held_out": {
+        "Q_median": 0.3261563034605611,
+        "Q_worst": 0.3244182278284521,
+        "cost_of_finishing_median": 9.219103988634252,
+        "cost_of_finishing_worst": 9.066533288500336,
+        "shortest_full_over_B_median": 0.10848201686182288
+      },
+      "held_out_networks": {
+        "max2-v64-s2": {
+          "B": 2696387,
+          "E": 1088,
+          "Q": 0.3268666265555422,
+          "best_accuracy": 0.9990234375,
+          "cost_of_finishing": 9.314459521078884,
+          "real_accuracy": 0.9990234375,
+          "shortest_full": 289484,
+          "within": {
+            "B/10": 0.40869140625,
+            "B/100": 0.0,
+            "B/1000": 0.0
+          }
+        },
+        "max2-v64-s6": {
+          "B": 2696387,
+          "E": 1088,
+          "Q": 0.32761776915039487,
+          "best_accuracy": 0.999267578125,
+          "cost_of_finishing": 9.445463430354959,
+          "real_accuracy": 0.999267578125,
+          "shortest_full": 285469,
+          "within": {
+            "B/10": 0.408935546875,
+            "B/100": 0.0,
+            "B/1000": 0.0
+          }
+        },
+        "max2-v64-s7": {
+          "B": 2696387,
+          "E": 1088,
+          "Q": 0.32544598036558003,
+          "best_accuracy": 0.9990234375,
+          "cost_of_finishing": 9.066533288500336,
+          "real_accuracy": 0.9990234375,
+          "shortest_full": 297400,
+          "within": {
+            "B/10": 0.40283203125,
+            "B/100": 0.0,
+            "B/1000": 0.0
+          }
+        },
+        "max2-v64-s9": {
+          "B": 2696387,
+          "E": 1088,
+          "Q": 0.3244182278284521,
+          "best_accuracy": 0.999755859375,
+          "cost_of_finishing": 9.123748456189622,
+          "real_accuracy": 0.999755859375,
+          "shortest_full": 295535,
+          "within": {
+            "B/10": 0.37158203125,
+            "B/100": 0.0,
+            "B/1000": 0.0
+          }
+        }
+      }
+    }
+  }
+}

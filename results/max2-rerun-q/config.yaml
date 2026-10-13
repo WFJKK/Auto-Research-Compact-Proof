@@ -1,0 +1,54 @@
+agent_model: claude-fable-5-1
+api_key_env: CPL_ANTHROPIC_KEY
+api_retries:
+  first_wait_s: 60
+  max_wait_s: 1800
+  timeout_s: 3600
+  tries: 12
+backend: claude_code
+baselines:
+- brute_force
+check_timeout_s: 600
+claude_code_command: claude
+effort: high
+fake_responses: []
+knob_values:
+- 0
+- 0.25
+- 0.5
+- 0.75
+- 1
+lean_spot_check: false
+max_consecutive_refusals: 3
+max_output_tokens: 64000
+max_proof_mb: 32
+memory_limit_mb: 2048
+metric: Q
+model: models/max2
+networks: all
+patience: 10
+prompt_budget_tokens: 40000
+prompt_template: v1
+recipes_per_round: 1
+rounds_max: 10
+rule_set:
+- single
+- interval
+- skip
+- contract
+- symmetry
+- approximate
+run_id: max2-rerun-q
+runs_dir: ~/auto-research-compact-proof-runs
+sandbox: hardened
+sandbox_dir: null
+sandbox_image: auto-research-compact-proof-sandbox:1
+screen: true
+seed: 0
+shown_last_attempts: 3
+shown_top_recipes: 3
+thinking:
+  type: adaptive
+threads_per_recipe: 1
+time_limit_s: 300
+workers: 2
