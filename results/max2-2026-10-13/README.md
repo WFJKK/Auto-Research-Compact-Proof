@@ -1,5 +1,7 @@
 # Compact proofs for max-of-2: an agent loop, two metrics, two runs
 
+The short version of this write-up is the repository README; this page keeps the full reference table and all figures.
+
 Results of 13 October 2026, with the background needed to read them. All numbers from the runs and the baselines come from the exact Python checker; numbers marked "estimate" come from floating-point analysis of strategies the checker cannot yet express. No result is Lean-checked yet (section 2).
 
 Contents: 1. compact proofs; 2. the agent loop; 3. the two metrics; 4. the network and the known proofs; 5. the two runs; 6. what the agents found; 7. how Q can be gamed; 8. caveats and next steps.
