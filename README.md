@@ -6,7 +6,11 @@ Each round, an agent proposes a circuit claim and a recipe: a program that turns
 
 ## Status
 
-The pipeline is built and tested end to end (spec Steps 0 to 9): the max2 model folder with its trained zoo, the exact checker, the hardened sandbox, diagnostics, the prompt builder, the loop with fake, manual and API backends (the API one tested against a mock), reports, and the held-out evaluation. Two independent reviews found no soundness bug; the robustness and cost gaps they found are fixed and have regression tests. All that remains is Step 10: the first runs with a real API key, which you drive from where your key lives (see below).
+The pipeline is built and tested end to end (spec Steps 0 to 9): the max2 model folder with its trained zoo, the exact checker, the hardened sandbox, diagnostics, the prompt builder, the loop with fake, manual and API backends (the API one tested against a mock), reports, and the held-out evaluation. Two independent reviews found no soundness bug; the robustness and cost gaps they found are fixed and have regression tests. Step 10, the real runs, has begun: see Results.
+
+## Results
+
+The first runs, on max-of-2 (13 October 2026), with the background needed to read them: compact proofs, the agent loop, the two metrics (Q and cost of finishing), the known proofs (brute force, symmetry, the cubic proof, convexity), what the agents found, and how Q can be gamed. See [results/max2-2026-10-13/README.md](results/max2-2026-10-13/README.md). Every run's report is listed in [results/RESULTS.md](results/RESULTS.md).
 
 The first model is the max-of-2 network from the [proof-based approach tutorial](https://github.com/LouisYRYJ/Proof_based_approach_tutorial/blob/master/proof_public.ipynb).
 
