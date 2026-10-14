@@ -31,16 +31,17 @@ class ArchiveError(RuntimeError):
     pass
 
 
-def knob_label(knob) -> str:
-    return f"k{float(knob):g}"
+def knob_label(knob, budget=None) -> str:
+    """The label of one execution: the budget when the run scores at fixed budgets, else the knob value."""
+    return f"b{int(budget)}" if budget is not None else f"k{float(knob):g}"
 
 
-def record_id(run_id: str, round_k: int, attempt: int, network: str | None = None, knob=None) -> str:
-    """One id per network and knob value in an attempt; an attempt that never ran has one id of its own."""
+def record_id(run_id: str, round_k: int, attempt: int, network: str | None = None, knob=None, budget=None) -> str:
+    """One id per network and knob value (or budget) in an attempt; an attempt that never ran has one id of its own."""
     base = f"{run_id}/r{round_k:03d}/a{attempt}"
     if network is None:
         return f"{base}/attempt"
-    return f"{base}/{network}/{knob_label(knob)}"
+    return f"{base}/{network}/{knob_label(knob, budget)}"
 
 
 class RunDir:

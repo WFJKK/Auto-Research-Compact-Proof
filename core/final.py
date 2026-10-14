@@ -33,7 +33,7 @@ from .util import read_json, write_json
 from .versions import changed
 from .zoo import networks
 
-METRICS = ("Q_median", "Q_worst", "cost_of_finishing_median", "cost_of_finishing_worst", "shortest_full_over_B_median")
+METRICS = ("Q_median", "Q_worst", "Q_grid_median", "Q_grid_worst", "cost_of_finishing_median", "cost_of_finishing_worst", "shortest_full_over_B_median")
 
 
 def frontier_attempts(records: list[dict]) -> list[tuple[int, int]]:
@@ -108,8 +108,8 @@ def evaluate(run_path: str | Path, log=print) -> dict:
         "recipes": [list(key) for key in keys],
         "settings": {},
     }
-    dev_s = summarize(run.read_archive(), dev)
-    held_s = summarize(final.read_archive(), held)
+    dev_s = summarize(run.read_archive(), dev, cfg.get("budget_ratio"))
+    held_s = summarize(final.read_archive(), held, cfg.get("budget_ratio"))
     for setting in dev_s:
         summary["settings"][setting] = {
             "development": {m: dev_s[setting][m] for m in METRICS},

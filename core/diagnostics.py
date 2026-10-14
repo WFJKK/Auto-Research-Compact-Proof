@@ -144,6 +144,17 @@ def _knob(k) -> str:
     return f"{float(k):g}"
 
 
+def at_label(r: dict) -> str:
+    """How one execution is labelled: its fixed budget as B/x when the run scores at budgets, else its knob."""
+    if r.get("budget") is not None:
+        div = r.get("budget_divisor") or (r["B"] / r["budget"] if r.get("B") else None)
+        return f"budget B/{div:g} ({r['budget']:,})" if div else f"budget {r['budget']:,}"
+    return f"knob {_knob(r['knob'])}"
+
+
+_at = at_label
+
+
 def _median(values):
     values = [v for v in values if v is not None]
     return statistics.median(values) if values else None
@@ -167,8 +178,14 @@ def knob_lines(ok: list[dict]) -> tuple[list[str], float]:
         if best_key is None or (acc, -length) > best_key:
             best_knob, best_key = k, (acc, -length)
     lines = []
+    by_knob = {r["knob"]: r for r in ok}
     for first, last, text in rows:
-        label = f"knob {_knob(first)}" if first == last else f"knobs {_knob(first)} to {_knob(last)}"
+        if first == last:
+            label = _at(by_knob[first])
+        elif by_knob[first].get("budget") is not None:
+            label = f"budgets B/{by_knob[first]['budget_divisor']:g} to B/{by_knob[last]['budget_divisor']:g}"
+        else:
+            label = f"knobs {_knob(first)} to {_knob(last)}"
         lines.append(f"  {label}: {text}")
     return lines, best_knob
 
@@ -195,7 +212,7 @@ def render_attempt(records: list[dict], grouping: str = "group") -> str:
         knob_lines_, best = knob_lines(ok)
         lines += knob_lines_
         kr = [r for r in ok if r["knob"] == best]
-        at = f" at knob {_knob(best)}" if len(knob_lines_) > 1 else ""
+        at = f" at {_at(kr[0])}" if len(knob_lines_) > 1 else ""
 
         mid = sorted(kr, key=lambda r: r["length"])[len(kr) // 2]
         parts = [(c, mid["length_by_rule"].get(c, 0)) for c in RULE_ORDER if mid["length_by_rule"].get(c)]

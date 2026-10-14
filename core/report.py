@@ -27,7 +27,7 @@ from .archive import RunDir
 from .lean import lean_command
 from .loop import LoopError, select_networks
 from .model_folder import load_model_folder
-from .run_config import resolve
+from .run_config import METRIC_KEYS, resolve
 from .scoring import BUDGET_DIVISORS, frontier, summarize
 from .util import REPO_ROOT, read_json
 
@@ -43,6 +43,7 @@ def _metric_rows(s: dict) -> list[tuple[str, str, str]]:
     nets = list(s["networks"].values())
     rows = [
         ("Q", f"{s['Q_median']:.4f}", f"{s['Q_worst']:.4f}"),
+        ("Q_grid (mean accuracy over the fixed budgets)", f"{s['Q_grid_median']:.4f}", f"{s['Q_grid_worst']:.4f}"),
         ("cost of finishing (B / total)", f"{s['cost_of_finishing_median']:.2f}", f"{s['cost_of_finishing_worst']:.2f}"),
     ]
     full = [m["B"] / m["shortest_full"] if m["shortest_full"] else None for m in nets]
@@ -109,10 +110,10 @@ def plot_frontiers(records, entries, out: Path, reference: list[dict] | None = N
     return paths
 
 
-def progress(run: RunDir, records, entries, metric_key: str) -> list[tuple[int, dict]]:
+def progress(run: RunDir, records, entries, metric_key: str, budget_ratio: float | None = None) -> list[tuple[int, dict]]:
     out = []
     for k in run.done_rounds():
-        s = summarize([r for r in records if r["round"] <= k], entries)
+        s = summarize([r for r in records if r["round"] <= k], entries, budget_ratio)
         out.append((k, {setting: v[metric_key] for setting, v in s.items()}))
     return out
 
@@ -156,8 +157,8 @@ def build_report(run_path: str | Path, reference_path: str | Path | None = None)
     versions = read_json(run.path / "versions.json")
     out = run.path / "report"
     out.mkdir(exist_ok=True)
-    summary = summarize(records, entries)
-    metric_key = "cost_of_finishing_median" if cfg["metric"] == "cost_of_finishing" else "Q_median"
+    summary = summarize(records, entries, cfg.get("budget_ratio"))
+    metric_key = METRIC_KEYS[cfg["metric"]]
 
     metas = [run.read(k, "meta.json") or {} for k in run.done_rounds()]
     tokens_in = sum((m.get("tokens") or {}).get("input", 0) for m in metas)
@@ -197,7 +198,7 @@ def build_report(run_path: str | Path, reference_path: str | Path | None = None)
         lines += [f"| {a} | {b} | {c} |" for a, b, c in _metric_rows(s)]
         lines += ["", f"![frontier {setting}](frontier_{setting}.png)", ""]
 
-    points = progress(run, records, entries, metric_key)
+    points = progress(run, records, entries, metric_key, cfg.get("budget_ratio"))
     plot_frontiers(records, entries, out, reference)
     if ref_run is not None:
         lines += ["## Reference proofs (never shown to the agent)", "", f"Round-0 baselines of run `{ref_run.run_id}`, drawn as crosses in the frontier plots:", ""]
@@ -267,7 +268,7 @@ def copy_to_results(run_path: str | Path) -> Path:
     shutil.copy2(run.path / "config.yaml", dest / "config.yaml")
     versions = read_json(run.path / "versions.json")
     folder = load_model_folder(resolve(cfg["model"]))
-    s = summarize(run.read_archive(), select_networks(folder, cfg))
+    s = summarize(run.read_archive(), select_networks(folder, cfg), cfg.get("budget_ratio"))
     headline = "; ".join(f"{k} Q {v['Q_median']:.4f} (worst {v['Q_worst']:.4f})" for k, v in s.items())
     index = RESULTS / "RESULTS.md"
     if not index.exists():

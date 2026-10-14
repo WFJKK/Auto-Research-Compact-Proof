@@ -8,7 +8,13 @@ seed: 0
 
 # Which development networks a round uses: "all", or a list of network ids.
 networks: all
+# The knob values each recipe is run at (metrics Q and cost_of_finishing). With
+# metric Q_grid the loop runs each recipe once per fixed budget instead, and
+# knob_values is not used.
 knob_values: [0, 0.25, 0.5, 0.75, 1]
+# The fixed budgets of Q_grid, per size setting: B / budget_ratio, B / budget_ratio^2,
+# and so on down to E. With 2, a proof must halve to reach the next budget.
+budget_ratio: 2
 
 # Run data lives outside the repository.
 runs_dir: ~/auto-research-compact-proof-runs
@@ -76,8 +82,11 @@ api_retries: {tries: 6, first_wait_s: 10, max_wait_s: 300, timeout_s: 1800}
 # Stop when this many attempts in a row were refused by the model.
 max_consecutive_refusals: 3
 
-prompt_template: v1
+# v2 is v1 with the knob paragraph filled per metric; metric Q_grid needs it.
+prompt_template: v2
 rule_set: [single, interval, skip, contract, symmetry, approximate]
-# The number the agent sees as its score: Q or cost_of_finishing.
+# The number the agent sees as its score: Q, Q_grid or cost_of_finishing
+# (section 5 of docs/SPEC.md). Q_grid scores at fixed budgets, so where a
+# recipe places its proofs earns nothing; the report shows all of them.
 metric: Q
 lean_spot_check: false

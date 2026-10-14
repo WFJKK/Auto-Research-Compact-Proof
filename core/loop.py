@@ -42,7 +42,7 @@ from .archive import RunDir
 from .check.cost import VERSION as COST_VERSION
 from .model_folder import load_model_folder
 from .rounds import Context, RoundError, now, run_round
-from .run_config import load_run_config, resolve
+from .run_config import METRIC_KEYS, load_run_config, resolve
 from .runner import Limits
 from .sandbox import SandboxError, check_probe, choose, probe, protected_paths
 from .scoring import frontier, summarize
@@ -126,19 +126,19 @@ def make_backend(cfg, log=print):
     raise LoopError(f"unknown backend {cfg['backend']!r}")
 
 
-def metric_by_setting(records: list[dict], entries: list[dict], metric: str) -> dict:
-    key = "cost_of_finishing_median" if metric == "cost_of_finishing" else "Q_median"
-    return {s: v[key] for s, v in summarize(records, entries).items()}
+def metric_by_setting(records: list[dict], entries: list[dict], metric: str, budget_ratio: float | None = None) -> dict:
+    key = METRIC_KEYS[metric]
+    return {s: v[key] for s, v in summarize(records, entries, budget_ratio).items()}
 
 
-def rounds_without_gain(run: RunDir, entries: list[dict], metric: str) -> int:
+def rounds_without_gain(run: RunDir, entries: list[dict], metric: str, budget_ratio: float | None = None) -> int:
     """Agent rounds in a row, counting back from the last, that raised the metric in no size setting."""
     records = run.read_archive()
     done = [k for k in run.done_rounds() if k > 0]
-    best = metric_by_setting([r for r in records if r["round"] == 0], entries, metric)
+    best = metric_by_setting([r for r in records if r["round"] == 0], entries, metric, budget_ratio)
     since = 0
     for k in done:
-        now_ = metric_by_setting([r for r in records if r["round"] <= k], entries, metric)
+        now_ = metric_by_setting([r for r in records if r["round"] <= k], entries, metric, budget_ratio)
         if any(now_[s] > best.get(s, 0.0) + 1e-12 for s in now_):
             since = 0
         else:
@@ -264,7 +264,7 @@ def drive(ctx: Context) -> None:
         first = (k - 1) * per_round
         fresh = not run.round_done(k) and run.read(k, "attempt_0/response.md") is None
         if fresh:
-            stale = rounds_without_gain(run, ctx.entries, cfg["metric"])
+            stale = rounds_without_gain(run, ctx.entries, cfg["metric"], cfg.get("budget_ratio"))
             if stale >= cfg["patience"]:
                 ctx.log(f"no gain in {stale} rounds (patience {cfg['patience']}); stopping after round {k - 1}")
                 break
@@ -314,9 +314,9 @@ def status_text(run: RunDir, diagnostics: bool = False) -> str:
         lines.append(f"(no metrics: {exc})")
         return "\n".join(lines)
     lines.append("frontier metrics (Python-checked):")
-    for setting, s in summarize(records, entries).items():
+    for setting, s in summarize(records, entries, cfg.get("budget_ratio")).items():
         lines.append(
-            f"  {setting}: Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}; "
+            f"  {setting}: Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}; Q_grid median {s['Q_grid_median']:.4f}; "
             f"cost of finishing median {s['cost_of_finishing_median']:.2f}"
         )
         for nid, m in s["networks"].items():

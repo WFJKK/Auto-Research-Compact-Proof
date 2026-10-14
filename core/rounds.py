@@ -9,7 +9,7 @@ A round folder holds one attempt per response:
             response_meta.json     backend, tokens, cost
             parsed.json            claim, why, prediction, knob, notes, warnings; or the parse error
             recipe.py
-            proofs/<network>__k<knob>.json.gz
+            proofs/<network>__k<knob>.json.gz   (or __b<budget> when scoring at fixed budgets)
             results.json           one record per network and knob, written last
         meta.json                  versions, timings, totals
         DONE                       written last
@@ -19,7 +19,7 @@ without DONE is finished on resume, reusing any response it already saved, so
 no response is ever asked for twice.
 
 For each attempt: parse the response, run the recipe in the sandbox once per
-development network and knob value, check every proof file, and write one
+development network and knob value (or fixed budget), check every proof file, and write one
 record each. With screening on, the recipe runs on one network per size
 setting first, and on the rest only if it certified something there.
 """
@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import math
 import sys
 import threading
 import time
@@ -43,6 +44,7 @@ from .check.worker import CheckerError, CheckerProcess
 from .model_folder import ModelFolder
 from .runner import Execution, Limits, run_recipe
 from .sandbox import Sandbox
+from .scoring import budget_grid, budget_position, default_budget_ratio
 from .util import REPO_ROOT, git_state, sha256_bytes
 from .versions import changed
 from .zoo import load_weights
@@ -77,8 +79,21 @@ class Context:
                 self._weights[network_id] = load_weights(self.folder, network_id, allow_held_out=self.held_out)
             return self._weights[network_id]
 
-    def info(self, entry: dict) -> dict:
-        return {"sizes": self.folder.sizes(entry["setting"]), "input_space": self.folder.input_space(entry["setting"])}
+    def info(self, entry: dict, budget: int | None = None) -> dict:
+        info = {"sizes": self.folder.sizes(entry["setting"]), "input_space": self.folder.input_space(entry["setting"])}
+        if budget is not None:  # scoring at fixed budgets: the recipe is told its budget, E and B
+            info.update(budget=int(budget), E=int(entry["E"]), B=int(entry["B"]))
+        return info
+
+    def jobs(self, entries: list[dict]) -> list[tuple[dict, float, int | None]]:
+        """What to run a recipe at: (network, knob, budget) for every network and knob value, or fixed budget."""
+        if self.cfg["metric"] == "Q_grid":
+            out = []
+            for e in entries:
+                for b in budget_grid(e["E"], e["B"], self.cfg.get("budget_ratio") or default_budget_ratio()):
+                    out.append((e, budget_position(b, e["E"], e["B"]), b))
+            return out
+        return [(e, float(kn), None) for e in entries for kn in self.cfg["knob_values"]]
 
     def verify_trusted(self) -> None:
         bad = changed(self.versions, self.folder)
@@ -189,16 +204,23 @@ def _check(ctx: Context, checker: CheckerProcess, entry: dict, proof_path: Path,
     return cache[key]
 
 
+def _divisor(B: float, budget: float, ratio: float) -> float:
+    """The budget as a nominal fraction of B: ratio, ratio squared, ... (budgets are rounded down, so B/budget is not exact)."""
+    return float(ratio ** round(math.log(B / budget) / math.log(ratio)))
+
+
 def execution_record(
-    ctx: Context, k: int, j: int, source: str, entry: dict, knob, ex: Execution, cache: dict, checker: CheckerProcess
+    ctx: Context, k: int, j: int, source: str, entry: dict, knob, ex: Execution, cache: dict, checker: CheckerProcess, budget=None
 ) -> dict:
     nid = entry["id"]
     rec = {
         **_base(ctx, k, j, source),
-        "record_id": record_id(ctx.run.run_id, k, j, nid, knob),
+        "record_id": record_id(ctx.run.run_id, k, j, nid, knob, budget),
         "network": nid,
         "setting": entry["setting"],
         "knob": float(knob),
+        "budget": None if budget is None else int(budget),
+        "budget_divisor": None if budget is None else _divisor(entry["B"], budget, ctx.cfg.get("budget_ratio") or default_budget_ratio()),
         "status": ex.status,
         "error": ex.error,
         "runtime_s": ex.runtime_s,
@@ -221,7 +243,7 @@ def execution_record(
         proof["network"] = nid  # the recipe never learns its network; a proof naming another one is rejected
     data = json.dumps(proof, separators=(",", ":"), ensure_ascii=False).encode()
     sha = sha256_bytes(data)
-    path = ctx.run.write(k, f"attempt_{j}/proofs/{nid}__{knob_label(knob)}.json.gz", gzip.compress(data, mtime=0))
+    path = ctx.run.write(k, f"attempt_{j}/proofs/{nid}__{knob_label(knob, budget)}.json.gz", gzip.compress(data, mtime=0))
     result, diag, seconds = _check(ctx, checker, entry, path, sha, cache)
     rec.update(proof_sha256=sha, checked_by="python", check_s=seconds)
     if result["status"] != "ok":
@@ -256,12 +278,12 @@ def _execute(ctx: Context, k: int, j: int, source: str, recipe: str, jobs: list,
     if not jobs:
         return records
 
-    def one(entry, knob):
+    def one(entry, knob, budget):
         return run_recipe(
             recipe,
             ctx.folder.source(),
             ctx.weights(entry["id"]),
-            ctx.info(entry),
+            ctx.info(entry, budget),
             knob,
             ctx.limits,
             ctx.cfg["sandbox_dir"],
@@ -269,17 +291,17 @@ def _execute(ctx: Context, k: int, j: int, source: str, recipe: str, jobs: list,
         )
 
     with ThreadPoolExecutor(max_workers=ctx.cfg["workers"]) as pool:
-        futures = {pool.submit(one, entry, knob): (entry, knob) for entry, knob in jobs}
+        futures = {pool.submit(one, entry, knob, budget): (entry, knob, budget) for entry, knob, budget in jobs}
         for fut in as_completed(futures):
-            entry, knob = futures[fut]
-            rec = execution_record(ctx, k, j, source, entry, knob, fut.result(), cache, checker)
+            entry, knob, budget = futures[fut]
+            rec = execution_record(ctx, k, j, source, entry, knob, fut.result(), cache, checker, budget)
             records.append(rec)
             ctx.log(_line(rec))
     return records
 
 
 def _line(rec: dict) -> str:
-    head = f"    {rec['network']} {knob_label(rec['knob'])}: {rec['status']}"
+    head = f"    {rec['network']} {knob_label(rec['knob'], rec.get('budget'))}: {rec['status']}"
     if rec["status"] == "ok":
         return f"{head}, certified {rec['certified']}/{rec['n_inputs']}, length {rec['length']:,}"
     return f"{head}: {(rec['error'] or '').splitlines()[-1][:120] if rec['error'] else ''}"
@@ -302,7 +324,6 @@ def run_attempt(ctx: Context, k: int, j: int, source: str, text: str) -> list[di
     ctx.run.write(k, f"{rel}/parsed.json", parsed.summary())
     ctx.run.write(k, f"{rel}/recipe.py", parsed.recipe)
 
-    knobs = ctx.cfg["knob_values"]
     cache: dict = {}
     if ctx.cfg["screen"]:
         first = screen_entries(ctx.entries)
@@ -317,15 +338,14 @@ def run_attempt(ctx: Context, k: int, j: int, source: str, text: str) -> list[di
     except CheckerError as exc:
         raise RoundError(f"the checker could not start: {exc}") from exc
     with checker:
-        records = _execute(ctx, k, j, source, parsed.recipe, [(e, kn) for e in first for kn in knobs], cache, checker)
+        records = _execute(ctx, k, j, source, parsed.recipe, ctx.jobs(first), cache, checker)
         if rest:
             if promising(records):
-                records += _execute(ctx, k, j, source, parsed.recipe, [(e, kn) for e in rest for kn in knobs], cache, checker)
+                records += _execute(ctx, k, j, source, parsed.recipe, ctx.jobs(rest), cache, checker)
             else:
                 ctx.log(f"  attempt {j}: certified nothing on the screening networks; not run on the rest")
     order = {e["id"]: i for i, e in enumerate(ctx.entries)}
-    knob_order = {float(kn): i for i, kn in enumerate(knobs)}
-    records.sort(key=lambda r: (order[r["network"]], knob_order[r["knob"]]))
+    records.sort(key=lambda r: (order[r["network"]], r["knob"]))
     ctx.run.write(k, f"{rel}/results.json", records)
     return records
 

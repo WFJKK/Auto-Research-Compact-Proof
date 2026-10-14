@@ -69,9 +69,19 @@ On a normal length axis almost the whole width would lie near B, and a full proo
 
 $$\text{total} = L + \lambda U$$
 
-and the score is B divided by the smallest total over all proofs: how many times cheaper than brute force the cheapest complete certification is. In practice the shortest full-accuracy proof wins the minimum, so cost of finishing rewards complete proofs only; Q also rewards partial ones.
+and the score is B divided by the smallest total over all proofs:
 
-The run config sets which metric the agent sees as its score; the report always shows both, plus the shortest full-accuracy proof and the best accuracy within B/10, B/100 and B/1000.
+$$\text{cost of finishing} = \frac{B}{\min_{\text{proofs}} (L + \lambda U)}$$
+
+that is, how many times cheaper than brute force the cheapest complete certification is. Brute force scores 1; the cubic proof scores 8.6 on v64. In practice the shortest full-accuracy proof wins the minimum, so cost of finishing rewards complete proofs only; Q also rewards partial ones.
+
+**Q_grid: Q at fixed budgets** (added 14 October 2026, after the runs below; section 6 says why). The loop fixes a grid of budgets per size setting, B/2, B/4, B/8, ... down to E, runs each recipe once per budget with the budget as its input, and reads the accuracy only there:
+
+$$Q_{\text{grid}} = \frac{1}{K} \sum_{k=1}^{K} a(b_k), \qquad b_k = B / 2^k$$
+
+Since the budgets are evenly spaced on the log axis, this is Q sampled at the grid. A recipe can raise it only by certifying more within some budget, never by where its proofs sit between budgets. The ratio 2 is the config value `budget_ratio`; the grid has 11 budgets on v64 and 13 on v128. The hand-written cubic proof, given each budget in turn (`config/max2-baselines-grid.yaml`), scores Q_grid 0.332 on v64 and 0.354 on v128: full accuracy from B/8 (v64) or B/16 (v128) upwards, 47% and 44% at the next budget, 17% and 15% at the one after, then nothing ([reference_grid.json](results/max2-2026-10-13/reference_grid.json)).
+
+The run config sets which metric the agent sees as its score; the report always shows all three, plus the shortest full-accuracy proof and the best accuracy within B/10, B/100 and B/1000.
 
 ## 4. The runs of 13 October 2026
 
@@ -151,7 +161,9 @@ Q never sees what a recipe could certify at each budget. It sees only the five p
 
 $$\max_{L_1 < \dots < L_4} \; \sum_{i} \hat A(L_i) \ln\frac{L_{i+1}}{L_i}$$
 
-with Â its own prediction of what it can certify at each length. Every proof is real and checked; the score just rewards placing points as well as making them. The fix is for the loop, not the recipe, to fix the budgets: one log-spaced grid for every recipe, and the score is the mean of a(b) over the grid. Then recipes with the same capability get the same score.
+with Â its own prediction of what it can certify at each length. Every proof is real and checked; the score just rewards placing points as well as making them.
+
+**Changed on 14 October 2026.** The loop now offers Q_grid (section 3): with `metric: Q_grid` the loop, not the recipe, fixes the budgets (B/2, B/4, ... down to E), runs the recipe once per budget with `info["budget"]` set, and scores the mean accuracy over the grid. Recipes with the same capability then get the same score, and the knob's only job is to spend the budget well. The two runs above were scored under Q and cost of finishing; the next runs use Q_grid, with the hand-written cubic proof at the same budgets (baseline 04 reads `info["budget"]`) as the reference. What Q_grid gives up is resolution: a full proof that is 5% shorter does not cross a budget, so the shortest full-accuracy proof and cost of finishing stay in the report next to it.
 
 ## 7. Status and next steps
 
@@ -159,7 +171,7 @@ The pipeline is built and tested end to end (spec Steps 0 to 9): the max2 model 
 
 A second model is the one-layer, attention-only transformer of [xorformer](https://github.com/VerifiedMechanisms/xorformer) (n bits plus a query token, softmax heads, a thresholded readout), trained on MAJORITY of 12 bits with one head: `models/xorformer-majority`. Softmax puts exp in the network, so its checker (`core/check/general.py`) bounds every value with interval arithmetic instead of computing it exactly: sums and products stay exact, and exp and softmax are enclosed by rational bounds rounded outwards. The argument is in [docs/RULES.md](docs/RULES.md). Its configs are `config/xorformer-majority-round0.yaml` (fake backend) and `config/xorformer-majority-pilot-subscription.yaml`.
 
-Next: score with fixed budgets; add a checker rule for convexity for accuracy, with its soundness argument and an honest charge, and see whether an agent combines it with the band; implement the Lean checker; repeat each metric with more runs; run the xorformer pilot.
+Next: run both sizes under Q_grid; add a checker rule for convexity for accuracy, with its soundness argument and an honest charge, and see whether an agent combines it with the band; implement the Lean checker; repeat each metric with more runs; run the xorformer pilot.
 
 ## 8. Using the pipeline
 

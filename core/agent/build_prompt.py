@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import inspect
 import json
+from collections import Counter
 import re
 import statistics
 from dataclasses import dataclass, field
@@ -25,9 +26,9 @@ from pathlib import Path
 from ..archive import RunDir
 from ..check import cost
 from ..check.rules import describe
-from ..diagnostics import RULE_ORDER, knob_lines, render_attempt, share
+from ..diagnostics import RULE_ORDER, at_label, knob_lines, render_attempt, share
 from ..model_folder import ModelFolder
-from ..scoring import q_score, summarize
+from ..scoring import budget_grid, default_budget_ratio, q_grid, q_score, summarize
 from ..zoo import read_manifest
 
 TEMPLATES = Path(__file__).with_name("prompts")
@@ -92,10 +93,53 @@ def code_block(source: str) -> str:
 
 
 # part 1 ------------------------------------------------------------------------------------
+KNOB_TEXT = (
+    "knob is a number between 0 and 1 that we vary. Use it to trade proof\n"
+    "length against certified accuracy (for example split depth or precision),\n"
+    "so that one recipe traces out a curve."
+)
+BUDGET_TEXT = (
+    "We run your recipe once per budget from a fixed grid: per size setting\n"
+    "B/{ratio:g}, B/{ratio2:g}, and so on down to E ({grid}). info[\"budget\"] is the\n"
+    "budget in checker operations, with info[\"E\"] and info[\"B\"] next to it;\n"
+    "knob is the budget's position on the log scale from E (0) to B (1). Return\n"
+    "the proof that certifies the most inputs within the budget. A proof over\n"
+    "budget counts only at the larger budgets it fits, so predict its length\n"
+    "(the length by rule in the diagnostics shows what each rule costs). Where\n"
+    "a proof sits between grid budgets earns nothing: only the accuracy reached\n"
+    "at each budget counts."
+)
+
+
+def grid_text(entries: list[dict], ratio: float) -> str:
+    parts = []
+    for s in dict.fromkeys(e["setting"] for e in entries):
+        e = _first(entries, s)
+        grid = budget_grid(e["E"], e["B"], ratio)
+        parts.append(f"{s}: {len(grid)} budgets, {grid[0]:,} down to {grid[-1]:,}" if grid else f"{s}: no budget between E and B")
+    return "; ".join(parts)
+
+
+def knob_text(cfg: dict, entries: list[dict]) -> str:
+    if cfg["metric"] == "Q_grid":
+        ratio = cfg["budget_ratio"]
+        return BUDGET_TEXT.format(ratio=ratio, ratio2=ratio * ratio, grid=grid_text(entries, ratio))
+    return KNOB_TEXT
+
+
 def metric_text(cfg: dict, folder: ModelFolder, entries: list[dict]) -> str:
     settings = list(dict.fromkeys(e["setting"] for e in entries))
     eb = "; ".join(f"{s}: E {_first(entries, s)['E']:,}, B {_first(entries, s)['B']:,}" for s in settings)
-    if cfg["metric"] == "cost_of_finishing":
+    if cfg["metric"] == "Q_grid":
+        head = (
+            "Your score is Q_grid, per size setting the median over its networks (the worst network is reported too). "
+            "For one network, take each budget of the fixed grid in turn and the best certified accuracy among the "
+            "checked proofs (yours and earlier ones) of length at most that budget; Q_grid is the mean of these "
+            "accuracies over the grid, between 0 and 1. Brute force alone scores 0; a proof certifying everything "
+            "within the smallest budget would score 1. More accuracy within a budget raises it; a proof that is "
+            "shorter than its budget but no more accurate does not."
+        )
+    elif cfg["metric"] == "cost_of_finishing":
         head = (
             "Your score is the cost of finishing, per size setting the median over its networks (the worst network "
             "is reported too). For one network, take a proof's length plus, for every input it classifies correctly "
@@ -140,6 +184,7 @@ def static_values(cfg: dict, folder: ModelFolder, entries: list[dict]) -> dict:
         "RULES_SPEC": "\n" + rules,
         "COST_MODEL": "\n" + inspect.getdoc(cost).strip(),
         "METRIC": metric_text(cfg, folder, entries),
+        "KNOB": knob_text(cfg, entries),
         "TIME_LIMIT": f"{cfg['time_limit_s']:g} seconds and {cfg['memory_limit_mb']:g} MB of memory",
         "GROUPING": folder.task.GROUPING,
     }
@@ -161,8 +206,9 @@ def label(run: RunDir, key: tuple[int, int], per_round: int) -> str:
     return f"round {k}" + (f" attempt {j}" if per_round > 1 else "")
 
 
-def attempt_score(rs: list[dict], entries: list[dict]) -> float:
-    """The attempt's own Q: per network from its proofs alone, median per size setting, mean over settings."""
+def attempt_score(rs: list[dict], entries: list[dict], metric: str = "Q", budget_ratio: float | None = None) -> float:
+    """The attempt's own score (Q, or Q_grid when that is the metric): per network from its proofs alone,
+    median per size setting, mean over settings."""
     by_setting: dict = {}
     for e in entries:
         pts = sorted(
@@ -174,12 +220,13 @@ def attempt_score(rs: list[dict], entries: list[dict]) -> float:
             if r["certified"] > best:
                 frontier.append({"length": r["length"], "certified": r["certified"], "n_inputs": r["n_inputs"]})
                 best = r["certified"]
-        by_setting.setdefault(e["setting"], []).append(q_score(frontier, e["E"], e["B"]))
+        score = q_grid(frontier, e["E"], e["B"], budget_ratio) if metric == "Q_grid" else q_score(frontier, e["E"], e["B"])
+        by_setting.setdefault(e["setting"], []).append(score)
     return statistics.mean(statistics.median(v) for v in by_setting.values()) if by_setting else 0.0
 
 
-def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_round: int, metric: str) -> str:
-    summary = summarize(records, entries)
+def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_round: int, metric: str, budget_ratio: float | None = None) -> str:
+    summary = summarize(records, entries, budget_ratio)
     lines = []
     for setting in dict.fromkeys(e["setting"] for e in entries):
         nets = [e for e in entries if e["setting"] == setting]
@@ -188,9 +235,14 @@ def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_r
         real = statistics.median(e["real_accuracy"] for e in nets)
         if metric == "cost_of_finishing":
             score = f"cost of finishing median {s['cost_of_finishing_median']:.2f}, worst {s['cost_of_finishing_worst']:.2f}"
+        elif metric == "Q_grid":
+            score = f"Q_grid median {s['Q_grid_median']:.4f}, worst {s['Q_grid_worst']:.4f}"
         else:
             score = f"Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}"
         lines.append(f"{setting} ({len(nets)} networks; real accuracy median {100 * real:.3f}%): {score}")
+        if metric == "Q_grid":
+            lines += grid_lines(records, nets, run, per_round, budget_ratio)
+            continue
         points = []
         groups: dict = {}
         for r in records:
@@ -222,6 +274,33 @@ def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_r
     return "\n".join(lines)
 
 
+def grid_lines(records: list[dict], nets: list[dict], run: RunDir, per_round: int, budget_ratio: float | None) -> list[str]:
+    """Per fixed budget, smallest first: the median over networks of the best certified accuracy within the budget
+    (which is what Q_grid averages), and the recipe that holds it on most networks."""
+    ratio = budget_ratio if budget_ratio is not None else default_budget_ratio()
+    B = nets[0]["B"]
+    grid = budget_grid(nets[0]["E"], B, ratio)
+    ok = [r for r in records if r["status"] == "ok" and r["certified"] > 0]
+    lines = []
+    for i, b in reversed(list(enumerate(grid))):
+        accs, holders = [], Counter()
+        for e in nets:
+            mine = [r for r in ok if r["network"] == e["id"] and r["length"] <= b]
+            if mine:
+                best = max(mine, key=lambda r: (r["certified"], -r["length"]))
+                accs.append(best["certified"] / best["n_inputs"])
+                holders[(best["round"], best["attempt"])] += 1
+            else:
+                accs.append(0.0)
+        head = f"  budget B/{ratio ** (i + 1):g} ({b:,}):"
+        if holders:
+            key, n = holders.most_common(1)[0]
+            lines.append(f"{head} certified {100 * statistics.median(accs):.3f}% (median), {label(run, key, per_round)} on {n} of {len(nets)} networks")
+        else:
+            lines.append(f"{head} nothing certified yet")
+    return lines
+
+
 def _parsed(run: RunDir, key: tuple[int, int]) -> dict:
     return run.read(key[0], f"attempt_{key[1]}/parsed.json") or {}
 
@@ -241,7 +320,7 @@ def result_lines(rs: list[dict]) -> str:
             mid = kr[len(kr) // 2]
             parts = [(c, mid["length_by_rule"].get(c, 0)) for c in RULE_ORDER if mid["length_by_rule"].get(c)]
             out.append(
-                f"    length by rule at knob {best:g} ({mid['network']}): "
+                f"    length by rule at {at_label(mid)} ({mid['network']}): "
                 + ", ".join(f"{c} {share(v, mid['length'])}" for c, v in parts)
             )
         else:
@@ -250,8 +329,12 @@ def result_lines(rs: list[dict]) -> str:
     return "\n".join(out)
 
 
-def render_top(records, entries, run: RunDir, n: int, per_round: int, with_code: int) -> str:
-    scored = [(attempt_score(rs, entries), key, rs) for key, rs in attempts(records).items() if any(r["status"] == "ok" for r in rs)]
+def render_top(records, entries, run: RunDir, n: int, per_round: int, with_code: int, metric: str = "Q", budget_ratio: float | None = None) -> str:
+    scored = [
+        (attempt_score(rs, entries, metric, budget_ratio), key, rs)
+        for key, rs in attempts(records).items()
+        if any(r["status"] == "ok" for r in rs)
+    ]
     scored.sort(key=lambda t: (-t[0], t[1]))
     if not scored:
         return "None yet."
@@ -259,7 +342,7 @@ def render_top(records, entries, run: RunDir, n: int, per_round: int, with_code:
     for i, (score, key, rs) in enumerate(scored[:n]):
         p = _parsed(run, key)
         block = [
-            f"{i + 1}. {label(run, key, per_round)} (its own Q, mean over size settings: {score:.4f})",
+            f"{i + 1}. {label(run, key, per_round)} (its own {'Q_grid' if metric == 'Q_grid' else 'Q'}, mean over size settings: {score:.4f})",
             f"CLAIM: {p.get('claim', '')}",
             f"PREDICTION: {p.get('prediction', '')}",
             f"KNOB: {p.get('knob', '')}",
@@ -355,8 +438,8 @@ def build_prompt(cfg: dict, folder: ModelFolder, entries: list[dict], run: RunDi
             "K": cfg["rounds_max"],
             "m": cfg["shown_last_attempts"],
             "GROUPING": folder.task.GROUPING,
-            "FRONTIER": render_frontier(records, entries, run, per_round, cfg["metric"]),
-            "TOP_RECIPES": render_top(records, entries, run, n_top, per_round, with_code),
+            "FRONTIER": render_frontier(records, entries, run, per_round, cfg["metric"], cfg.get("budget_ratio")),
+            "TOP_RECIPES": render_top(records, entries, run, n_top, per_round, with_code, cfg["metric"], cfg.get("budget_ratio")),
             "DIAGNOSTICS": render_last(
                 records, entries, run, cfg["shown_last_attempts"], per_round, folder.group_label(), max_lines
             ),

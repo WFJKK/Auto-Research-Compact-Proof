@@ -230,6 +230,7 @@ Q = \frac{1}{\ln(B/E)} \int_E^B a(b) \, \frac{db}{b}
 - **Shortest proof at full accuracy:** the length of the shortest proof that certifies the network's real accuracy.
 - **Best accuracy within a budget:** the best certified accuracy within B/10, B/100 and B/1000.
 - **Cost of finishing** (alternative): the proof's length plus, for every correct input it leaves uncertified, the brute-force cost of one input (B divided by the number of inputs). Reported as B divided by that total.
+- **Q_grid** (alternative, added 14 October 2026): Q read only at fixed budgets. Per size setting the budgets are B/r, B/r², ... down to E, with r the run config's `budget_ratio` (2 by default); per network, Q_grid is the mean over the budgets of a(b). With this metric the loop runs each recipe once per budget instead of once per knob value, passing the budget in `info["budget"]` (with `info["E"]` and `info["B"]`) and the budget's position on the log axis as the knob. The score reads accuracy only at the grid, so a recipe gains nothing from where its proofs sit between budgets; under Q a recipe that defines its knob as a set of budgets can raise its score by placing them well (see `docs/REWARD_HACKING.md`). The price is resolution: a shorter full proof counts only when it crosses a budget, so the shortest full-accuracy proof and cost of finishing are reported next to it.
 
 Per model and size setting, report the median over networks and the worst network. Every number carries its label: Python-checked or Lean-backed.
 

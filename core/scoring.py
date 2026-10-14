@@ -4,6 +4,9 @@ Per network, a(b) is the best certified accuracy among checked proofs of
 length at most b. The metrics:
 
 - Q: the area under a(b) on a log length scale from E to B, divided by ln(B/E).
+- Q_grid: the mean of a(b) over the fixed budgets B/r, B/r^2, ... down to E, with r
+  the run's budget_ratio. It is Q read only at the grid, so where a recipe places
+  its proofs between grid points earns nothing (docs/SPEC.md, section 5).
 - shortest_full: the shortest proof that certifies the network's real accuracy.
 - within: the best certified accuracy within B/10, B/100 and B/1000.
 - cost_of_finishing: B divided by (length + uncertified correct inputs x B/n),
@@ -19,6 +22,35 @@ import math
 import statistics
 
 BUDGET_DIVISORS = (10, 100, 1000)
+
+
+def default_budget_ratio() -> float:
+    from .run_config import defaults
+
+    return float(defaults()["budget_ratio"])
+
+
+def budget_grid(E: float, B: float, ratio: float) -> list[int]:
+    """The fixed budgets B/ratio, B/ratio^2, ..., all at least E, as integers; empty if E or B is missing."""
+    if not E or not B or ratio <= 1 or B / ratio < E:
+        return []
+    out, b = [], B / ratio
+    while b >= E:
+        out.append(int(math.floor(b)))
+        b /= ratio
+    return out
+
+
+def budget_position(budget: float, E: float, B: float) -> float:
+    """Where a budget sits on the log axis from E (0) to B (1); what the recipe sees as its knob."""
+    return 0.0 if B <= E else max(0.0, min(1.0, math.log(budget / E) / math.log(B / E)))
+
+
+def q_grid(points: list[dict], E: float, B: float, ratio: float | None = None) -> float:
+    grid = budget_grid(E, B, ratio if ratio is not None else default_budget_ratio())
+    if not grid:
+        return 0.0
+    return sum(accuracy_within(points, b) for b in grid) / len(grid)
 
 
 def scored(records: list[dict]) -> list[dict]:
@@ -93,11 +125,14 @@ def cost_of_finishing(points: list[dict], real_correct: int, B: float) -> float:
     return B / best
 
 
-def network_metrics(points: list[dict], entry: dict) -> dict:
+def network_metrics(points: list[dict], entry: dict, budget_ratio: float | None = None) -> dict:
     E, B, real = entry.get("E"), entry.get("B"), entry.get("real_correct")
+    ratio = budget_ratio if budget_ratio is not None else default_budget_ratio()
     full = [p["length"] for p in points if real is not None and p["certified"] >= real]
     return {
         "Q": q_score(points, E, B),
+        "Q_grid": q_grid(points, E, B, ratio),
+        "grid": {str(b): accuracy_within(points, b) for b in budget_grid(E, B, ratio)},
         "best_accuracy": max((p["certified"] / p["n_inputs"] for p in points), default=0.0),
         "real_accuracy": entry.get("real_accuracy"),
         "shortest_full": min(full) if full else None,
@@ -109,21 +144,28 @@ def network_metrics(points: list[dict], entry: dict) -> dict:
     }
 
 
-def summarize(records: list[dict], entries: list[dict]) -> dict:
-    """Per size setting: metrics per network, then the median and the worst network."""
+def summarize(records: list[dict], entries: list[dict], budget_ratio: float | None = None) -> dict:
+    """Per size setting: metrics per network, then the median and the worst network.
+
+    budget_ratio sets the grid of Q_grid; a run passes its config's value, and None
+    means the default in config/defaults.yaml.
+    """
     fr = frontier(records)
     by_setting: dict[str, dict] = {}
     for e in entries:
-        by_setting.setdefault(e["setting"], {})[e["id"]] = network_metrics(fr.get(e["id"], []), e)
+        by_setting.setdefault(e["setting"], {})[e["id"]] = network_metrics(fr.get(e["id"], []), e, budget_ratio)
     out = {}
     for setting, nets in by_setting.items():
         q = [m["Q"] for m in nets.values()]
+        qg = [m["Q_grid"] for m in nets.values()]
         cof = [m["cost_of_finishing"] for m in nets.values()]
         full = [m["shortest_full"] / m["B"] if m["shortest_full"] and m["B"] else None for m in nets.values()]
         out[setting] = {
             "networks": nets,
             "Q_median": statistics.median(q),
             "Q_worst": min(q),
+            "Q_grid_median": statistics.median(qg),
+            "Q_grid_worst": min(qg),
             "cost_of_finishing_median": statistics.median(cof),
             "cost_of_finishing_worst": min(cof),
             "shortest_full_over_B_median": statistics.median(full) if all(f is not None for f in full) else None,

@@ -59,7 +59,7 @@ def _measure(job):
 
 
 def proof_path(run: RunDir, r: dict) -> Path:
-    return run.round_path(r["round"]) / f"attempt_{r['attempt']}" / "proofs" / f"{r['network']}__{knob_label(r['knob'])}.json.gz"
+    return run.round_path(r["round"]) / f"attempt_{r['attempt']}" / "proofs" / f"{r['network']}__{knob_label(r['knob'], r.get('budget'))}.json.gz"
 
 
 def remeasure_archive(run: RunDir, folder_path: str, entries: list[dict], rule_set, held_out: bool, out: Path, workers: int, log=print) -> list[dict]:
@@ -132,18 +132,21 @@ def _median_full(summary: dict, setting: str):
     return statistics.median(vals) if vals else None
 
 
-def report(run: RunDir, records: list[dict], entries: list[dict], log=print) -> dict:
-    """Per round (cumulative): median Q and median shortest full-accuracy proof, per size setting."""
+def report(run: RunDir, records: list[dict], entries: list[dict], log=print, budget_ratio: float | None = None) -> dict:
+    """Per round (cumulative): median Q, Q_grid and shortest full-accuracy proof, per size setting."""
     settings = list(dict.fromkeys(e["setting"] for e in entries))
     out = {}
-    log(f"\nper round under {COST_VERSION} (cumulative; median over the networks): Q | shortest full-accuracy proof")
+    log(f"\nper round under {COST_VERSION} (cumulative; median over the networks): Q | Q_grid | shortest full-accuracy proof")
     for k in run.done_rounds():
-        s = summarize([r for r in records if r["round"] <= k], entries)
-        out[k] = {st: {"Q_median": s[st]["Q_median"], "shortest_full_median": _median_full(s, st)} for st in settings}
+        s = summarize([r for r in records if r["round"] <= k], entries, budget_ratio)
+        out[k] = {
+            st: {"Q_median": s[st]["Q_median"], "Q_grid_median": s[st]["Q_grid_median"], "shortest_full_median": _median_full(s, st)}
+            for st in settings
+        }
         cells = []
         for st in settings:
             full = out[k][st]["shortest_full_median"]
-            cells.append(f"{st} {out[k][st]['Q_median']:.4f} | {'none' if full is None else f'{full:,.0f}'}")
+            cells.append(f"{st} {out[k][st]['Q_median']:.4f} | {out[k][st]['Q_grid_median']:.4f} | {'none' if full is None else f'{full:,.0f}'}")
         log(f"  round {k}: " + "; ".join(cells))
     return out
 
@@ -169,13 +172,14 @@ def main(argv=None):
         folder = load_model_folder(resolve(cfg["model"]))
         dev = select_networks(folder, cfg)
         records = remeasure_archive(run, str(folder.path), dev, cfg["rule_set"], False, out, args.workers)
-        summary = {"run": str(run_path), "cost_model": COST_VERSION, "development": report(run, records, dev)}
+        ratio = cfg.get("budget_ratio")
+        summary = {"run": str(run_path), "cost_model": COST_VERSION, "development": report(run, records, dev, budget_ratio=ratio)}
         final = RunDir(run.path, "final")
         if final.exists() and final.archive_path.exists():
             settings = {e["setting"] for e in dev}
             held = [e for e in networks(folder, "held_out") if e["setting"] in settings]
             frecords = remeasure_archive(final, str(folder.path), held, cfg["rule_set"], True, out / "final", args.workers)
-            summary["held_out"] = report(final, frecords, held)
+            summary["held_out"] = report(final, frecords, held, budget_ratio=ratio)
         atomic_write(out / "summary.json", json.dumps(summary, indent=1))
         print(f"\nwritten to {out}")
         return 0

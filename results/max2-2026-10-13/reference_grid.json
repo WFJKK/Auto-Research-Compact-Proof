@@ -1,0 +1,139 @@
+{
+ "run": "max2-baselines-grid (the four hand-written baselines at the fixed budgets, budget_ratio 2, cost-v2)",
+ "medians": {
+  "v64": {
+   "Q_grid_median": 0.33174272017045453,
+   "Q_grid_worst": 0.33174272017045453,
+   "Q_median": 0.3297930938842498,
+   "grid": [
+    {
+     "divisor": 2,
+     "budget": 1348193,
+     "accuracy_median": 0.9990234375
+    },
+    {
+     "divisor": 4,
+     "budget": 674096,
+     "accuracy_median": 0.9990234375
+    },
+    {
+     "divisor": 8,
+     "budget": 337048,
+     "accuracy_median": 0.9990234375
+    },
+    {
+     "divisor": 16,
+     "budget": 168524,
+     "accuracy_median": 0.47265625
+    },
+    {
+     "divisor": 32,
+     "budget": 84262,
+     "accuracy_median": 0.16650390625
+    },
+    {
+     "divisor": 64,
+     "budget": 42131,
+     "accuracy_median": 0.012939453125
+    },
+    {
+     "divisor": 128,
+     "budget": 21065,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 256,
+     "budget": 10532,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 512,
+     "budget": 5266,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 1024,
+     "budget": 2633,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 2048,
+     "budget": 1316,
+     "accuracy_median": 0.0
+    }
+   ]
+  },
+  "v128": {
+   "Q_grid_median": 0.35407433143028844,
+   "Q_grid_worst": 0.35407433143028844,
+   "Q_median": 0.3518581873351378,
+   "grid": [
+    {
+     "divisor": 2,
+     "budget": 20203777,
+     "accuracy_median": 0.99993896484375
+    },
+    {
+     "divisor": 4,
+     "budget": 10101888,
+     "accuracy_median": 0.99993896484375
+    },
+    {
+     "divisor": 8,
+     "budget": 5050944,
+     "accuracy_median": 0.99993896484375
+    },
+    {
+     "divisor": 16,
+     "budget": 2525472,
+     "accuracy_median": 0.99993896484375
+    },
+    {
+     "divisor": 32,
+     "budget": 1262736,
+     "accuracy_median": 0.44366455078125
+    },
+    {
+     "divisor": 64,
+     "budget": 631368,
+     "accuracy_median": 0.15264892578125
+    },
+    {
+     "divisor": 128,
+     "budget": 315684,
+     "accuracy_median": 0.00689697265625
+    },
+    {
+     "divisor": 256,
+     "budget": 157842,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 512,
+     "budget": 78921,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 1024,
+     "budget": 39460,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 2048,
+     "budget": 19730,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 4096,
+     "budget": 9865,
+     "accuracy_median": 0.0
+    },
+    {
+     "divisor": 8192,
+     "budget": 4932,
+     "accuracy_median": 0.0
+    }
+   ]
+  }
+ }
+}

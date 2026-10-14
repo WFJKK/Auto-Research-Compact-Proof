@@ -16,7 +16,8 @@ from .util import REPO_ROOT, read_yaml
 DEFAULTS_PATH = REPO_ROOT / "config" / "defaults.yaml"
 REQUIRED = ("run_id", "model")
 BACKENDS = ("fake", "manual", "api", "claude_code")
-METRICS = ("Q", "cost_of_finishing")
+METRICS = ("Q", "Q_grid", "cost_of_finishing")
+METRIC_KEYS = {"Q": "Q_median", "Q_grid": "Q_grid_median", "cost_of_finishing": "cost_of_finishing_median"}
 SANDBOX_MODES = ("auto", "hardened", "container", "landlock", "process")
 THINKING_TYPES = ("adaptive", "enabled", "disabled")
 EFFORTS = ("low", "medium", "high", "xhigh", "max")
@@ -126,6 +127,13 @@ def validate(cfg: dict, source: str = "run config") -> None:
     _number(cfg, "max_consecutive_refusals", errors, integer=True, minimum=1)
     if cfg["metric"] not in METRICS:
         errors.append(f"metric must be one of {METRICS}")
+    ratio = cfg.get("budget_ratio")
+    if isinstance(ratio, bool) or not isinstance(ratio, (int, float)) or ratio <= 1:
+        errors.append("budget_ratio must be a number above 1 (each fixed budget is the previous one divided by it)")
+    if cfg["metric"] == "Q_grid":
+        tpl = REPO_ROOT / "core" / "agent" / "prompts" / f"{cfg['prompt_template']}.md"
+        if tpl.is_file() and "{KNOB}" not in tpl.read_text():
+            errors.append(f"metric Q_grid needs a prompt template with a {{KNOB}} placeholder (v2 or later), not {cfg['prompt_template']!r}")
     nets = cfg["networks"]
     if nets != "all" and (not isinstance(nets, list) or not nets or not all(isinstance(n, str) for n in nets)):
         errors.append('networks must be "all" or a list of network ids')

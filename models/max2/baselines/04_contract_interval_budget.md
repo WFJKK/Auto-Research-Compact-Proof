@@ -4,7 +4,7 @@ WHY IT HELPS: The same proof as baseline 3 (contraction, symmetry, one interval 
 
 PREDICTION: At knob 1 the same proof as baseline 3. Below it, certified accuracy falls with the budget: about one percent of the leaf work certifies about ten percent of the inputs.
 
-KNOB: The budget, as a fraction of the full proof's leaf work: 100^(knob - 1), so knobs 0, 0.25, 0.5, 0.75, 1 give 1%, 3.2%, 10%, 32% and all of it. Groups are taken from the largest v down; the last group that does not fit is checked on the largest t1 that do.
+KNOB: The budget, as a fraction of the full proof's leaf work: 100^(knob - 1), so knobs 0, 0.25, 0.5, 0.75, 1 give 1%, 3.2%, 10%, 32% and all of it. When the run scores at fixed budgets, info["budget"] is used instead: the leaf work is whatever the budget leaves after the contraction and the weights, and a budget too small for the contraction gets a proof that skips everything. Groups are taken from the largest v down; the last group that does not fit is checked on the largest t1 that do.
 
 RECIPE:
 ```python
@@ -38,17 +38,30 @@ def make_proof(weights, info, knob):
         mid = (lo + hi + 1) // 2
         return helpers.split(0, [mid], [refine(v, lo, mid - 1, d - 1), refine(v, mid, hi, d - 1)])
 
-    # The budget: a fraction of the full proof's leaf work, which is about 2V per (t1, v) pair.
+    # The budget: a fraction of the full proof's leaf work, which is about 2V per (t1, v) pair,
+    # or, at a fixed budget in checker operations, what that leaves after the fixed costs
+    # (the contraction, reading the weights, and a margin for the tree and the leaves' decisions).
     full_work = sum(2 * V * (v + 1) for v in range(V))
-    budget = full_work * 100.0 ** (knob - 1)
+    d = E.shape[0]
+    if info.get("budget") is not None:
+        # Fixed costs first: the contraction, converting the weights, reading and walking the tree.
+        # Then each group costs its range check plus about 2V for the decision, its nodes and symmetry.
+        fixed = V * d * d + V * V * d + 2 * V * d + d * d + 8 * V
+        budget = min(full_work + 2 * V * V, 0.98 * (info["budget"] - fixed))
+        overhead = 2 * V
+        if budget < 2 * V + overhead:  # not even the contraction fits: the cheapest proof, which certifies nothing
+            return helpers.proof(helpers.leaf("skip"))
+    else:
+        budget = full_work * 100.0 ** (knob - 1)
+        overhead = 0
     plan = {}  # v -> lowest t1 to check (0 for the whole group)
     for v in range(V - 1, -1, -1):
-        cost = 2 * V * (v + 1)
+        cost = 2 * V * (v + 1) + overhead
         if cost <= budget:
             plan[v] = 0
             budget -= cost
         else:
-            m = int(budget // (2 * V))  # how many of the largest t1 still fit
+            m = int((budget - overhead) // (2 * V))  # how many of the largest t1 still fit
             if m > 0:
                 plan[v] = v - m + 1
             break
