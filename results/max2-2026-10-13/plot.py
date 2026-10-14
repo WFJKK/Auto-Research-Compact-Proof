@@ -4,8 +4,8 @@
 
 The run numbers are the medians over the six development networks after each round, taken from the
 two run archives (the raw runs stay outside the repository). The reference lines come from
-reference_proofs.json (reference_proofs.py): checked lines are solid or dashed grey, estimates are
-labelled as such.
+reference_proofs.json (reference_proofs.py): symmetry and the hand-written cubic proof, alone and with
+its budget knob. The convexity estimates are left out of this figure; they are in landscape.png.
 """
 
 import json
@@ -37,12 +37,9 @@ styles = [dict(color="#eb6834", lw=2.2, marker="o", ms=5), dict(color="#1baf7a",
 q_lines = [
     ("cubic_knob", "cubic proof with a budget knob", dict(color="black", ls=":", lw=1.1), "left", "above"),
     ("cubic", "cubic proof (hand-written), one length", dict(color="gray", ls="--", lw=1.1), "right", "below"),
-    ("convexity_accuracy", "convexity for accuracy alone (estimate)", dict(color="#6250d6", ls="-.", lw=1.1), "right", "above"),
     ("symmetry", "symmetry", dict(color="gray", ls="-", lw=1.0), "right", "above"),
-    ("convexity_loss", "convexity as in the tutorial (estimate)", dict(color="#6250d6", ls=":", lw=1.1), "right", "above"),
 ]
 c_lines = [
-    ("hybrid", "convexity for accuracy + exact checks elsewhere (estimate)", dict(color="#6250d6", ls="--", lw=1.1), "right", "above"),
     ("cubic", "cubic proof (hand-written)", dict(color="gray", ls="--", lw=1.1), "right", "below"),
     ("symmetry", "symmetry", dict(color="gray", ls="-", lw=1.0), "right", "above"),
 ]
@@ -64,7 +61,7 @@ for c, st in enumerate(["v64", "v128"]):
         y = ref[st]["scores"][key]["Q"]
         ax.axhline(y, **sty)
         label(ax, y, f"{text}: {y:.3f}", end, side, 0.005)
-    top = max(ref[st]["scores"][k]["cost_of_finishing"] for k, *_ in c_lines)
+    top = max([ref[st]["scores"][k]["cost_of_finishing"] for k, *_ in c_lines] + [B[st] / p[2] for d in runs.values() for p in d[st]])
     for key, text, sty, end, side in c_lines:
         y = ref[st]["scores"][key]["cost_of_finishing"]
         bx.axhline(y, **sty)

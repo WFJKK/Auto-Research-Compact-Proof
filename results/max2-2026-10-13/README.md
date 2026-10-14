@@ -141,7 +141,7 @@ Two runs, identical except for the metric the agent was told to maximise: [`conf
 
 ![Q and cost of finishing by round](q-and-cost-by-round.png)
 
-Top: median Q per round. Bottom: cost of finishing per round. The grey, black and violet lines are the reference proofs of section 4; the violet ones are estimates.
+Top: median Q per round. Bottom: cost of finishing per round. The horizontal lines are the checked reference proofs of section 4: symmetry and the cubic proof, alone and with a budget knob. The convexity estimates are in the landscape figure below.
 
 **Results** (medians; held-out networks in brackets):
 

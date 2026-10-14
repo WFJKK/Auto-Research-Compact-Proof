@@ -87,7 +87,7 @@ Two runs on the max-of-2 model, identical except for the metric the agent was to
 
 ![Q and cost of finishing by round](results/max2-2026-10-13/q-and-cost-by-round.png)
 
-Top: median Q per round. Bottom: cost of finishing per round, which is B over the shortest full-accuracy proof so far. Round 0 is brute force. The horizontal lines are the reference proofs of section 5: symmetry, the hand-written cubic proof (alone and with a budget knob), and the convexity strategies, whose numbers are estimates.
+Top: median Q per round. Bottom: cost of finishing per round, which is B over the shortest full-accuracy proof so far. Round 0 is brute force. The horizontal lines are reference proofs of section 5: symmetry and the hand-written cubic proof, alone and with a budget knob.
 
 Medians over the development networks, held-out networks in brackets:
 

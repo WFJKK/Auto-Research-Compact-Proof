@@ -120,8 +120,8 @@ iw, ih = PI.open(fig).size
 w = 180 * mm
 s.append(Image(str(fig), width=w, height=w * ih / iw))
 s.append(Paragraph("Top: median Q per round. Bottom: cost of finishing per round, B over the shortest full-accuracy proof so far. Each round "
-                   "is one Fable response; round 0 is brute force. Horizontal lines: the reference proofs (symmetry, the cubic proof, and "
-                   "convexity, whose numbers are estimates), computed by reference_proofs.py.", cap))
+                   "is one Fable response; round 0 is brute force. Horizontal lines: the reference proofs, symmetry and the hand-written cubic "
+                   "proof (alone and with a budget knob), computed by reference_proofs.py.", cap))
 
 doc = SimpleDocTemplate(str(HERE / "compact-proofs-max2-results.pdf"), pagesize=A4, leftMargin=15 * mm, rightMargin=15 * mm,
                         topMargin=9 * mm, bottomMargin=8 * mm, title="Compact proofs on max-of-2: results", author="Joshua Kames-King")
