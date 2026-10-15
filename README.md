@@ -99,6 +99,12 @@ Two runs on the max-of-2 model, identical except for the metric the agent was to
 
 Top: median Q per round. Bottom: cost of finishing per round, which is B over the shortest full-accuracy proof so far. Round 0 is brute force. The horizontal lines are reference proofs of section 5: symmetry and the hand-written cubic proof, alone and with a budget knob.
 
+The Pareto frontiers themselves, per development network (every proof on a frontier is checked; crosses are the hand-written reference proofs, never shown to the agent):
+
+![Frontiers of the two runs](results/max2-2026-10-13/frontiers.png)
+
+The Q run fills the whole length axis with partial proofs, from a few thousand operations up; the cost-of-finishing run keeps almost nothing below its full proof, since partial proofs earn it nothing. Both end at the same full-accuracy point.
+
 Medians over the development networks, held-out networks in brackets:
 
 | | hand-written cubic proof | run scored on Q | run scored on cost of finishing |
