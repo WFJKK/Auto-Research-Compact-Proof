@@ -360,7 +360,7 @@ class _Listener:
 def _head(path: Path) -> str | None:
     try:
         with open(path, "rb") as f:
-            return f.read(32).hex()
+            return f.read(32).hex()  # the first 32 bytes; not a size
     except OSError:
         return None
 

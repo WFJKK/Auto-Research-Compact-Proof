@@ -52,7 +52,7 @@ def _no_sockets(ctypes, libc):
     import struct
 
     arch, nr = {"x86_64": (0xC000003E, 41), "aarch64": (0xC00000B7, 198), "arm64": (0xC00000B7, 198)}[platform.machine()]
-    load, jeq, jge, ret = 0x20, 0x15, 0x35, 0x06
+    load, jeq, jge, ret = 0x20, 0x15, 0x35, 0x06  # BPF opcodes; not a size
     allow, deny = 0x7FFF0000, 0x00050000 | 13
     prog = [
         (load, 0, 0, 4),  # architecture

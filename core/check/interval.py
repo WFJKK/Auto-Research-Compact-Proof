@@ -227,7 +227,7 @@ def exp_bounds(X: int, e: int) -> tuple[int, int]:
             return 0, 1
         raise IntervalError(f"exp of a number of 2**{MAX_EXP_LOG2} or more")
     m = max(0, bl + e + 8)
-    W = P + m + 32
+    W = P + m + 32  # 32 guard bits; not a size
     s = e - m + W  # y * 2**W = A * 2**s
     if s >= 0:
         ylo = yhi = A << s

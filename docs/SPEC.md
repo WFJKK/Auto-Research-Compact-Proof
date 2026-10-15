@@ -76,7 +76,7 @@ After a run, the final evaluator runs the frontier recipes on the held-out netwo
 
 A model whose rules have no Lean proofs yet (`max2` at first) runs the same loop; its numbers are labelled Python-checked.
 
-**Out of scope for this build:** models other than max2 (since extended, at the user's request, to the xorformer attention model on MAJORITY_12: `models/xorformer-majority`, with the general evaluator in `core/check/general.py`), tools for the agent (it gets one prompt and returns one response), a second agent, and new rules. The prompt collects new-rule ideas, but nothing acts on them yet.
+**Out of scope for this build:** models other than max2 (since extended, at the user's request, to the xorformer attention model on MAJORITY_12, `models/xorformer-majority`, with the general evaluator in `core/check/general.py`, and on 15 October 2026 to Gross et al.'s one-head transformer on max and min of 2 and 4 tokens, `models/attn-max4`, `attn-min4`, `attn-max2`, `attn-min2`), tools for the agent (it gets one prompt and returns one response), a second agent, and new rules. The prompt collects new-rule ideas, but nothing acts on them yet.
 
 ## 3. Design principles
 

@@ -175,7 +175,18 @@ with Â its own prediction of what it can certify at each length. Every proof is
 
 The pipeline is built and tested end to end (spec Steps 0 to 9): the max2 model folder with its trained zoo, the exact checker, the hardened sandbox, diagnostics, the prompt builder, the loop with fake, manual, API and Claude Code backends, reports, and the held-out evaluation. Two independent reviews found no soundness bug; the robustness and cost gaps they found are fixed and have regression tests. Step 10, the real runs, is under way (section 4).
 
-A second model is the one-layer, attention-only transformer of [xorformer](https://github.com/VerifiedMechanisms/xorformer) (n bits plus a query token, softmax heads, a thresholded readout), trained on MAJORITY of 12 bits with one head: `models/xorformer-majority`. Softmax puts exp in the network, so its checker (`core/check/general.py`) bounds every value with interval arithmetic instead of computing it exactly: sums and products stay exact, and exp and softmax are enclosed by rational bounds rounded outwards. The argument is in [docs/RULES.md](docs/RULES.md). Its configs are `config/xorformer-majority-round0.yaml` (fake backend) and `config/xorformer-majority-pilot-subscription.yaml`.
+**Gross et al.'s own model** (added 15 October 2026): the one-layer, one-head, attention-only transformer of the paper, with no biases, learned positional embeddings and the output read at the last position, in four folders that share the architecture (`model.py` is identical) and differ in the task and sizes:
+
+| folder | task | size settings | inputs |
+| --- | --- | --- | --- |
+| `models/attn-max4` | max of 4 tokens, the paper's task | v16 (d_vocab 16, d_model = d_head 8), v24 (24, 12) | 65,536 and 331,776 |
+| `models/attn-min4` | min of 4 tokens | the same | the same |
+| `models/attn-max2` | max of 2 tokens | v64 (64, 32: the paper's widths), v128 (128, 32) | 4,096 and 16,384 |
+| `models/attn-min2` | min of 2 tokens | the same | the same |
+
+The paper's full size, d_vocab 64 at n_ctx 4, is 16.8 million inputs, more than the exact checker can brute-force, so the 4-token folders keep the vocabulary at 16 and 24. Ten trained networks per setting are in each zoo (six development, four held out). These networks use softmax, so the checker evaluates them with the interval evaluator below, and `contract`, `symmetry` and `approximate` do not apply; the agent has `single`, `interval` and `skip`, and the band and cubic ideas of max2 have to be re-expressed through box bounds. Configs: `config/attn-<task>-round0.yaml` (fake backend, a dry run), `config/attn-<task>-grid.yaml` (Claude Code login, scored on Q_grid), and `config/attn-max4-grid-api.yaml` (the same through the API). Tests: `tests/test_attn.py`.
+
+A further model is the one-layer, attention-only transformer of [xorformer](https://github.com/VerifiedMechanisms/xorformer) (n bits plus a query token, softmax heads, a thresholded readout), trained on MAJORITY of 12 bits with one head: `models/xorformer-majority`. Softmax puts exp in the network, so its checker (`core/check/general.py`) bounds every value with interval arithmetic instead of computing it exactly: sums and products stay exact, and exp and softmax are enclosed by rational bounds rounded outwards. The argument is in [docs/RULES.md](docs/RULES.md). Its configs are `config/xorformer-majority-round0.yaml` (fake backend) and `config/xorformer-majority-pilot-subscription.yaml`.
 
 Next: run both sizes under Q_grid; add a checker rule for convexity for accuracy, with its soundness argument and an honest charge, and see whether an agent combines it with the band; implement the Lean checker; repeat each metric with more runs; run the xorformer pilot.
 

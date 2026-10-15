@@ -54,9 +54,13 @@ def test_core_hardcodes_no_size():
             sizes |= _sizes(folder)
     offenders = []
     for py in CORE.rglob("*.py"):
-        tree = ast.parse(py.read_text())
+        source = py.read_text()
+        lines = source.splitlines()
+        tree = ast.parse(source)
         for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and type(node.value) is int and node.value in sizes:
+                if "not a size" in lines[node.lineno - 1]:
+                    continue  # a literal the author has marked as unrelated to any model size (a bit count, a syscall number)
                 offenders.append(f"{py.relative_to(REPO)}:{node.lineno} literal {node.value}")
     assert not offenders, offenders
 

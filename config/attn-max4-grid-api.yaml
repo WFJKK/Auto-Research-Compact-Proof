@@ -1,0 +1,17 @@
+# max-of-4 on Gross et al.'s one-head transformer through the Messages API,
+# scored at fixed budgets. The key comes from the variable api_key_env names
+# (never ANTHROPIC_API_KEY); costs are priced from config/prices.yaml. Run a
+# smoke config (rounds_max 2, a small model) before a long run.
+run_id: attn-max4-grid-api
+model: models/attn-max4
+backend: api
+agent_model: claude-fable-5-1
+effort: high
+thinking: {type: adaptive}
+max_output_tokens: 64000
+metric: Q_grid
+budget_ratio: 2
+rounds_max: 10
+patience: 10
+baselines: [brute_force]
+sandbox: hardened
