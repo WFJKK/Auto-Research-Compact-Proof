@@ -2,8 +2,9 @@
 # nothing else. Recipes run in it as nobody, with no network and a read-only
 # root filesystem; only the sandbox folder is mounted.
 #
-# Build it with `python -m core.sandbox build`, which passes the versions
-# pinned in requirements.txt and this machine's Python version.
+# Build it with `python -m core.sandbox build`, which passes this machine's
+# Python version and the numpy and torch versions installed here (the pins in
+# requirements.txt only when one is not installed).
 ARG PYTHON_VERSION=3.13
 FROM python:${PYTHON_VERSION}-slim
 

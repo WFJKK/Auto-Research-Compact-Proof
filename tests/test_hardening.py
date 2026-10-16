@@ -143,3 +143,26 @@ def test_worker_rejects_an_oversized_or_broken_proof_file(max2, tmp_path):
     with CheckerProcess(max2.path, trusted(max2), timeout_s=60) as cp:
         res, diag = cp.check("max2-v64-s0", bad, ["single", "skip"])
         assert res["status"] == "rejected"
+
+
+def test_the_sandbox_image_uses_the_installed_numpy_and_torch(monkeypatch):
+    from importlib import metadata
+
+    from core import sandbox
+
+    real = metadata.version
+    monkeypatch.setattr(metadata, "version", lambda n: {"numpy": "2.2.6", "torch": "2.8.0+cpu"}.get(n) or real(n))
+    v = sandbox.image_versions()
+    assert v["numpy"] == "2.2.6" and v["torch"] == "2.8.0"
+
+
+def test_the_sandbox_image_falls_back_to_the_pins(monkeypatch):
+    from importlib import metadata
+
+    from core import sandbox
+
+    def missing(name):
+        raise metadata.PackageNotFoundError(name)
+
+    monkeypatch.setattr(metadata, "version", missing)
+    assert sandbox.image_versions() == sandbox.requirement_versions()

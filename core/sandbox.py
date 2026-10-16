@@ -232,11 +232,26 @@ def requirement_versions() -> dict:
     return out
 
 
+def image_versions() -> dict:
+    """The numpy and torch versions for the image: the ones installed here, so recipes compute with the
+    same libraries as the checker and the image builds for this machine's Python (the pins in
+    requirements.txt may need a newer Python than this one), else the pins."""
+    from importlib import metadata
+
+    out = requirement_versions()
+    for name in ("numpy", "torch"):
+        try:
+            out[name] = metadata.version(name).split("+", 1)[0]
+        except metadata.PackageNotFoundError:
+            pass
+    return out
+
+
 def build_image(runtime: str | None = None, image: str = DEFAULT_IMAGE, log=print) -> str:
     rt = container_runtime(runtime)
     if rt is None:
         raise SandboxError("no docker or podman is running")
-    v = requirement_versions()
+    v = image_versions()
     py = f"{sys.version_info.major}.{sys.version_info.minor}"
     cmd = [rt, "build", "-t", image, "--build-arg", f"PYTHON_VERSION={py}"]
     cmd += ["--build-arg", f"NUMPY_VERSION={v['numpy']}", "--build-arg", f"TORCH_VERSION={v['torch']}", str(DOCKERFILE_DIR)]
