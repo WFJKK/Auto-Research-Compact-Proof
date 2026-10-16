@@ -10,8 +10,13 @@ FROM python:${PYTHON_VERSION}-slim
 
 ARG NUMPY_VERSION
 ARG TORCH_VERSION
-RUN pip install --no-cache-dir "numpy==${NUMPY_VERSION}" \
- && pip install --no-cache-dir "torch==${TORCH_VERSION}" --index-url https://download.pytorch.org/whl/cpu \
+# A current pip first: older ones reject torch's dependencies as the PyTorch
+# index names them. PyPI is the fallback for those dependencies; torch itself
+# comes from the CPU index, whose +cpu build pip prefers at the pinned version.
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir "numpy==${NUMPY_VERSION}" \
+ && pip install --no-cache-dir "torch==${TORCH_VERSION}" \
+      --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple \
  && rm -rf /root/.cache
 
 WORKDIR /box
