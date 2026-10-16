@@ -1,0 +1,7 @@
+run_id: attn-max4-round0-fake-hardened
+model: models/attn-max4
+backend: fake
+fake_responses: [tests/broken_responses]
+rounds_max: 5
+time_limit_s: 60
+sandbox: hardened

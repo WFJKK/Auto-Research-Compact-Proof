@@ -1,0 +1,13 @@
+# Smoke test for max-of-4 on Gross et al.'s one-head transformer through the
+# Messages API: plumbing only, on the cheapest model, before a real run. Two
+# rounds on one network per size setting. Costs a few cents.
+run_id: attn-max4-smoke
+model: models/attn-max4
+backend: api
+agent_model: claude-haiku-5-5
+effort: medium
+metric: Q
+rounds_max: 2
+networks: [attn-max4-v16-s1, attn-max4-v24-s0]
+baselines: [brute_force]
+sandbox: hardened
