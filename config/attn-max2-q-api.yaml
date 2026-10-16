@@ -1,0 +1,14 @@
+# max-of-2 on Gross et al.'s one-head transformer through the Messages API, the
+# agent scored on Q. Four rounds, same model and effort as max2-rerun-q. The key
+# comes from the variable api_key_env names (never ANTHROPIC_API_KEY). Run
+# config/attn-max2-smoke.yaml first.
+run_id: attn-max2-q-api
+model: models/attn-max2
+backend: api
+agent_model: claude-fable-5-1
+effort: high
+metric: Q
+rounds_max: 4
+patience: 4
+baselines: [brute_force]
+sandbox: hardened
