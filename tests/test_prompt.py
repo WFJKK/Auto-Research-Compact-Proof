@@ -195,3 +195,18 @@ def test_template_v3_ends_with_the_aim_and_the_score_as_it_stands(trained_stub, 
         aim = text.split("YOUR AIM THIS ROUND", 1)[1]
         assert f"Raise your score, {name}. It stands at:" in aim and "consider several approaches" in aim
         assert all(e["setting"] in aim for e in ctx.entries)
+
+
+@pytest.mark.parametrize("model", ["max2", "attn-max2", "attn-max4", "attn-min2", "attn-min4", "xorformer-majority"])
+def test_the_default_prompt_never_names_the_paper(model):
+    from core.agent.build_prompt import static_values
+    from core.run_config import merge
+
+    repo = Path(__file__).resolve().parent.parent
+    folder = load_model_folder(repo / "models" / model)
+    cfg = merge({"run_id": "x", "model": f"models/{model}"})
+    entries = [e for e in networks(folder) if e["split"] == "dev"]
+    part1, part2 = load_template(cfg["prompt_template"])
+    text = fill(part1, static_values(cfg, folder, entries)) + part2
+    assert "Gross" not in text and "Compact Proofs of Model Performance" not in text
+    assert {"Gross", "Compact Proofs of Model Performance"} <= set(folder.hygiene_terms())  # and part 2 is scrubbed

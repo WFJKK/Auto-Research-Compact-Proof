@@ -88,8 +88,10 @@ max_consecutive_refusals: 3
 
 # v2 is v1 with the knob paragraph filled per metric; metric Q_grid needs it.
 # v3 is v2 plus an explicit aim at the end: the score as it stands and the ask
-# to weigh approaches that would raise it. Runs made with v2 stay reproducible.
-prompt_template: v3
+# to weigh approaches that would raise it. v4 is v3 without naming the paper
+# this work follows (the model folders' hygiene lists also keep it out). Runs
+# made with earlier templates stay reproducible.
+prompt_template: v4
 # token_interval is for networks beyond linear maps (the attention models list it).
 rule_set: [single, interval, skip, contract, symmetry, approximate]
 # The number the agent sees as its score: Q, Q_grid or cost_of_finishing

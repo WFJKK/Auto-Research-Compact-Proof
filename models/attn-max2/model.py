@@ -2,16 +2,15 @@ import torch as t
 
 
 class OneHeadTransformer(t.nn.Module):
-    """The model of Gross et al., "Compact Proofs of Model Performance via Mechanistic
-    Interpretability": a one-layer, one-head, attention-only transformer with no biases
-    and learned positional embeddings, read at the last position.
+    """A one-layer, one-head, attention-only transformer with no biases and learned
+    positional embeddings, read at the last position.
 
     Tokens arrive one-hot, shape (batch, n_ctx, d_vocab). Each position's residual is its
     token embedding plus its positional embedding. The last position attends over all
     n_ctx positions (causal attention reads everything at the last position) with the
     usual scale 1/sqrt(d_head), adds the head's output to its residual, and the
-    unembedding gives one logit per token. The parameters are the paper's E, P, Q, K,
-    V, O and U, initialised like torch's default linear layers.
+    unembedding gives one logit per token. The parameters are E, P, Q, K, V, O
+    and U, initialised like torch's default linear layers.
     """
 
     def __init__(self, n_ctx: int, d_vocab: int, d_model: int, d_head: int):

@@ -33,4 +33,5 @@ training:
 zoo_path: zoo
 cost_model: cost-v2
 control_networks: []
-hygiene: []
+# The prompt never names the paper this work follows: part 1 refuses these, part 2 removes them.
+hygiene: ["Gross", "Compact Proofs of Model Performance"]
