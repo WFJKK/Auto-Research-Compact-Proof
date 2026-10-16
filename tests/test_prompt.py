@@ -181,3 +181,17 @@ def test_one_manual_round_end_to_end(trained_stub, tmp_path):
     recs = [r for r in ctx.run.read_archive() if r["round"] == 1]
     assert recs and {r["status"] for r in recs} == {"ok"}
     assert ctx.run.read(1, "attempt_0/response_meta.json")["backend"] == "manual"
+
+
+def test_template_v3_ends_with_the_aim_and_the_score_as_it_stands(trained_stub, tmp_path):
+    part1, part2 = load_template("v3")
+    assert placeholders(part2) - placeholders(load_template("v2")[1]) == {"AIM"}
+    assert part2.rstrip().endswith("{AIM}") and "AIM" not in placeholders(part1)
+    for metric, name in [("Q", "Q"), ("Q_grid", "Q_grid"), ("cost_of_finishing", "cost of finishing")]:
+        (tmp_path / metric).mkdir()
+        ctx = start(tmp_path / metric, trained_stub, [], prompt_template="v3", metric=metric)
+        loop.drive(ctx)
+        text = build_prompt(ctx.cfg, ctx.folder, ctx.entries, ctx.run, 1).part2
+        aim = text.split("YOUR AIM THIS ROUND", 1)[1]
+        assert f"Raise your score, {name}. It stands at:" in aim and "consider several approaches" in aim
+        assert all(e["setting"] in aim for e in ctx.entries)

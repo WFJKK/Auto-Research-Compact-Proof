@@ -274,6 +274,30 @@ def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_r
     return "\n".join(lines)
 
 
+METRIC_NAMES = {"Q": "Q", "Q_grid": "Q_grid", "cost_of_finishing": "cost of finishing"}
+AIM_TEXT = (
+    "Raise your score, {name}. It stands at: {scores}.\n"
+    "Before writing the recipe, consider several approaches that could raise it: a\n"
+    "better account of how the network computes, a different way of splitting the\n"
+    "inputs, cheaper checks of the same pieces, or covering inputs that are still\n"
+    "uncertified. Estimate what each would add to {name}, using the scoreboard, the\n"
+    "diagnostics and your notes, and write the one you expect to raise it most. Say\n"
+    "in WHY IT HELPS which approaches you weighed and why you chose this one."
+)
+
+
+def aim_text(records: list[dict], entries: list[dict], metric: str, budget_ratio: float | None = None) -> str:
+    """The explicit aim (template v3): the score as it stands, per size setting, and the ask to raise it."""
+    summary = summarize(records, entries, budget_ratio)
+    key = {"Q": "Q", "Q_grid": "Q_grid", "cost_of_finishing": "cost_of_finishing"}[metric]
+    fmt = "{:.2f}" if metric == "cost_of_finishing" else "{:.4f}"
+    scores = "; ".join(
+        f"{setting} median {fmt.format(s[key + '_median'])}, worst {fmt.format(s[key + '_worst'])}"
+        for setting, s in summary.items()
+    )
+    return AIM_TEXT.format(name=METRIC_NAMES[metric], scores=scores)
+
+
 def grid_lines(records: list[dict], nets: list[dict], run: RunDir, per_round: int, budget_ratio: float | None) -> list[str]:
     """Per fixed budget, smallest first: the median over networks of the best certified accuracy within the budget
     (which is what Q_grid averages), and the recipe that holds it on most networks."""
@@ -444,6 +468,7 @@ def build_prompt(cfg: dict, folder: ModelFolder, entries: list[dict], run: RunDi
                 records, entries, run, cfg["shown_last_attempts"], per_round, folder.group_label(), max_lines
             ),
             "NOTES": latest_notes(records, run, notes_chars),
+            "AIM": aim_text(records, entries, cfg["metric"], cfg.get("budget_ratio")),
         }
         part2, removed = scrub(fill(part2_t, values), terms)
         size = len(part1) + len(part2)

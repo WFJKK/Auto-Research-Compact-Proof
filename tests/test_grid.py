@@ -90,7 +90,7 @@ def test_q_grid_reads_accuracy_only_at_the_grid():
 
 def test_config_validates_the_metric_the_ratio_and_the_template(trained_stub):
     base = {"run_id": "x", "model": str(trained_stub)}
-    assert merge({**base, "metric": "Q_grid"})["prompt_template"] == "v2"
+    assert merge({**base, "metric": "Q_grid"})["prompt_template"] == "v3"
     with pytest.raises(RunConfigError, match="budget_ratio"):
         merge({**base, "budget_ratio": 1})
     with pytest.raises(RunConfigError, match="KNOB"):

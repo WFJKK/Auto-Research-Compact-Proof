@@ -87,7 +87,9 @@ api_retries: {tries: 6, first_wait_s: 10, max_wait_s: 300, timeout_s: 1800}
 max_consecutive_refusals: 3
 
 # v2 is v1 with the knob paragraph filled per metric; metric Q_grid needs it.
-prompt_template: v2
+# v3 is v2 plus an explicit aim at the end: the score as it stands and the ask
+# to weigh approaches that would raise it. Runs made with v2 stay reproducible.
+prompt_template: v3
 rule_set: [single, interval, skip, contract, symmetry, approximate]
 # The number the agent sees as its score: Q, Q_grid or cost_of_finishing
 # (section 5 of docs/SPEC.md). Q_grid scores at fixed budgets, so where a
