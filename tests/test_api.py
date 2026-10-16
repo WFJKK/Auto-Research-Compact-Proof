@@ -268,3 +268,21 @@ def test_api_runs_start_only_from_a_clean_commit_with_a_key(trained_stub, tmp_pa
     with pytest.raises(BackendError, match="no API key"):
         loop.start(path, log=lambda *a: None)
     assert not (tmp_path / "runs" / "dirty").exists()  # nothing was made before the checks passed
+
+
+def test_the_workspace_id_goes_out_as_a_header_only_when_set(monkeypatch):
+    made = []
+    monkeypatch.setattr(anthropic, "Anthropic", lambda **kw: made.append(kw) or object())
+    ApiBackend(config(), environ={"CPL_ANTHROPIC_KEY": "k", "CPL_ANTHROPIC_WORKSPACE": "wrkspc_x"})
+    ApiBackend(config(), environ={"CPL_ANTHROPIC_KEY": "k"})
+    assert made[0]["default_headers"] == {"anthropic-workspace-id": "wrkspc_x"}
+    assert "default_headers" not in made[1]
+
+
+def test_a_missing_workspace_says_which_variable_to_set():
+    b = ApiBackend(config(), client=object())
+    exc = anthropic.BadRequestError(
+        "This API key is not scoped to a workspace", response=httpx2.Response(400, request=REQUEST), body=None
+    )
+    retry, _, what = b._classify(exc)
+    assert not retry and "CPL_ANTHROPIC_WORKSPACE" in what

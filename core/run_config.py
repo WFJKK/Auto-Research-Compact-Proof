@@ -106,6 +106,9 @@ def validate(cfg: dict, source: str = "run config") -> None:
         errors.append("api_key_env must name an environment variable")
     elif cfg["api_key_env"] in FORBIDDEN_KEY_VARIABLES:
         errors.append(f"api_key_env must not be {cfg['api_key_env']}: Claude Code would bill its own work to that key")
+    ws = cfg.get("api_workspace_env")
+    if not isinstance(ws, str) or not ws or ws in FORBIDDEN_KEY_VARIABLES:
+        errors.append("api_workspace_env must name an environment variable")
     rules = cfg["rule_set"]
     if not isinstance(rules, list) or not rules or not set(rules) <= set(GENERIC_RULES):
         errors.append(f"rule_set must be a non-empty list drawn from {list(GENERIC_RULES)}")

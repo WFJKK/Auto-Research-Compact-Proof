@@ -2,7 +2,9 @@
 
 The key comes from the environment variable the run config names in
 api_key_env, never ANTHROPIC_API_KEY (Claude Code would bill its own work to
-that one), and is passed to the client explicitly. Each call streams, since
+that one), and is passed to the client explicitly. A key not scoped to one
+workspace also needs the workspace ID, from the variable api_workspace_env
+names, which goes out as the anthropic-workspace-id header. Each call streams, since
 long thinking would otherwise run into the SDK's limit for plain requests.
 
 Part 1 of the prompt, the same every round, is sent as a cached block; Part 2
@@ -72,7 +74,11 @@ class ApiBackend:
                 raise BackendError(f"no API key: set {var} (see the README); the run has not called the API")
             import anthropic
 
-            client = anthropic.Anthropic(api_key=key, max_retries=0, timeout=float(cfg["api_retries"]["timeout_s"]))
+            extra = {}
+            workspace = env.get(cfg.get("api_workspace_env") or "WORKSPACE_ENV_UNSET")
+            if workspace:
+                extra["default_headers"] = {"anthropic-workspace-id": workspace}
+            client = anthropic.Anthropic(api_key=key, max_retries=0, timeout=float(cfg["api_retries"]["timeout_s"]), **extra)
         self.client = client
         self.cfg = cfg
         self.log = log
@@ -127,6 +133,10 @@ class ApiBackend:
             if status in (500, 502, 503, 504, 529):
                 return True, retry_after, f"{status}: {message}"
             if status == 400:
+                if "workspace" in message.lower():
+                    var = self.cfg.get("api_workspace_env") or "CPL_ANTHROPIC_WORKSPACE"
+                    return False, None, (f"400, the key is not scoped to one workspace: set {var} to the workspace ID "
+                                         f"(see the README, 'Running with your own API key'): {message}")
                 return False, None, f"400 (a spend limit, or a request the API rejects): {message}"
             if status == 402:
                 return False, None, f"402, a billing problem: {message}"

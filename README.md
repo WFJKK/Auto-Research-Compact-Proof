@@ -240,6 +240,15 @@ Open a Claude Code session in this repository and ask it to follow `docs/SPEC.md
    set -a; . ~/.config/auto-research-compact-proof/env; set +a
    ```
 
+   If the API answers "This API key is not scoped to a workspace", the key works across workspaces and each request must name one. Find the ID (it starts with `wrkspc_`) in the ID column of the Console's Workspaces page, or list them, the Default workspace included, with the key itself:
+
+   ```bash
+   curl -s "https://api.anthropic.com/v1/organizations/workspaces?include_default=true" \
+     -H "x-api-key: $CPL_ANTHROPIC_KEY" -H "anthropic-version: 2023-06-01"
+   ```
+
+   Then put it in `CPL_ANTHROPIC_WORKSPACE` next to the key (`api_workspace_env` in the run config names that variable). It goes out as the `anthropic-workspace-id` header; a key scoped to one workspace needs none.
+
 3. Commit your changes (an API run starts only from a clean commit), then start the run and check on it:
 
    ```bash

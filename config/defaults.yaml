@@ -75,6 +75,10 @@ effort: xhigh
 max_output_tokens: 64000
 # The variable holding the API key. Never ANTHROPIC_API_KEY.
 api_key_env: CPL_ANTHROPIC_KEY
+# The variable holding a workspace ID (wrkspc_...), sent as the
+# anthropic-workspace-id header. Needed only for a key not scoped to one
+# workspace; left unset, no header is sent.
+api_workspace_env: CPL_ANTHROPIC_WORKSPACE
 # Retries for errors that pass by themselves (overloaded, server errors, rate
 # limits with a retry-after, lost connections); waits double from first_wait_s.
 # Spend limits, billing, authentication and malformed requests stop the run.
