@@ -1,4 +1,4 @@
-# Cost model `cost-v2`
+# Cost model `cost-v3`
 
 A proof's length is the work the checker does to check it, counted in exact operations. The definition lives in `core/check/cost.py`, whose docstring is shown to the agent; this page adds the reasoning and the numbers for max2.
 
@@ -15,6 +15,8 @@ Each operation on exact numbers counts 1: a multiply-add, an addition or subtrac
 | `approximate` | checking an approximation | 2 per entry, plus a·r·c to multiply out low-rank factors; `row_segments` also 1 per entry and 2 per segment for the column index that locates a range's segments. A range bounded through an approximation is charged to `interval`: `dense` 2 per token per output; `low_rank` 2r per token plus 3r per output; `row_segments` 2 per merge step of the two rows' segments plus 2 per output to locate them; then 1 per output to subtract the error |
 | `single` | one exact forward pass | linear on a one-hot input: output size per position; linear on a vector: in·out; bias, sum or add: its size; final comparison: outputs − 1 |
 | `interval` | bounds over a set of inputs | linear on a token set: 2·out per token; linear on a box: 2·in·out; output linear on token sets: 2·outputs per token (or what the approximation's form needs); output linear on a box: 3·in·outputs |
+| `tables` | rows of `token_interval` leaves that depend on their token alone, computed once per proof | lookup: output size per token; product with a constant matrix: in·out per row; adding or multiplying by a constant: the row's size; sum: (size − 1) per result entry |
+| `token_interval` | everything else in `token_interval` leaves | the same counts per row, or per input where a value is kept per input, doubled for interval values; boxing rows: 2 per entry; decision per term and other output: 3 per input (exact weight) or 5 (interval weight), or 3 per token plus 8 with several varying positions; then 1 per input and other output, and outputs − 1 for the constant part |
 | `symmetry` | counting the inputs a leaf certifies | 1 per accepted leaf |
 
 ## Why these choices
@@ -23,6 +25,10 @@ Each operation on exact numbers counts 1: a multiply-add, an addition or subtrac
 - **Searching is free.** A recipe may spend any amount of floating-point work finding a proof. Only checking it counts, as in Gross et al.
 - **One-hot inputs are lookups.** A linear map applied to a one-hot token costs its output size, the cost of reading one column, not a full matrix-vector product. Brute force is charged the same way, so this choice does not favour any proof.
 - **Bounds cost double.** An interval operation works on a centre and a radius.
+
+## Change from `cost-v2`
+
+`cost-v3` (16 October 2026) adds the `token_interval` rule and its two categories. Nothing else changes: every proof without `token_interval` leaves has the same length as under `cost-v2`, and E and B are unchanged (the manifests were refilled only to record the version). Rows reused across leaves are charged once because the checker computes them once; that sharing is the compression Gross et al. get from precomputing EQKE, EVOU and EU. A brute-force check of one input is still the full single rule, so B is unchanged and stays comparable.
 
 ## Change from `cost-v1`
 

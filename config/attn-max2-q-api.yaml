@@ -1,5 +1,7 @@
 # max-of-2 on Gross et al.'s one-head transformer through the Messages API, the
-# agent scored on Q. Four rounds, same model and effort as max2-rerun-q. The key
+# agent scored on Q. Four rounds, same model and effort as max2-rerun-q. This is
+# the run of 16 October 2026 (attn-max2-q-api-3), before token_interval existed;
+# config/attn-max2-q-api-tokens.yaml repeats it with that rule. The key
 # comes from the variable api_key_env names (never ANTHROPIC_API_KEY). Run
 # config/attn-max2-smoke.yaml first.
 run_id: attn-max2-q-api

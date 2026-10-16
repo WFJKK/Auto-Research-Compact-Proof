@@ -13,5 +13,6 @@ patience: 5
 baselines: [brute_force]
 sandbox: hardened
 # Softmax networks: the checker refuses contract, symmetry and approximate
-# (they need a network of linear maps), so the prompt offers only these.
-rule_set: [single, interval, skip]
+# (they need a network of linear maps). token_interval keeps each token's rows
+# exact through the attention (see docs/RULES.md).
+rule_set: [single, interval, token_interval, skip]
