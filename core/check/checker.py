@@ -205,13 +205,16 @@ def check_proof(
             if l.rule == "skip":
                 skipped += 1
                 outcome(l, False, "skipped")
-            elif l.rule == "interval":
+            elif l.rule in ("interval", "token_interval"):
                 label = folder.task.constant_label(l.ranges, sizes)
                 if label is None:
-                    rejected.append({"path": l.path, "rule": "interval", "ranges": l.ranges, "reason": "label not constant"})
+                    rejected.append({"path": l.path, "rule": l.rule, "ranges": l.ranges, "reason": "label not constant"})
                     outcome(l, False, "label not constant")
                     continue
-                good, worst, j = prog.run_interval(l.ranges, int(label), counter, approximations.get(l.approx))
+                if l.rule == "interval":
+                    good, worst, j = prog.run_interval(l.ranges, int(label), counter, approximations.get(l.approx))
+                else:
+                    good, worst, j = prog.run_token_interval(l.ranges, int(label), counter)
                 if good:
                     accepted.append(l)
                     outcome(l, True, margin=_safe_float(worst), label=int(label), worst_output=int(j))
@@ -219,7 +222,7 @@ def check_proof(
                     rejected.append(
                         {
                             "path": l.path,
-                            "rule": "interval",
+                            "rule": l.rule,
                             "ranges": l.ranges,
                             "reason": "margin bound not positive",
                             "label": int(label),

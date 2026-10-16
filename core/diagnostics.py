@@ -26,7 +26,7 @@ from .zoo import load_module, network_entry
 MAX_GROUPS = 12
 MAX_EXAMPLES = 3
 CHUNK = 1 << 13
-RULE_ORDER = ("extract", "read", "tree", "contract", "approximate", "single", "interval", "symmetry")
+RULE_ORDER = ("extract", "read", "tree", "contract", "approximate", "single", "interval", "tables", "token_interval", "symmetry")
 
 
 def float_margins(folder: ModelFolder, network_id: str, allow_held_out: bool = False) -> np.ndarray:

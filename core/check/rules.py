@@ -34,6 +34,22 @@ RULES = {
         "its own lowest exponential over its lowest plus the others' highest, and the reverse. Bounds of "
         "different entries are treated as independent, so wide boxes lose precision."
     ),
+    "token_interval": (
+        'Leaf rule {"leaf": "token_interval"}. For networks with operations beyond linear maps (softmax '
+        "attention, say). The correct output must be the same for every input in the leaf. Instead of boxing a "
+        "position's tokens at the first lookup, the checker keeps every allowed token's values exact: the lookup "
+        "x @ W gives, per position, the exact row of W for each allowed token; adding a constant, multiplying by a "
+        "constant matrix, an elementwise product with an exact tensor and a sum over a non-position dimension keep "
+        "the rows exact per token. Selecting one position, or summing rows weighted by one scalar per position (an "
+        "attention weight) over the positions, gives a sum of terms weight * exact row; later constant matrices act "
+        "on each term's rows exactly (by linearity), so the rows reach the logits without being boxed. Rows that "
+        "depend on their token alone (a lookup, then constants) are computed once per proof and reused by every "
+        "leaf. If at most one position holds more than one token, every other value is kept per input too, so the "
+        "bound is the smallest margin over the leaf's inputs, exact up to the 2**-120 rounding of exp and softmax, "
+        "for much less than a single check per input. If several positions vary, values that mix them (attention "
+        "scores, softmax weights) become entrywise intervals, and each term is bounded over its own tokens and "
+        "weight interval separately, which is sound but looser. Only for networks beyond linear maps."
+    ),
     "skip": 'Leaf rule {"leaf": "skip"}. Certifies nothing and costs almost nothing.',
     "contract": (
         'Global rule. "contract": [{"name": N, "chain": [a, b, ...]}] replaces consecutive linear maps '
@@ -67,8 +83,8 @@ RULES = {
     ),
 }
 
-GENERIC_RULES = ("single", "interval", "skip", "contract", "symmetry", "approximate")
-LEAF_RULES = ("single", "interval", "skip")
+GENERIC_RULES = ("single", "interval", "token_interval", "skip", "contract", "symmetry", "approximate")
+LEAF_RULES = ("single", "interval", "token_interval", "skip")
 NUMBERS = (
     "Numbers in proof files are dyadic rationals (denominator a power of two), like the float32 weights "
     "they describe: integers, decimals such as \"1.25\", fractions such as \"-3/4\", or finite floats; all are "

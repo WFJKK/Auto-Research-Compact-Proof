@@ -13,6 +13,7 @@
     <node> = {"split": {"position": p, "cuts": [c1, ..., ck]}, "children": [<node>, ...]}
            | {"leaf": "single"} | {"leaf": "skip"}
            | {"leaf": "interval"} | {"leaf": "interval", "approx": "<name>"}
+           | {"leaf": "token_interval"}
 
 The root covers every input. A split divides the current range [lo, hi] of
 position p into [lo, c1-1], [c1, c2-1], ..., [ck, hi], so the leaves always

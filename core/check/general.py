@@ -33,6 +33,7 @@ from .arith import Exact
 from .cost import Counter
 from .evaluate import CheckError
 from .interval import IT, concat, exp, softmax
+from .tokens import DOMAIN, TokenBox, TokenEvaluator, Var
 from .trace import UnsupportedOp
 
 # (fx op, target) -> name used by the interpreter
@@ -224,6 +225,8 @@ class GeneralProgram:
         self.depends = {}
         for n in graph.nodes:
             self.depends[n.name] = n.kind == "input" or any(self._refs_input(a) for a in (*n.args, *n.kwargs.values()))
+        # Rows of token_interval leaves that depend on their token alone, kept for the whole proof.
+        self._token_memo = {}
         # Compute the input-free nodes once, charged to extract.
         self.const = {}
         for n in graph.nodes:
@@ -457,6 +460,64 @@ class GeneralProgram:
         if m is None:
             return True, Fraction(1), -1
         return bool(m > 0), Fraction(m) * Fraction(2) ** out.exp, j
+
+
+    def run_token_interval(self, ranges: list, label: int, counter: Counter):
+        """A token_interval leaf (core.check.tokens): (certified, lowest margin bound, the other output reaching it)."""
+        box = TokenBox(ranges, self._n_values)
+        ev = TokenEvaluator(self, self._token_memo, counter, box)
+        env = dict(self.const)
+        for n in self.graph.nodes:
+            if n.name in env:
+                continue
+            env[n.name] = box if n.kind == "input" else self._eval_token(n, env, ev, counter)
+        out = env[self.graph.output]
+        if len(out.shape) != 2 or out.shape[0] != 1:
+            raise UnsupportedOp("the network's output must be (batch, outputs) logits")
+        if not 0 <= label < out.shape[1]:
+            raise CheckError("label outside the network's outputs")
+        m, j = ev.lower_margin(out, label)
+        return bool(m > 0), m, j
+
+    def _eval_token(self, n: Node, env: dict, ev: TokenEvaluator, counter: Counter):
+        names = _node_refs((*n.args, *n.kwargs.values()))
+        if not any(isinstance(env.get(x), DOMAIN) for x in names):
+            return self._eval(n, env, counter, "token_interval", 2)
+        args = self._value(n.args, env)
+        kwargs = {k: self._value(v, env) for k, v in n.kwargs.items()}
+        if n.kind == "getattr" and args[1] == "shape" and isinstance(args[0], DOMAIN):
+            return tuple(args[0].shape)
+        if n.kind == "size" and isinstance(args[0], DOMAIN):
+            dim = kwargs.get("dim", args[1] if len(args) > 1 else None)
+            return tuple(args[0].shape) if dim is None else args[0].shape[int(dim)]
+        free = [not self._refs_input(a) for a in n.args]
+        v = ev.evaluate(n, args, kwargs, free)
+        if v is not None:
+            return v
+        env2 = dict(env)
+        for x in names:
+            if isinstance(env.get(x), DOMAIN):
+                env2[x] = ev.leave(env[x])
+        if any(isinstance(env2.get(x), Var) for x in names):
+            args2 = self._value(n.args, env2)
+            kwargs2 = {k: self._value(v, env2) for k, v in n.kwargs.items()}
+            v = ev.var_op(n, args2, kwargs2)
+            if v is not None:
+                return v
+            for x in names:
+                if isinstance(env2.get(x), Var):
+                    env2[x] = ev.collapse(env2[x])
+        return self._eval(n, env2, counter, "token_interval", 2)
+
+
+def _node_refs(a) -> list[str]:
+    if isinstance(a, tuple) and len(a) == 2 and a[0] == "node":
+        return [a[1]]
+    if isinstance(a, (list, tuple)):
+        return [x for v in a for x in _node_refs(v)]
+    if isinstance(a, slice):
+        return _node_refs((a.start, a.stop, a.step))
+    return []
 
 
 def _to_float(m: int, exp: int) -> float:

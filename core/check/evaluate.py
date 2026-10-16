@@ -267,6 +267,10 @@ class Program:
         return res
 
     # interval --------------------------------------------------------------------
+    def run_token_interval(self, ranges: list, label: int, counter: Counter):
+        raise CheckError("the token_interval rule is for networks beyond linear maps; here interval leaves already "
+                         "use each token's exact row once the maps are contracted")
+
     def run_interval(self, ranges: list, label: int, counter: Counter, approx: Approximation | None = None):
         """Bounds over all inputs in the product of ranges, all with the same label.
 

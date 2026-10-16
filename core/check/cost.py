@@ -1,4 +1,4 @@
-"""Cost model cost-v2: a proof's length is the work the checker does to check it.
+"""Cost model cost-v3: a proof's length is the work the checker does to check it.
 
 Each operation on exact numbers (one multiply-add, addition, subtraction or
 comparison) counts 1. Specifically:
@@ -43,6 +43,21 @@ input lookup costs 2*out per allowed token at a position (out for a single
 token). The parts that do not depend on the input are computed once per proof
 and charged to extract, which then also counts their operations.
 
+token_interval leaves (networks beyond linear maps) count the same operations
+on the values they keep. tables: a row that depends on its token alone (the
+lookup, then constants) is computed once per proof, whichever leaf needs it
+first, and reused: a lookup costs its output size per token, a product with a
+constant matrix in*out per row, adding or multiplying by a constant the row's
+size, a sum over a dimension (size - 1) per entry of the result. token_interval:
+the rest, per leaf: the same counts per row, or per input where a value is kept
+per input (when at most one position varies), doubled for interval values; a
+product of a constant matrix with a term's constant part in*out per entry (its
+size, if that part is zero); boxing rows into entrywise bounds 2 per entry;
+3 per entry of a softmax and 1 of an exp, doubled; and the decision: per term
+and other output, 3 per input with an exact weight or 5 with an interval weight
+(one position varying), or 3 per token plus 8 (several), then 1 per input and
+other output for the minimum, and (outputs - 1) for the constant part.
+
 E is the extract cost. B is the length of the brute-force proof, which checks
 every input with the single rule and nothing else.
 """
@@ -51,14 +66,17 @@ from __future__ import annotations
 
 from collections import defaultdict
 
-VERSION = "cost-v2"
+VERSION = "cost-v3"
+# cost-v3 (16 Oct 2026) adds the token_interval rule and its two categories, tables and token_interval.
+# Nothing else changes: a proof without token_interval leaves has the same length as under cost-v2, and E
+# and B are unchanged.
 # cost-v2 (13 Oct 2026) differs from cost-v1 in the approximate rule only: a row_segments merge step
 # costs 2, not 1 (under cost-v1 an exact approximation with one segment per entry made the dense range
 # check look half as long while doing the same work; an agent found and used this), locating a row's
 # segments is charged (two lookups in an index that costs 1 per entry and 2 per segment to build),
 # and the error subtraction and the low-rank differences are charged. E and B are unchanged.
 
-CATEGORIES = ("extract", "read", "tree", "contract", "approximate", "single", "interval", "symmetry")
+CATEGORIES = ("extract", "read", "tree", "contract", "approximate", "single", "interval", "tables", "token_interval", "symmetry")
 
 
 class Counter:
