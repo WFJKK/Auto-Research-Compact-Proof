@@ -103,11 +103,15 @@ def landlock_available() -> bool:
     return landlock_abi() >= 1 and platform.machine() in SECCOMP_ARCHES
 
 
+# Docker Desktop can take a while to answer after its resource saver paused it.
+CONTAINER_INFO_TIMEOUT_S = 90
+
+
 def container_runtime(preferred: str | None = None) -> str | None:
     for name in [preferred] if preferred else ["docker", "podman"]:
         if name and shutil.which(name):
             try:
-                if subprocess.run([name, "info"], capture_output=True, timeout=20).returncode == 0:
+                if subprocess.run([name, "info"], capture_output=True, timeout=CONTAINER_INFO_TIMEOUT_S).returncode == 0:
                     return name
             except (OSError, subprocess.TimeoutExpired):
                 pass
@@ -115,11 +119,20 @@ def container_runtime(preferred: str | None = None) -> str | None:
 
 
 def image_id(runtime: str, image: str) -> str | None:
-    try:
-        r = subprocess.run([runtime, "image", "inspect", "--format", "{{.Id}}", image], capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.TimeoutExpired):
-        return None
-    return r.stdout.strip() if r.returncode == 0 and r.stdout.strip() else None
+    """The image's ID, or None if it is not there. image inspect first; then the image list, since Docker
+    Desktop's containerd image store can list (and run) an image that image inspect calls missing."""
+    for cmd in (
+        [runtime, "image", "inspect", "--format", "{{.Id}}", image],
+        [runtime, "images", "--no-trunc", "--quiet", image],
+    ):
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        except (OSError, subprocess.TimeoutExpired):
+            continue
+        out = r.stdout.strip().splitlines()
+        if r.returncode == 0 and out and out[0].strip():
+            return out[0].strip()
+    return None
 
 
 def protected_paths(cfg: dict | None = None, folder=None, run_path: Path | None = None) -> tuple:
@@ -157,8 +170,9 @@ def choose(cfg: dict, protected: tuple = ()) -> Sandbox:
         if want == "landlock":
             raise SandboxError("landlock mode needs Linux with Landlock enabled on x86_64 or aarch64")
     if want == "hardened":
+        why = "no docker or podman answered" if not rt else f"{rt} is running but the image {image} was not found"
         raise SandboxError(
-            "no hardened sandbox is available here: start Docker (or Podman) with the image built "
+            f"no hardened sandbox is available here ({why}): start Docker (or Podman) with the image built "
             "(python -m core.sandbox build), or use Linux with Landlock. The run refuses to fall back to process mode."
         )
     return Sandbox("process", protected=protected)

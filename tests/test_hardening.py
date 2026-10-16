@@ -166,3 +166,30 @@ def test_the_sandbox_image_falls_back_to_the_pins(monkeypatch):
 
     monkeypatch.setattr(metadata, "version", missing)
     assert sandbox.image_versions() == sandbox.requirement_versions()
+
+
+def test_an_image_that_inspect_misses_is_found_in_the_image_list(monkeypatch):
+    import subprocess
+
+    from core import sandbox
+
+    def fake(cmd, **kw):
+        if cmd[1:3] == ["image", "inspect"]:
+            return subprocess.CompletedProcess(cmd, 1, "", "No such image")
+        return subprocess.CompletedProcess(cmd, 0, "sha256:abc\n", "")
+
+    monkeypatch.setattr(sandbox.subprocess, "run", fake)
+    assert sandbox.image_id("docker", "img:1") == "sha256:abc"
+
+
+def test_the_hardened_error_says_whether_the_runtime_or_the_image_is_missing(monkeypatch):
+    from core import sandbox
+
+    monkeypatch.setattr(sandbox, "landlock_available", lambda: False)
+    monkeypatch.setattr(sandbox, "container_runtime", lambda *a: "docker")
+    monkeypatch.setattr(sandbox, "image_id", lambda *a: None)
+    with pytest.raises(sandbox.SandboxError, match="docker is running but the image"):
+        sandbox.choose({"sandbox": "hardened"})
+    monkeypatch.setattr(sandbox, "container_runtime", lambda *a: None)
+    with pytest.raises(sandbox.SandboxError, match="no docker or podman answered"):
+        sandbox.choose({"sandbox": "hardened"})
