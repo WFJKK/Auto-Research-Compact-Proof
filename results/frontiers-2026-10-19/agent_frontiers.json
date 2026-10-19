@@ -1,0 +1,6167 @@
+{
+ "attn-max2-q-api-3": {
+  "rules": "interval",
+  "model": "models/attn-max2",
+  "agent_model": "claude-fable-5-1",
+  "effort": "high",
+  "metric": "Q",
+  "agent_rounds": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "networks": {
+   "attn-max2-v128-s0": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 898097,
+      "certified": 966,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 1868144,
+      "certified": 1441,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3716185,
+      "certified": 2016,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 7439943,
+      "certified": 2819,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 15403167,
+      "certified": 3959,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 15694379,
+      "certified": 3987,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 23222251,
+      "certified": 4687,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 33277189,
+      "certified": 5617,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 46081395,
+      "certified": 6803,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 58181442,
+      "certified": 7927,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 70492339,
+      "certified": 9067,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 98204179,
+      "certified": 11635,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 120913974,
+      "certified": 13741,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 149291374,
+      "certified": 16372,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 176795971,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 0,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.15627250081030875,
+    "Q_grid": 0.12166184645432693,
+    "cost_of_finishing": 1.1832080686087711,
+    "shortest_full": 176795971
+   },
+   "attn-max2-v128-s3": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 925086,
+      "certified": 888,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 1927850,
+      "certified": 1373,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3837450,
+      "certified": 1891,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 7671109,
+      "certified": 2577,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 15915879,
+      "certified": 3577,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 16217915,
+      "certified": 3605,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 23982018,
+      "certified": 4328,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 34350862,
+      "certified": 5286,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 47554150,
+      "certified": 6510,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 60041762,
+      "certified": 7670,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 72763369,
+      "certified": 8847,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 101338132,
+      "certified": 11496,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 124770419,
+      "certified": 13669,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 154064988,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.14664790910662692,
+    "Q_grid": 0.11487285907451923,
+    "cost_of_finishing": 1.147541523191499,
+    "shortest_full": 154064988
+   },
+   "attn-max2-v128-s4": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 917213,
+      "certified": 931,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 1899806,
+      "certified": 1436,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3776505,
+      "certified": 1954,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 7559842,
+      "certified": 2687,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 15651636,
+      "certified": 3773,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 15953672,
+      "certified": 3801,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 23588864,
+      "certified": 4512,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 33806157,
+      "certified": 5456,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 46804492,
+      "certified": 6661,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 59098287,
+      "certified": 7803,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 71614592,
+      "certified": 8961,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 99747088,
+      "certified": 11569,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 122823518,
+      "certified": 13709,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 151654132,
+      "certified": 16381,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 176795971,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 0,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.1515908565715203,
+    "Q_grid": 0.11843637319711539,
+    "cost_of_finishing": 1.1655352716131084,
+    "shortest_full": 176795971
+   },
+   "attn-max2-v128-s5": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 901042,
+      "certified": 846,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 1862381,
+      "certified": 1351,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3707839,
+      "certified": 1898,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 7423760,
+      "certified": 2741,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 15358368,
+      "certified": 3951,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 15649214,
+      "certified": 3991,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 23154577,
+      "certified": 4726,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 33187760,
+      "certified": 5653,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 45948781,
+      "certified": 6836,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 58005826,
+      "certified": 7956,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 70305827,
+      "certified": 9094,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 97931334,
+      "certified": 11655,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 120576500,
+      "certified": 13755,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 148889122,
+      "certified": 16379,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 176795971,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 0,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.15505570355102447,
+    "Q_grid": 0.1200702373798077,
+    "cost_of_finishing": 1.187003625329625,
+    "shortest_full": 176795971
+   },
+   "attn-max2-v128-s6": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 928606,
+      "certified": 943,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 1921594,
+      "certified": 1443,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3832070,
+      "certified": 1972,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 7675556,
+      "certified": 2640,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 15911399,
+      "certified": 3579,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 16213435,
+      "certified": 3607,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 23977314,
+      "certified": 4330,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 34346382,
+      "certified": 5288,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 47538883,
+      "certified": 6511,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 60015518,
+      "certified": 7670,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 72726528,
+      "certified": 8846,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 101301291,
+      "certified": 11495,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 124722688,
+      "certified": 13667,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 153995786,
+      "certified": 16380,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 176795971,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 0,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.14789181061463344,
+    "Q_grid": 0.11614990234375,
+    "cost_of_finishing": 1.1477355049305908,
+    "shortest_full": 176795971
+   },
+   "attn-max2-v128-s9": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 922590,
+      "certified": 849,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 1912712,
+      "certified": 1304,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3822416,
+      "certified": 1822,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 7640387,
+      "certified": 2591,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 15841273,
+      "certified": 3623,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 16143309,
+      "certified": 3651,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 23864382,
+      "certified": 4370,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 34200747,
+      "certified": 5325,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 47350100,
+      "certified": 6544,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 59773079,
+      "certified": 7698,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 72440662,
+      "certified": 8870,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 100896768,
+      "certified": 11508,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 124221218,
+      "certified": 13671,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 153386310,
+      "certified": 16374,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 176795971,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 0,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.14682462940982705,
+    "Q_grid": 0.11461463341346154,
+    "cost_of_finishing": 1.1518086717040552,
+    "shortest_full": 176795971
+   },
+   "attn-max2-v64-s0": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 190579,
+      "certified": 152,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 395712,
+      "certified": 267,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 793078,
+      "certified": 407,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1577297,
+      "certified": 573,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 3271067,
+      "certified": 833,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3331792,
+      "certified": 840,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4919100,
+      "certified": 1024,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 7044692,
+      "certified": 1268,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 9751292,
+      "certified": 1580,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 12312627,
+      "certified": 1876,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 14912917,
+      "certified": 2175,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 20768542,
+      "certified": 2850,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 25572458,
+      "certified": 3404,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 31577592,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.15644738252639523,
+    "Q_grid": 0.1156005859375,
+    "cost_of_finishing": 1.1259083656537205,
+    "shortest_full": 31577592
+   },
+   "attn-max2-v64-s2": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 198233,
+      "certified": 137,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 402435,
+      "certified": 238,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 798853,
+      "certified": 362,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1592003,
+      "certified": 529,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 3303387,
+      "certified": 799,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3364112,
+      "certified": 806,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4968753,
+      "certified": 992,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 7111712,
+      "certified": 1238,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 9844337,
+      "certified": 1553,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 12423035,
+      "certified": 1851,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15058012,
+      "certified": 2154,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 20965687,
+      "certified": 2835,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 25812975,
+      "certified": 3394,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 31870162,
+      "certified": 4092,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 35553475,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 0,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.15072376265984902,
+    "Q_grid": 0.11116536458333333,
+    "cost_of_finishing": 1.1143584479576847,
+    "shortest_full": 35553475
+   },
+   "attn-max2-v64-s3": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 198041,
+      "certified": 134,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 402374,
+      "certified": 237,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 807775,
+      "certified": 364,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1608865,
+      "certified": 525,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 3336741,
+      "certified": 771,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3397466,
+      "certified": 778,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 5019303,
+      "certified": 966,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 7188441,
+      "certified": 1215,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 9938416,
+      "certified": 1532,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 12543012,
+      "certified": 1833,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15204141,
+      "certified": 2139,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 21172541,
+      "certified": 2827,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 26063186,
+      "certified": 3391,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 32181116,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.14822236279180337,
+    "Q_grid": 0.10970052083333333,
+    "cost_of_finishing": 1.1047931028867986,
+    "shortest_full": 32181116
+   },
+   "attn-max2-v64-s4": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 188915,
+      "certified": 126,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 384919,
+      "certified": 233,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 773112,
+      "certified": 371,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1534729,
+      "certified": 587,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 3170907,
+      "certified": 903,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3231731,
+      "certified": 913,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4776719,
+      "certified": 1110,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 6841224,
+      "certified": 1347,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 9469749,
+      "certified": 1650,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 11953320,
+      "certified": 1937,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 14483899,
+      "certified": 2228,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 20166024,
+      "certified": 2883,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 24831221,
+      "certified": 3421,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 30662774,
+      "certified": 4093,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 35553475,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 0,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.1623375232381838,
+    "Q_grid": 0.11810302734375,
+    "cost_of_finishing": 1.1585157652080706,
+    "shortest_full": 35553475
+   },
+   "attn-max2-v64-s7": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 198361,
+      "certified": 139,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 402563,
+      "certified": 240,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 808050,
+      "certified": 369,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1600977,
+      "certified": 537,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 3320211,
+      "certified": 783,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3380936,
+      "certified": 790,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4994125,
+      "certified": 977,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 7154561,
+      "certified": 1225,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 9904536,
+      "certified": 1542,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 12500472,
+      "certified": 1842,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15144236,
+      "certified": 2146,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 21086611,
+      "certified": 2831,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 25968581,
+      "certified": 3394,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 32060486,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.1497515892890659,
+    "Q_grid": 0.11079915364583333,
+    "cost_of_finishing": 1.1089499703778665,
+    "shortest_full": 32060486
+   },
+   "attn-max2-v64-s8": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 196956,
+      "certified": 117,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 409642,
+      "certified": 216,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 815506,
+      "certified": 349,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1625143,
+      "certified": 509,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 3361364,
+      "certified": 746,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3422089,
+      "certified": 753,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 5052546,
+      "certified": 942,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 7239089,
+      "certified": 1193,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 10015089,
+      "certified": 1513,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 12637007,
+      "certified": 1816,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15315514,
+      "certified": 2124,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 21327289,
+      "certified": 2817,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 26261291,
+      "certified": 3386,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 32422614,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.14469548700734813,
+    "Q_grid": 0.10703531901041667,
+    "cost_of_finishing": 1.0965641141704368,
+    "shortest_full": 32422614
+   }
+  }
+ },
+ "attn-max2-q-api-tokens": {
+  "rules": "token_interval",
+  "model": "models/attn-max2",
+  "agent_model": "claude-fable-5-1",
+  "effort": "high",
+  "metric": "Q",
+  "agent_rounds": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "networks": {
+   "attn-max2-v128-s0": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 36626,
+      "certified": 45,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 155246,
+      "certified": 230,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 225875,
+      "certified": 332,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 1001135,
+      "certified": 1098,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 1067891,
+      "certified": 1140,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 2541851,
+      "certified": 1656,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 3356799,
+      "certified": 2155,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 5310299,
+      "certified": 3292,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 6935600,
+      "certified": 4240,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 8617209,
+      "certified": 5138,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 11184785,
+      "certified": 6655,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 14609142,
+      "certified": 8483,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 17085120,
+      "certified": 9635,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 19940398,
+      "certified": 11075,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 22567392,
+      "certified": 12403,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 30458980,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.2856991291537339,
+    "Q_grid": 0.2631695087139423,
+    "cost_of_finishing": 5.804395649493188,
+    "shortest_full": 30458980
+   },
+   "attn-max2-v128-s3": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 36114,
+      "certified": 37,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 177306,
+      "certified": 241,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 339439,
+      "certified": 438,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 1195420,
+      "certified": 1130,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 2590599,
+      "certified": 1597,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 3803437,
+      "certified": 2027,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 4649833,
+      "certified": 2817,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 5827339,
+      "certified": 3514,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 8584389,
+      "certified": 5043,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 10168358,
+      "certified": 5978,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 11687337,
+      "certified": 6863,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 14737506,
+      "certified": 8483,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 18083871,
+      "certified": 10067,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 20272982,
+      "certified": 11171,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 22695756,
+      "certified": 12403,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 30587344,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.28402571372457686,
+    "Q_grid": 0.26502403846153844,
+    "cost_of_finishing": 5.7800367040695,
+    "shortest_full": 30587344
+   },
+   "attn-max2-v128-s4": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 36178,
+      "certified": 38,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 176986,
+      "certified": 236,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 362459,
+      "certified": 464,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 1198940,
+      "certified": 1185,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 2519043,
+      "certified": 1598,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 3665775,
+      "certified": 2102,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 4455650,
+      "certified": 2761,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 5630084,
+      "certified": 3451,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 8622037,
+      "certified": 5111,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9733188,
+      "certified": 5830,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 11524320,
+      "certified": 6799,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 14670394,
+      "certified": 8483,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 17815483,
+      "certified": 9963,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 20210802,
+      "certified": 11171,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 22628644,
+      "certified": 12403,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 30520232,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.28507912504034505,
+    "Q_grid": 0.26351693960336536,
+    "cost_of_finishing": 5.792746627876223,
+    "shortest_full": 30520232
+   },
+   "attn-max2-v128-s5": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 36114,
+      "certified": 37,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 176730,
+      "certified": 232,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 337583,
+      "certified": 409,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 1304729,
+      "certified": 1169,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 2478443,
+      "certified": 1476,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 3822617,
+      "certified": 1993,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 4676597,
+      "certified": 2801,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 5881370,
+      "certified": 3520,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 8581566,
+      "certified": 5066,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9848698,
+      "certified": 5831,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 11761176,
+      "certified": 6870,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 14793598,
+      "certified": 8483,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 18135739,
+      "certified": 10067,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 20324850,
+      "certified": 11171,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 22593160,
+      "certified": 12323,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 30643436,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.2829535965642945,
+    "Q_grid": 0.26360144981971156,
+    "cost_of_finishing": 5.769456499590973,
+    "shortest_full": 30643436
+   },
+   "attn-max2-v128-s6": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 36306,
+      "certified": 40,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 177050,
+      "certified": 237,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 362459,
+      "certified": 464,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 1175984,
+      "certified": 1160,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 2528387,
+      "certified": 1587,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 3805293,
+      "certified": 2056,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 4432661,
+      "certified": 2736,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 5759414,
+      "certified": 3514,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 8509433,
+      "certified": 5031,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9629990,
+      "certified": 5760,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 11660972,
+      "certified": 6870,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 14688698,
+      "certified": 8483,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 17829327,
+      "certified": 9963,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 20224646,
+      "certified": 11171,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 22646948,
+      "certified": 12403,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 30538536,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.28492664337138357,
+    "Q_grid": 0.2629347581129808,
+    "cost_of_finishing": 5.789274607008011,
+    "shortest_full": 30538536
+   },
+   "attn-max2-v128-s9": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 36114,
+      "certified": 37,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 176602,
+      "certified": 230,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 314563,
+      "certified": 383,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 1213448,
+      "certified": 1078,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 2534346,
+      "certified": 1470,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 3844760,
+      "certified": 2009,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 4596416,
+      "certified": 2717,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 5795869,
+      "certified": 3428,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 8669658,
+      "certified": 5042,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 10145606,
+      "certified": 5909,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 11659101,
+      "certified": 6792,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 14832070,
+      "certified": 8483,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 18178443,
+      "certified": 10067,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 20367554,
+      "certified": 11171,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 22631632,
+      "certified": 12323,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 30681908,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.2820896215847487,
+    "Q_grid": 0.2628737229567308,
+    "cost_of_finishing": 5.762222186442903,
+    "shortest_full": 30681908
+   },
+   "attn-max2-v64-s0": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 374198,
+      "certified": 60,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 538826,
+      "certified": 240,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 761441,
+      "certified": 478,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 866590,
+      "certified": 588,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 1065531,
+      "certified": 798,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 1316050,
+      "certified": 1053,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1366042,
+      "certified": 1104,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1740658,
+      "certified": 1473,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 2123582,
+      "certified": 1824,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2312094,
+      "certified": 1977,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 2987988,
+      "certified": 2492,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3445306,
+      "certified": 2912,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3488901,
+      "certified": 2952,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4758560,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.32862921578399323,
+    "Q_grid": 0.2849527994791667,
+    "cost_of_finishing": 7.471477715947682,
+    "shortest_full": 4758560
+   },
+   "attn-max2-v64-s2": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 374198,
+      "certified": 60,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 538826,
+      "certified": 240,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 761441,
+      "certified": 478,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 866590,
+      "certified": 588,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 1065531,
+      "certified": 798,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 1316050,
+      "certified": 1053,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1366042,
+      "certified": 1104,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1740658,
+      "certified": 1473,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 2123582,
+      "certified": 1824,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2312094,
+      "certified": 1977,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 2987988,
+      "certified": 2492,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3445306,
+      "certified": 2912,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3488901,
+      "certified": 2952,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4758560,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.32862921578399323,
+    "Q_grid": 0.2849527994791667,
+    "cost_of_finishing": 7.471477715947682,
+    "shortest_full": 4758560
+   },
+   "attn-max2-v64-s3": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 374198,
+      "certified": 60,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 538826,
+      "certified": 240,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 761441,
+      "certified": 478,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 866590,
+      "certified": 588,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 1065531,
+      "certified": 798,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 1316050,
+      "certified": 1053,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1366042,
+      "certified": 1104,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1740658,
+      "certified": 1473,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 2123582,
+      "certified": 1824,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2312094,
+      "certified": 1977,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 2987988,
+      "certified": 2492,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3445306,
+      "certified": 2912,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3488901,
+      "certified": 2952,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4758560,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.32862921578399323,
+    "Q_grid": 0.2849527994791667,
+    "cost_of_finishing": 7.471477715947682,
+    "shortest_full": 4758560
+   },
+   "attn-max2-v64-s4": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 374198,
+      "certified": 60,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 538826,
+      "certified": 240,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 761441,
+      "certified": 478,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 866590,
+      "certified": 588,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 1065531,
+      "certified": 798,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 1316050,
+      "certified": 1053,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1366042,
+      "certified": 1104,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1740658,
+      "certified": 1473,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 2123582,
+      "certified": 1824,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2312094,
+      "certified": 1977,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 2987988,
+      "certified": 2492,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3445306,
+      "certified": 2912,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3488901,
+      "certified": 2952,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4758560,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.32862921578399323,
+    "Q_grid": 0.2849527994791667,
+    "cost_of_finishing": 7.471477715947682,
+    "shortest_full": 4758560
+   },
+   "attn-max2-v64-s7": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 374198,
+      "certified": 60,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 538826,
+      "certified": 240,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 761441,
+      "certified": 478,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 866590,
+      "certified": 588,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 1065531,
+      "certified": 798,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 1316050,
+      "certified": 1053,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1366042,
+      "certified": 1104,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1740658,
+      "certified": 1473,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 2123582,
+      "certified": 1824,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2312094,
+      "certified": 1977,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 2987988,
+      "certified": 2492,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3445306,
+      "certified": 2912,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3488901,
+      "certified": 2952,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4758560,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.32862921578399323,
+    "Q_grid": 0.2849527994791667,
+    "cost_of_finishing": 7.471477715947682,
+    "shortest_full": 4758560
+   },
+   "attn-max2-v64-s8": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 374198,
+      "certified": 60,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 538826,
+      "certified": 240,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 761441,
+      "certified": 478,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 866590,
+      "certified": 588,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 1065531,
+      "certified": 798,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 1316050,
+      "certified": 1053,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1366042,
+      "certified": 1104,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1740658,
+      "certified": 1473,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 2123582,
+      "certified": 1824,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2312094,
+      "certified": 1977,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 2987988,
+      "certified": 2492,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 3445306,
+      "certified": 2912,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3488901,
+      "certified": 2952,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 4758560,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.32862921578399323,
+    "Q_grid": 0.2849527994791667,
+    "cost_of_finishing": 7.471477715947682,
+    "shortest_full": 4758560
+   }
+  }
+ },
+ "attn-min2-q-api-tokens": {
+  "rules": "token_interval",
+  "model": "models/attn-min2",
+  "agent_model": "claude-fable-5-1",
+  "effort": "high",
+  "metric": "Q",
+  "agent_rounds": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "networks": {
+   "attn-min2-v128-s0": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 788483,
+      "certified": 256,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 1852765,
+      "certified": 727,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 2735164,
+      "certified": 1280,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 4449095,
+      "certified": 2025,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 5939948,
+      "certified": 2601,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 7032455,
+      "certified": 3364,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9162683,
+      "certified": 4489,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 11572523,
+      "certified": 5776,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 11708744,
+      "certified": 6572,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15641668,
+      "certified": 7396,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 18642251,
+      "certified": 9604,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 19665246,
+      "certified": 11008,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 23952381,
+      "certified": 12544,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 26227984,
+      "certified": 14336,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 30435834,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.2687713299929826,
+    "Q_grid": 0.24332369290865385,
+    "cost_of_finishing": 5.8088098062303795,
+    "shortest_full": 30435834
+   },
+   "attn-min2-v128-s3": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 788483,
+      "certified": 256,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 1852765,
+      "certified": 727,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 2735164,
+      "certified": 1280,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 4449095,
+      "certified": 2025,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 5939948,
+      "certified": 2601,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 7032455,
+      "certified": 3364,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9162683,
+      "certified": 4489,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 11572523,
+      "certified": 5776,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 11772576,
+      "certified": 6572,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15641668,
+      "certified": 7396,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 18640375,
+      "certified": 9604,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 19742214,
+      "certified": 11008,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 23984394,
+      "certified": 12544,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 26304952,
+      "certified": 14336,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 30512802,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.2686305884776629,
+    "Q_grid": 0.24332369290865385,
+    "cost_of_finishing": 5.794157186875201,
+    "shortest_full": 30512802
+   },
+   "attn-min2-v128-s4": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 788483,
+      "certified": 256,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 1852765,
+      "certified": 727,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 2735164,
+      "certified": 1280,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 4449095,
+      "certified": 2025,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 5939948,
+      "certified": 2601,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 7032455,
+      "certified": 3364,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9162683,
+      "certified": 4489,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 11545654,
+      "certified": 6572,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15641668,
+      "certified": 7396,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 18640609,
+      "certified": 9604,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 19523274,
+      "certified": 11008,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 23919759,
+      "certified": 12544,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 26086012,
+      "certified": 14336,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 30293862,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.2690642271617716,
+    "Q_grid": 0.24332369290865385,
+    "cost_of_finishing": 5.83603275805508,
+    "shortest_full": 30293862
+   },
+   "attn-min2-v128-s5": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 788483,
+      "certified": 256,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 1852765,
+      "certified": 727,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 2735164,
+      "certified": 1280,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 4449095,
+      "certified": 2025,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 5939948,
+      "certified": 2601,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 7032455,
+      "certified": 3364,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9162683,
+      "certified": 4489,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 11572523,
+      "certified": 5776,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 12021110,
+      "certified": 6572,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15641668,
+      "certified": 7396,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 18640375,
+      "certified": 9604,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 20183090,
+      "certified": 11008,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 24008003,
+      "certified": 12544,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 26745828,
+      "certified": 14336,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 30953678,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.26793970806228,
+    "Q_grid": 0.24332369290865385,
+    "cost_of_finishing": 5.711630488628847,
+    "shortest_full": 30953678
+   },
+   "attn-min2-v128-s6": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 788483,
+      "certified": 256,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 1852765,
+      "certified": 727,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 2735164,
+      "certified": 1280,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 4449095,
+      "certified": 2025,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 5939948,
+      "certified": 2601,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 7032455,
+      "certified": 3364,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9162683,
+      "certified": 4489,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 11572523,
+      "certified": 5776,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 12021578,
+      "certified": 6572,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15641668,
+      "certified": 7396,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 18640375,
+      "certified": 9604,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 20162914,
+      "certified": 11008,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 24008003,
+      "certified": 12544,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 26725652,
+      "certified": 14336,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 30933502,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.26796561033960686,
+    "Q_grid": 0.24332369290865385,
+    "cost_of_finishing": 5.715355830064116,
+    "shortest_full": 30933502
+   },
+   "attn-min2-v128-s9": {
+    "setting": "v128",
+    "E": 12352,
+    "B": 176795971,
+    "real_correct": 16384,
+    "real_accuracy": 1.0,
+    "n_inputs": 16384,
+    "frontier": [
+     {
+      "length": 788483,
+      "certified": 256,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 1852765,
+      "certified": 727,
+      "n_inputs": 16384,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 2735164,
+      "certified": 1280,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 4449095,
+      "certified": 2025,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 5939948,
+      "certified": 2601,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 7032455,
+      "certified": 3364,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9162683,
+      "certified": 4489,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 11572523,
+      "certified": 5776,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 11662748,
+      "certified": 6572,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 15641668,
+      "certified": 7396,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 18640375,
+      "certified": 9604,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 19598606,
+      "certified": 11008,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 23953317,
+      "certified": 12544,
+      "n_inputs": 16384,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 26161344,
+      "certified": 14336,
+      "n_inputs": 16384,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 30369194,
+      "certified": 16384,
+      "n_inputs": 16384,
+      "round": 2,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.2688804599552101,
+    "Q_grid": 0.24332369290865385,
+    "cost_of_finishing": 5.821556245450571,
+    "shortest_full": 30369194
+   },
+   "attn-min2-v64-s0": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 182035,
+      "certified": 64,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 366329,
+      "certified": 167,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 534528,
+      "certified": 322,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 772303,
+      "certified": 484,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 841469,
+      "certified": 525,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1081398,
+      "certified": 676,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 1203559,
+      "certified": 841,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1490735,
+      "certified": 1089,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1891375,
+      "certified": 1444,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 1952908,
+      "certified": 1647,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 2543296,
+      "certified": 1849,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2935759,
+      "certified": 2401,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3141013,
+      "certified": 2752,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 3717043,
+      "certified": 3136,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 4102844,
+      "certified": 3584,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 4720414,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.3316141970385323,
+    "Q_grid": 0.2946980794270833,
+    "cost_of_finishing": 7.531855256763496,
+    "shortest_full": 4720414
+   },
+   "attn-min2-v64-s2": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 182035,
+      "certified": 64,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 366329,
+      "certified": 167,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 534528,
+      "certified": 322,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 772303,
+      "certified": 484,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 841469,
+      "certified": 525,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1081398,
+      "certified": 676,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 1203559,
+      "certified": 841,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1490735,
+      "certified": 1089,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1891375,
+      "certified": 1444,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 1952908,
+      "certified": 1647,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 2543296,
+      "certified": 1849,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2935759,
+      "certified": 2401,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3141013,
+      "certified": 2752,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 3717043,
+      "certified": 3136,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 4102844,
+      "certified": 3584,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 4720414,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.3316141970385323,
+    "Q_grid": 0.2946980794270833,
+    "cost_of_finishing": 7.531855256763496,
+    "shortest_full": 4720414
+   },
+   "attn-min2-v64-s3": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 182035,
+      "certified": 64,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 366329,
+      "certified": 167,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 534528,
+      "certified": 322,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 772303,
+      "certified": 484,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 841469,
+      "certified": 525,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1081398,
+      "certified": 676,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 1203559,
+      "certified": 841,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1490735,
+      "certified": 1089,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1891375,
+      "certified": 1444,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 1952908,
+      "certified": 1647,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 2543296,
+      "certified": 1849,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2935759,
+      "certified": 2401,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3141013,
+      "certified": 2752,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 3717043,
+      "certified": 3136,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 4102844,
+      "certified": 3584,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 4720414,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.3316141970385323,
+    "Q_grid": 0.2946980794270833,
+    "cost_of_finishing": 7.531855256763496,
+    "shortest_full": 4720414
+   },
+   "attn-min2-v64-s4": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 182035,
+      "certified": 64,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 366329,
+      "certified": 167,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 534528,
+      "certified": 322,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 772303,
+      "certified": 484,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 841469,
+      "certified": 525,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1081398,
+      "certified": 676,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 1203559,
+      "certified": 841,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1490735,
+      "certified": 1089,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1891375,
+      "certified": 1444,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 1952908,
+      "certified": 1647,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 2543296,
+      "certified": 1849,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2935759,
+      "certified": 2401,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3141013,
+      "certified": 2752,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 3717043,
+      "certified": 3136,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 4102844,
+      "certified": 3584,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 4720414,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.3316141970385323,
+    "Q_grid": 0.2946980794270833,
+    "cost_of_finishing": 7.531855256763496,
+    "shortest_full": 4720414
+   },
+   "attn-min2-v64-s7": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 182035,
+      "certified": 64,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 366329,
+      "certified": 167,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 534528,
+      "certified": 322,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 772303,
+      "certified": 484,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 841469,
+      "certified": 525,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1081398,
+      "certified": 676,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 1203559,
+      "certified": 841,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1490735,
+      "certified": 1089,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1891375,
+      "certified": 1444,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 1952908,
+      "certified": 1647,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 2543296,
+      "certified": 1849,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2935759,
+      "certified": 2401,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3141013,
+      "certified": 2752,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 3717043,
+      "certified": 3136,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 4102844,
+      "certified": 3584,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 4720414,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.3316141970385323,
+    "Q_grid": 0.2946980794270833,
+    "cost_of_finishing": 7.531855256763496,
+    "shortest_full": 4720414
+   },
+   "attn-min2-v64-s8": {
+    "setting": "v64",
+    "E": 8256,
+    "B": 35553475,
+    "real_correct": 4096,
+    "real_accuracy": 1.0,
+    "n_inputs": 4096,
+    "frontier": [
+     {
+      "length": 182035,
+      "certified": 64,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.0
+     },
+     {
+      "length": 366329,
+      "certified": 167,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.25
+     },
+     {
+      "length": 534528,
+      "certified": 322,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 772303,
+      "certified": 484,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.0
+     },
+     {
+      "length": 841469,
+      "certified": 525,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1081398,
+      "certified": 676,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.0
+     },
+     {
+      "length": 1203559,
+      "certified": 841,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1490735,
+      "certified": 1089,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.25
+     },
+     {
+      "length": 1891375,
+      "certified": 1444,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 1952908,
+      "certified": 1647,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 2543296,
+      "certified": 1849,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 2935759,
+      "certified": 2401,
+      "n_inputs": 4096,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3141013,
+      "certified": 2752,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 3717043,
+      "certified": 3136,
+      "n_inputs": 4096,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 4102844,
+      "certified": 3584,
+      "n_inputs": 4096,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 4720414,
+      "certified": 4096,
+      "n_inputs": 4096,
+      "round": 1,
+      "knob": 1.0
+     }
+    ],
+    "Q": 0.3316141970385323,
+    "Q_grid": 0.2946980794270833,
+    "cost_of_finishing": 7.531855256763496,
+    "shortest_full": 4720414
+   }
+  }
+ },
+ "attn-max4-q-api-tokens": {
+  "rules": "token_interval",
+  "model": "models/attn-max4",
+  "agent_model": "claude-fable-5-1",
+  "effort": "high",
+  "metric": "Q",
+  "agent_rounds": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "networks": {
+   "attn-max4-v16-s1": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65520,
+    "real_accuracy": 0.999755859375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 27699,
+      "certified": 7951,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 56138,
+      "certified": 16598,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 80941,
+      "certified": 19973,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 126763,
+      "certified": 32685,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 441894,
+      "certified": 58699,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 601177,
+      "certified": 61616,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 841762,
+      "certified": 62660,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 2143770,
+      "certified": 65520,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4991917164019017,
+    "Q_grid": 0.5111865997314453,
+    "cost_of_finishing": 30.391351217714586,
+    "shortest_full": 2143770
+   },
+   "attn-max4-v16-s2": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65535,
+    "real_accuracy": 0.9999847412109375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 27420,
+      "certified": 8091,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 40608,
+      "certified": 12879,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 58224,
+      "certified": 15270,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 87856,
+      "certified": 17510,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 99170,
+      "certified": 20044,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 216390,
+      "certified": 27138,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 468335,
+      "certified": 40122,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 672775,
+      "certified": 57491,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 850900,
+      "certified": 60834,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 1009502,
+      "certified": 61641,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 2836961,
+      "certified": 65535,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.47019698874797705,
+    "Q_grid": 0.47310543060302734,
+    "cost_of_finishing": 22.965443303591414,
+    "shortest_full": 2836961
+   },
+   "attn-max4-v16-s5": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65325,
+    "real_accuracy": 0.9967803955078125,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 27813,
+      "certified": 8316,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 41001,
+      "certified": 13104,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 83373,
+      "certified": 20043,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 124101,
+      "certified": 21218,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 149693,
+      "certified": 25672,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 209060,
+      "certified": 27776,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 468906,
+      "certified": 45587,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 579759,
+      "certified": 58062,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 713535,
+      "certified": 60353,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 947303,
+      "certified": 61350,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 1013343,
+      "certified": 61612,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 2611050,
+      "certified": 65325,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4788027246600708,
+    "Q_grid": 0.4773378372192383,
+    "cost_of_finishing": 24.952439440072002,
+    "shortest_full": 2611050
+   },
+   "attn-max4-v16-s6": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65535,
+    "real_accuracy": 0.9999847412109375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 27813,
+      "certified": 8316,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 41001,
+      "certified": 13104,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 79572,
+      "certified": 18178,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 99176,
+      "certified": 18719,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 99674,
+      "certified": 20351,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 207922,
+      "certified": 26804,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 438395,
+      "certified": 40174,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 657806,
+      "certified": 58707,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 842298,
+      "certified": 61978,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 955535,
+      "certified": 62526,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 2361924,
+      "certified": 65535,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.47444806381585564,
+    "Q_grid": 0.47296619415283203,
+    "cost_of_finishing": 27.584319817233748,
+    "shortest_full": 2361924
+   },
+   "attn-max4-v16-s8": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65535,
+    "real_accuracy": 0.9999847412109375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 27358,
+      "certified": 7866,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 52094,
+      "certified": 14885,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 95032,
+      "certified": 21637,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 108904,
+      "certified": 28845,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 184011,
+      "certified": 31034,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 212786,
+      "certified": 32144,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 406877,
+      "certified": 50087,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 487928,
+      "certified": 57794,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 653868,
+      "certified": 61143,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 878466,
+      "certified": 62199,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 2358609,
+      "certified": 65535,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.49642717981577705,
+    "Q_grid": 0.5036087036132812,
+    "cost_of_finishing": 27.623089286948368,
+    "shortest_full": 2358609
+   },
+   "attn-max4-v16-s9": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65535,
+    "real_accuracy": 0.9999847412109375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 27813,
+      "certified": 8316,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 41001,
+      "certified": 13104,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 89227,
+      "certified": 20592,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 114712,
+      "certified": 22225,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 185639,
+      "certified": 29958,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 255361,
+      "certified": 30869,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 479476,
+      "certified": 49468,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 612000,
+      "certified": 58213,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 758374,
+      "certified": 61206,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 896968,
+      "certified": 61811,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 907802,
+      "certified": 61965,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.0
+     },
+     {
+      "length": 2399426,
+      "certified": 65535,
+      "n_inputs": 65536,
+      "round": 3,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.483409055298718,
+    "Q_grid": 0.48555469512939453,
+    "cost_of_finishing": 27.153188720969098,
+    "shortest_full": 2399426
+   },
+   "attn-max4-v24-s0": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331760,
+    "real_accuracy": 0.999951774691358,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 218439,
+      "certified": 79762,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 272873,
+      "certified": 96187,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1139288,
+      "certified": 177738,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 2837646,
+      "certified": 234297,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 3556528,
+      "certified": 312644,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3980465,
+      "certified": 318641,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 4579763,
+      "certified": 320195,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 12769062,
+      "certified": 331760,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4774195369676069,
+    "Q_grid": 0.45164270630279396,
+    "cost_of_finishing": 53.57888958484186,
+    "shortest_full": 12769062
+   },
+   "attn-max4-v24-s2": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331760,
+    "real_accuracy": 0.999951774691358,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 398436,
+      "certified": 124109,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 774255,
+      "certified": 170036,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 1175759,
+      "certified": 209165,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 2686144,
+      "certified": 309650,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3247334,
+      "certified": 318342,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 4580714,
+      "certified": 321768,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 11609774,
+      "certified": 331760,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.48807304703066734,
+    "Q_grid": 0.4512833960262346,
+    "cost_of_finishing": 58.92898199396474,
+    "shortest_full": 11609774
+   },
+   "attn-max4-v24-s3": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331760,
+    "real_accuracy": 0.999951774691358,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 382780,
+      "certified": 119514,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1251161,
+      "certified": 213557,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 2836758,
+      "certified": 269734,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 3307265,
+      "certified": 310526,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3753551,
+      "certified": 318514,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 4161294,
+      "certified": 319642,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 12696254,
+      "certified": 331760,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4796541111968003,
+    "Q_grid": 0.45127340196556204,
+    "cost_of_finishing": 53.88614334590345,
+    "shortest_full": 12696254
+   },
+   "attn-max4-v24-s5": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331760,
+    "real_accuracy": 0.999951774691358,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 386992,
+      "certified": 111839,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 404615,
+      "certified": 124462,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1309075,
+      "certified": 222839,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3080819,
+      "certified": 283341,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 3298485,
+      "certified": 309532,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3909055,
+      "certified": 320029,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 5106096,
+      "certified": 323294,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9021834,
+      "certified": 331760,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.48196227741133374,
+    "Q_grid": 0.45750493674870046,
+    "cost_of_finishing": 75.83293629654459,
+    "shortest_full": 9021834
+   },
+   "attn-max4-v24-s7": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331759,
+    "real_accuracy": 0.9999487606095679,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 406017,
+      "certified": 125656,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 1264558,
+      "certified": 220784,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 3014860,
+      "certified": 278168,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 3221737,
+      "certified": 310164,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3800065,
+      "certified": 320500,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 4896119,
+      "certified": 323361,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 9793755,
+      "certified": 331759,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4817692579498437,
+    "Q_grid": 0.4570520313007635,
+    "cost_of_finishing": 69.8559605585396,
+    "shortest_full": 9793755
+   },
+   "attn-max4-v24-s8": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331760,
+    "real_accuracy": 0.999951774691358,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 377666,
+      "certified": 118150,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 1.0
+     },
+     {
+      "length": 510508,
+      "certified": 123016,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 1250850,
+      "certified": 210491,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.75
+     },
+     {
+      "length": 2786727,
+      "certified": 264293,
+      "n_inputs": 331776,
+      "round": 3,
+      "knob": 0.5
+     },
+     {
+      "length": 3048210,
+      "certified": 307838,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 3706983,
+      "certified": 316955,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 5074627,
+      "certified": 320751,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 12839066,
+      "certified": 331760,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.48090383228865446,
+    "Q_grid": 0.4512080439814815,
+    "cost_of_finishing": 53.28675489322977,
+    "shortest_full": 12839066
+   }
+  }
+ },
+ "attn-min4-q-api-tokens": {
+  "rules": "token_interval",
+  "model": "models/attn-min4",
+  "agent_model": "claude-fable-5-1",
+  "effort": "high",
+  "metric": "Q",
+  "agent_rounds": [
+   1,
+   2,
+   3,
+   4
+  ],
+  "networks": {
+   "attn-min4-v16-s1": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65455,
+    "real_accuracy": 0.9987640380859375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 25525,
+      "certified": 3123,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 1.0
+     },
+     {
+      "length": 47023,
+      "certified": 13013,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 51225,
+      "certified": 13710,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 85349,
+      "certified": 27838,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 181967,
+      "certified": 43125,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 448565,
+      "certified": 58417,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 1022727,
+      "certified": 60507,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1389759,
+      "certified": 65455,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.5070264855367493,
+    "Q_grid": 0.5072641372680664,
+    "cost_of_finishing": 46.88011878318471,
+    "shortest_full": 1389759
+   },
+   "attn-min4-v16-s2": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65535,
+    "real_accuracy": 0.9999847412109375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 19714,
+      "certified": 535,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 1.0
+     },
+     {
+      "length": 49878,
+      "certified": 14905,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 93635,
+      "certified": 25576,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 205954,
+      "certified": 36177,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 279047,
+      "certified": 40498,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 510899,
+      "certified": 57166,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 760395,
+      "certified": 57383,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1252169,
+      "certified": 60128,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1616391,
+      "certified": 65535,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4886715976096886,
+    "Q_grid": 0.4794588088989258,
+    "cost_of_finishing": 40.307120616237036,
+    "shortest_full": 1616391
+   },
+   "attn-min4-v16-s5": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65530,
+    "real_accuracy": 0.999908447265625,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 12539,
+      "certified": 68,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 1.0
+     },
+     {
+      "length": 53745,
+      "certified": 14281,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 56968,
+      "certified": 14516,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 113290,
+      "certified": 19016,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.75
+     },
+     {
+      "length": 117610,
+      "certified": 19232,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 258793,
+      "certified": 28473,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 269713,
+      "certified": 31114,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 281663,
+      "certified": 31876,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 679323,
+      "certified": 54682,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 764258,
+      "certified": 57675,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 2156936,
+      "certified": 65530,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4527916542779714,
+    "Q_grid": 0.4410381317138672,
+    "cost_of_finishing": 30.205841527055046,
+    "shortest_full": 2156936
+   },
+   "attn-min4-v16-s6": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65535,
+    "real_accuracy": 0.9999847412109375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 13935,
+      "certified": 62,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 1.0
+     },
+     {
+      "length": 47424,
+      "certified": 13964,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 51220,
+      "certified": 14179,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 89743,
+      "certified": 22908,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 196512,
+      "certified": 36921,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 488763,
+      "certified": 58247,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 1555866,
+      "certified": 65535,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.48659937270994824,
+    "Q_grid": 0.4942903518676758,
+    "cost_of_finishing": 41.87511456642153,
+    "shortest_full": 1555866
+   },
+   "attn-min4-v16-s8": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65535,
+    "real_accuracy": 0.9999847412109375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 9334,
+      "certified": 23,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 1.0
+     },
+     {
+      "length": 50116,
+      "certified": 13670,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 50640,
+      "certified": 13685,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 98036,
+      "certified": 20457,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 218640,
+      "certified": 31983,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 549729,
+      "certified": 55011,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 703882,
+      "certified": 55223,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1075003,
+      "certified": 56705,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 1728028,
+      "certified": 65535,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.465714452811637,
+    "Q_grid": 0.4587669372558594,
+    "cost_of_finishing": 37.70313154647957,
+    "shortest_full": 1728028
+   },
+   "attn-min4-v16-s9": {
+    "setting": "v16",
+    "E": 544,
+    "B": 65152067,
+    "real_correct": 65535,
+    "real_accuracy": 0.9999847412109375,
+    "n_inputs": 65536,
+    "frontier": [
+     {
+      "length": 24610,
+      "certified": 905,
+      "n_inputs": 65536,
+      "round": 1,
+      "knob": 1.0
+     },
+     {
+      "length": 51802,
+      "certified": 13801,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 1.0
+     },
+     {
+      "length": 52038,
+      "certified": 14033,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 101940,
+      "certified": 21374,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 229218,
+      "certified": 32495,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 570365,
+      "certified": 54714,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 743614,
+      "certified": 56407,
+      "n_inputs": 65536,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 1793501,
+      "certified": 65535,
+      "n_inputs": 65536,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4654978138450546,
+    "Q_grid": 0.46289825439453125,
+    "cost_of_finishing": 36.32675253596179,
+    "shortest_full": 1793501
+   },
+   "attn-min4-v24-s0": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331760,
+    "real_accuracy": 0.999951774691358,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 21672,
+      "certified": 65,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 1.0
+     },
+     {
+      "length": 213640,
+      "certified": 84861,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 431383,
+      "certified": 109927,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 1005539,
+      "certified": 161793,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 1254822,
+      "certified": 169890,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.5
+     },
+     {
+      "length": 1298507,
+      "certified": 178435,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 2547609,
+      "certified": 274818,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 3464931,
+      "certified": 302713,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 7910656,
+      "certified": 331760,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.48411426344084985,
+    "Q_grid": 0.46662887959917154,
+    "cost_of_finishing": 86.48488355453706,
+    "shortest_full": 7910656
+   },
+   "attn-min4-v24-s2": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331760,
+    "real_accuracy": 0.999951774691358,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 201007,
+      "certified": 82591,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 391444,
+      "certified": 119413,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 900607,
+      "certified": 176098,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 1308066,
+      "certified": 183364,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 2281165,
+      "certified": 283984,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 3672272,
+      "certified": 309227,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 7234748,
+      "certified": 331760,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.4949504145751637,
+    "Q_grid": 0.4710119890655458,
+    "cost_of_finishing": 94.56475374124987,
+    "shortest_full": 7234748
+   },
+   "attn-min4-v24-s3": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331695,
+    "real_accuracy": 0.999755859375,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 193885,
+      "certified": 79534,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 373808,
+      "certified": 115040,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 859572,
+      "certified": 171622,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 1245314,
+      "certified": 185239,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 2179281,
+      "certified": 272609,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 3573647,
+      "certified": 307142,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 6624771,
+      "certified": 331695,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.49528571886576883,
+    "Q_grid": 0.46793365974252765,
+    "cost_of_finishing": 103.27182071651985,
+    "shortest_full": 6624771
+   },
+   "attn-min4-v24-s5": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331752,
+    "real_accuracy": 0.9999276620370371,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 189500,
+      "certified": 87545,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 366629,
+      "certified": 141384,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 824308,
+      "certified": 189814,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 1238514,
+      "certified": 200255,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 2061478,
+      "certified": 284406,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 3145128,
+      "certified": 289230,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 4525897,
+      "certified": 307713,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 6218980,
+      "certified": 331752,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.5081057121196176,
+    "Q_grid": 0.47778193403793046,
+    "cost_of_finishing": 110.01034944637223,
+    "shortest_full": 6218980
+   },
+   "attn-min4-v24-s7": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331695,
+    "real_accuracy": 0.999755859375,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 173502,
+      "certified": 79717,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 329884,
+      "certified": 130271,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 728687,
+      "certified": 199379,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 1249979,
+      "certified": 211842,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 1814495,
+      "certified": 290998,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 3546948,
+      "certified": 305524,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 4189535,
+      "certified": 309786,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 5535555,
+      "certified": 331695,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.5164620564180986,
+    "Q_grid": 0.48595533067332686,
+    "cost_of_finishing": 123.5923341020006,
+    "shortest_full": 5535555
+   },
+   "attn-min4-v24-s8": {
+    "setting": "v24",
+    "E": 1200,
+    "B": 684152163,
+    "real_correct": 331760,
+    "real_accuracy": 0.999951774691358,
+    "n_inputs": 331776,
+    "frontier": [
+     {
+      "length": 19390,
+      "certified": 47,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 1.0
+     },
+     {
+      "length": 202297,
+      "certified": 83511,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 1.0
+     },
+     {
+      "length": 398914,
+      "certified": 116562,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.75
+     },
+     {
+      "length": 924521,
+      "certified": 165154,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.5
+     },
+     {
+      "length": 1298015,
+      "certified": 183028,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.75
+     },
+     {
+      "length": 2329363,
+      "certified": 274884,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.25
+     },
+     {
+      "length": 3320167,
+      "certified": 297798,
+      "n_inputs": 331776,
+      "round": 2,
+      "knob": 0.25
+     },
+     {
+      "length": 4888452,
+      "certified": 300232,
+      "n_inputs": 331776,
+      "round": 1,
+      "knob": 0.5
+     },
+     {
+      "length": 7199621,
+      "certified": 331760,
+      "n_inputs": 331776,
+      "round": 4,
+      "knob": 0.0
+     }
+    ],
+    "Q": 0.49067405195893593,
+    "Q_grid": 0.4678116687479694,
+    "cost_of_finishing": 95.02613582020498,
+    "shortest_full": 7199621
+   }
+  }
+ }
+}

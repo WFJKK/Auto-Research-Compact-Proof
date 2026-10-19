@@ -130,22 +130,46 @@ Two runs on the max-of-2 model, identical except for the metric the agent was to
 
 Top: median Q per round. Bottom: cost of finishing per round, which is B over the shortest full-accuracy proof so far. Round 0 is brute force. The horizontal lines are reference proofs from the list above: symmetry and the hand-written cubic proof, alone and with a budget knob.
 
-The Pareto frontiers themselves, per development network (every proof on a frontier is checked; crosses are the hand-written reference proofs, never shown to the agent):
+#### Q, cost of finishing and the Pareto frontier
+
+Against the known proofs of the list above, never shown to the agent: brute force, symmetry and the hand-written cubic proof, alone and with a budget knob. Medians over the six development networks, with the four held-out networks' medians in brackets; the best in each column is in bold ([tables.py](results/frontiers-2026-10-19/tables.py)).
+
+**Q**
+
+| proof | v64 | v128 |
+| --- | --- | --- |
+| brute force | 0 | 0 |
+| symmetry | 0.086 | 0.075 |
+| cubic proof | 0.276 | 0.307 |
+| cubic proof with a budget knob | 0.323 | 0.347 |
+| agent, run scored on Q | **0.393** (0.396) | **0.404** (0.404) |
+| agent, run scored on cost of finishing | 0.325 (0.326) | 0.348 (0.348) |
+
+**Cost of finishing**
+
+| proof | v64 | v128 |
+| --- | --- | --- |
+| brute force | 1 | 1 |
+| symmetry | 1.96 | 1.98 |
+| cubic proof | 8.63 | 16.52 |
+| cubic proof with a budget knob | 8.63 | 16.52 |
+| agent, run scored on Q | 9.12 (9.22) | **19.13** (19.29) |
+| agent, run scored on cost of finishing | **9.15** (9.22) | 19.08 (19.09) |
+
+Convexity, the tutorial's third proof, is in neither table: the checker's rules cannot express it, and its numbers in the [write-up](results/max2-2026-10-13/README.md) are float estimates.
+
+**Pareto frontier** per development network (every proof on a frontier is checked; crosses are the known proofs):
 
 ![Frontiers of the two runs](results/max2-2026-10-13/frontiers.png)
 
 The Q run fills the whole length axis with partial proofs, from a few thousand operations up; the cost-of-finishing run keeps almost nothing below its full proof, since partial proofs earn it nothing. Both end at the same full-accuracy point.
 
-Medians over the development networks, held-out networks in brackets:
+**Other measures**, medians, with the held-out networks' in brackets:
 
 | | hand-written cubic proof | run scored on Q | run scored on cost of finishing |
 | --- | --- | --- | --- |
 | shortest full-accuracy proof, v64 | 312,264 | 295,698, -5.3% (292,558, -6.3%) | 294,854, -5.6% (292,558, -6.3%) |
 | shortest full-accuracy proof, v128 | 2,446,083 | 2,112,262, -13.6% (2,093,111, -14.4%) | 2,117,809, -13.4% (2,117,356, -13.4%) |
-| Q, v64 | 0.276 (0.323 with the knob) | 0.393 (0.396) | 0.325 (0.326) |
-| Q, v128 | 0.307 (0.347 with the knob) | 0.404 (0.404) | 0.348 (0.348) |
-| cost of finishing, v64 | 8.63 | 9.12 (9.22) | 9.14 (9.22) |
-| cost of finishing, v128 | 16.52 | 19.13 (19.29) | 19.08 (19.09) |
 | best certified within B/10, v64 | 31.8% (with the knob) | 88.7% | 39.6% |
 | best certified within B/100, v64 | 0% | 11.0% | 0% |
 
@@ -204,32 +228,75 @@ Fable 5.1 (effort high, scored on Q, 4 rounds, $7.17) on `attn-max2` with `singl
 
 That rule is now `token_interval` ([docs/RULES.md](docs/RULES.md), cost model `cost-v3`). It keeps each allowed token's rows exact through the lookup and constant maps, carries attention-weighted sums as weight times exact row so the output matrices act on rows rather than boxes, computes rows that depend on their token alone once per proof, and, when at most one position varies in a leaf, keeps every value per input, so the bound is that leaf's exact smallest margin. A hand-written proof that uses only this rule (one leaf per column strip where the first token is the maximum, one-input leaves elsewhere) certifies every input of `attn-max2-v64-s0` at B/6.2 and of `attn-max2-v128-s0` at B/4.7, against B/1.1 for the agent's best with `interval`. `config/attn-max2-q-api-tokens.yaml` repeats the run with the rule; the other attention configs now offer it too.
 
-#### Runs with `token_interval`, against Gross et al.'s cubic proof (16 October 2026)
+#### Runs with `token_interval` (16 October 2026)
 
-The same agent and settings with `token_interval` among the rules (`config/attn-max2-q-api-tokens.yaml`, `config/attn-min2-q-api-tokens.yaml`), next to Gross et al.'s cubic proof for Max-of-K, run unchanged on the same networks with its length counted in our cost model's units ([results/gross-cubic-2026-10-16](results/gross-cubic-2026-10-16/README.md)). For the min tasks the vocabulary is reversed, which makes the network compute a max, so their proof applies as is.
+The same agent and settings with `token_interval` among the rules, and prompt v4, which no longer names the paper: `config/attn-max2-q-api-tokens.yaml` and `config/attn-min2-q-api-tokens.yaml`.
 
-| | max of 2, v64 | max of 2, v128 | min of 2, v64 | min of 2, v128 |
+#### Q, cost of finishing and the Pareto frontier
+
+Against the known proofs: brute force, and Gross et al.'s cubic proof for Max-of-K, run unchanged on the same networks with its length counted in our cost model's units ([results/gross-cubic-2026-10-16](results/gross-cubic-2026-10-16/README.md)). For the min tasks the vocabulary is reversed, which makes the network compute a max, so their proof applies as is. Their sub-cubic proofs are not included: on one v64 network they did not finish within 15 minutes here, so the 24 two-token networks would take many hours. Medians over the six development networks; the best in each column is in bold ([tables.py](results/frontiers-2026-10-19/tables.py)).
+
+**Q**
+
+| proof | max of 2, v64 | max of 2, v128 | min of 2, v64 | min of 2, v128 |
 | --- | --- | --- | --- | --- |
-| agent with `token_interval`: full proof | B/7.5 | B/5.8 | B/7.5 | B/5.8 |
-| agent with `token_interval`: Q | 0.329 | 0.285 | 0.332 | 0.269 |
-| Gross et al.'s cubic proof: length (share of the correct inputs certified) | B/6 (99.1%) | B/4 (98.3%) | B/6 (99.2%) | B/4 (98.3%) |
-| Gross et al.'s cubic proof: Q | 0.219 | 0.149 | 0.219 | 0.149 |
+| brute force | 0 | 0 | 0 | 0 |
+| Gross et al.'s cubic proof | 0.219 | 0.149 | 0.219 | 0.149 |
+| agent, first run (interval only) | 0.150 | 0.150 | not run | not run |
+| agent with token_interval | **0.329** | **0.284** | **0.332** | **0.269** |
 
-The agent's full proofs certify every input the network gets right. With two positions its proofs are better on every measure: the cubic proof's pessimisation costs accuracy and saves little length.
+**Cost of finishing**
+
+| proof | max of 2, v64 | max of 2, v128 | min of 2, v64 | min of 2, v128 |
+| --- | --- | --- | --- | --- |
+| brute force | 1 | 1 | 1 | 1 |
+| Gross et al.'s cubic proof | 6.00 | 3.97 | 6.05 | 3.97 |
+| agent, first run (interval only) | 1.11 | 1.16 | not run | not run |
+| agent with token_interval | **7.47** | **5.78** | **7.53** | **5.80** |
+
+**Pareto frontier** per development network ([plot.py](results/frontiers-2026-10-19/plot.py)):
+
+![Frontiers on max and min of 2](results/frontiers-2026-10-19/frontiers_attn2.png)
+
+With `token_interval` the agent's full proofs are shorter than the cubic proof (B/7.5 against B/6.3 at v64, B/5.8 against B/4.3 at v128) and certify every correct input, where the cubic proof certifies a median 98.3 to 99.2% of them; its partial proofs below that add to its Q. With two positions the cubic proof's pessimisation costs accuracy and saves little length. The first run, with `interval` only, needed almost all of B for a full proof (B/1.0 to B/1.15).
 
 ### 4.3 Max and min of 4, attention-only transformer
 
-The transformer of section 4.2 on Gross et al.'s own task, four tokens (`models/attn-max4`, `models/attn-min4`). Every proof measured on these tasks, scored the same way: median Q over the six development networks, and in brackets the length of the full proof, which certifies every input the network gets right unless a share is given (for the agent, the range over the networks).
+The transformer of section 4.2 on Gross et al.'s own task, four tokens (`models/attn-max4`, `models/attn-min4`). Compared here: the agent with `token_interval`, Gross et al.'s proofs, and two proofs built by hand from the rule `token_convex`, which no agent has been offered yet. The parts after the results say what each one is.
 
-| proof | max of 4, v16 | max of 4, v24 | min of 4, v16 | min of 4, v24 |
-| --- | --- | --- | --- | --- |
-| agent, 4 rounds with `token_interval` | 0.481 (B/23 to B/30) | 0.481 (B/53 to B/76) | 0.476 (B/30 to B/47) | 0.495 (B/86 to B/124) |
-| Gross et al.'s cubic proof | 0.460 (B/223, 99.5%) | 0.491 (B/705, 99.2%) | 0.459 (B/223, 99.4%) | 0.492 (B/705, 99.5%) |
-| Gross et al.'s proofs, best of all | 0.572 | 0.615 | 0.570 | 0.617 |
-| `token_convex` version 1, hand-built proof | 0.538 (B/217) | 0.561 (B/630) | 0.536 (B/219) | 0.562 (B/669) |
-| `token_convex` version 2, hand-built proof | **0.610** (B/460) | **0.627** (B/1,766) | **0.610** (B/497) | **0.630** (B/1,818) |
+#### Q, cost of finishing and the Pareto frontier
 
-The `token_convex` proofs are built by a script, with the checker choosing where to split; no agent has run with that rule yet. The full tables, with Q_grid, cost of finishing and the share certified within fixed budgets, are in [results/query-gap-2026-10-19](results/query-gap-2026-10-19/README.md).
+Against the known proofs: brute force, Gross et al.'s cubic proof, and the best of all their proofs (the cubic proof and every sub-cubic variant; not run at v64). Medians over the six development networks; the best in each column is in bold ([tables.py](results/frontiers-2026-10-19/tables.py)). The `token_convex` proofs are built by a script, with the checker choosing where to split.
+
+**Q**
+
+| proof | max of 4, v16 | max of 4, v24 | min of 4, v16 | min of 4, v24 | max of 4, v64 |
+| --- | --- | --- | --- | --- | --- |
+| brute force | 0 | 0 | 0 | 0 | 0 |
+| Gross et al.'s cubic proof | 0.460 | 0.491 | 0.459 | 0.492 | 0.537 |
+| Gross et al.'s proofs, best of all | 0.572 | 0.615 | 0.570 | 0.617 | not run |
+| agent with token_interval | 0.481 | 0.481 | 0.476 | 0.495 | not run |
+| token_convex version 1, hand-built | 0.538 | 0.561 | 0.536 | 0.562 | not run |
+| token_convex version 2, hand-built | **0.610** | **0.627** | **0.610** | **0.630** | **0.636** |
+
+**Cost of finishing**
+
+| proof | max of 4, v16 | max of 4, v24 | min of 4, v16 | min of 4, v24 | max of 4, v64 |
+| --- | --- | --- | --- | --- | --- |
+| brute force | 1 | 1 | 1 | 1 | 1 |
+| Gross et al.'s cubic proof | 102 | 109 | 93.3 | 165 | 39.6 |
+| Gross et al.'s proofs, best of all | 102 | 109 | 93.3 | 165 | not run |
+| agent with token_interval | 27.4 | 56.4 | 39.0 | 99.1 | not run |
+| token_convex version 1, hand-built | 217 | 630 | 219 | 669 | not run |
+| token_convex version 2, hand-built | **460** | **1,766** | **497** | **1,818** | **14,836** |
+
+**Pareto frontier** per development network ([plot.py](results/frontiers-2026-10-19/plot.py)):
+
+![Frontiers on max and min of 4](results/frontiers-2026-10-19/frontiers_attn4.png)
+
+Gross et al.'s sub-cubic proofs certify the most at the shortest lengths: 62 to 76% of the correct inputs at about 43,000 operations (v16) and 107,000 (v24), and nothing more until their cubic proof at 292,000 and 970,000. The hand-built `token_convex` version 2 proof passes them soon after and certifies every correct input at 117,000 to 160,000 operations (v16) and 328,000 to 454,000 (v24), 1.8 to 3 times shorter than their cubic proof. The agent's frontier rises later than these: at a million operations it certifies 88 to 95% of the correct inputs at v16 and 37 to 52% at v24, and all of them at B/23 to B/124.
+
+The full tables, with Q_grid and the share certified within fixed budgets, are in [results/query-gap-2026-10-19](results/query-gap-2026-10-19/README.md).
 
 #### Runs with `token_interval` (16 October 2026)
 
