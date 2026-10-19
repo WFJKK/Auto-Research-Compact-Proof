@@ -37,6 +37,25 @@ Agent: Fable 5.1, effort high, 4 rounds, scored on Q, with `token_interval` (`co
 
 The paper reports a 0.953 bound on accuracy itself (ours is the share of correct inputs) and 2^47 against 2^25 FLOPs for brute force and the cubic proof; our count gives a ratio of about 2^13.6, because their FLOP estimate of brute force carries a much larger constant than our count of the checker's operations. No agent run at v64 yet: `config/attn-max4-v64-q-api-tokens.yaml`.
 
+## All of their proofs: their best case (added 19 October 2026)
+
+`run_all_proofs.py` runs every Max-of-K proof in their code on our development networks: brute force, the cubic proof, and all 100 sub-cubic configurations (`LargestWrongLogitQuadraticConfig`: 5 x 2 x 10 choices), through a TransformerLens model built from our weights (its logits agree with our module's within 1e-6 before anything runs). The cubic proof's length is our count (`run_cubic.py`); every other proof's length is that count times the ratio of its instruction count to the cubic proof's, both from their own counter (`gbmi.utils.instructions`). Per network, the frontier over all their proofs plus brute force at B is scored with `core.scoring`, as the agent's proofs are. `all_proofs_<folder>_<setting>.json` has every proof of every network. Medians over the six development networks:
+
+| Task, size | Networks | Q | Q_grid | Cost of finishing | Cheapest proof certifying half or more |
+| --- | --- | --- | --- | --- | --- |
+| max of 4, v16 | 6 | 0.572 | 0.563 | 102 | B/1,515 (64%) |
+| max of 4, v24 | 6 | 0.615 | 0.588 | 109 | B/6,380 (73%) |
+| min of 4, v16 | 6 | 0.570 | 0.562 | 93 | B/1,515 (61%) |
+| min of 4, v24 | 6 | 0.617 | 0.590 | 165 | B/6,380 (74%) |
+
+Their Q is higher than the cubic proof's alone (0.46 to 0.49) because the sub-cubic proofs certify most inputs at a small fraction of the cubic proof's length; their cost of finishing is the cubic proof's, which stays their best single trade-off. The v64 setting and the two-token sizes did not finish here (background jobs stop after two hours; a v64 network takes longer than the v24 ones by far); the script resumes per network:
+
+```text
+<venv with transformer_lens<3>/bin/python results/gross-cubic-2026-10-16/run_all_proofs.py <gbmi checkout> attn-max4:v64
+```
+
+The comparison with the agent and with `token_convex` proofs is in `results/convex-rule-2026-10-19/README.md`.
+
 ## Reading
 
 - **Two tokens:** the agent's proofs are better on every measure. With two positions the cubic proof's pessimisation costs accuracy and saves little length.
