@@ -1,0 +1,5113 @@
+{
+ "attn-max4-v16-s1": {
+  "id": "attn-max4-v16-s1",
+  "check_max_abs_diff": 1.7763568394002505e-14,
+  "proofs": [
+   {
+    "proof": "cubic",
+    "certified": 64769,
+    "their_count": 564984,
+    "their_flop": 564984,
+    "length": 292152,
+    "seconds": 3.6
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 37180,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 42692,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 44731,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 39762,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 42475,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 44467,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 39940,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 39099,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 45719,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 43977,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 8862,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 11094,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 11284,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 10197,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 11166,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 11284,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 9605,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 9450,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 11725,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 11131,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 14,
+    "their_count": 121201,
+    "their_flop": 121201,
+    "length": 62673,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 14,
+    "their_count": 101080,
+    "their_flop": 101080,
+    "length": 52268,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 14,
+    "their_count": 96380,
+    "their_flop": 96380,
+    "length": 49838,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 87836,
+    "their_flop": 87836,
+    "length": 45420,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 14,
+    "their_count": 101623,
+    "their_flop": 101623,
+    "length": 52549,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 14,
+    "their_count": 98009,
+    "their_flop": 98009,
+    "length": 50680,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 88603,
+    "their_flop": 88603,
+    "length": 45816,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 89521,
+    "their_flop": 89521,
+    "length": 46291,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 14,
+    "their_count": 83039,
+    "their_flop": 83039,
+    "length": 42939,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 14,
+    "their_count": 104800,
+    "their_flop": 104800,
+    "length": 54192,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 14,
+    "their_count": 119041,
+    "their_flop": 119041,
+    "length": 61556,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 14,
+    "their_count": 98920,
+    "their_flop": 98920,
+    "length": 51151,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 14,
+    "their_count": 94220,
+    "their_flop": 94220,
+    "length": 48721,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 85676,
+    "their_flop": 85676,
+    "length": 44303,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 14,
+    "their_count": 99463,
+    "their_flop": 99463,
+    "length": 51432,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 14,
+    "their_count": 95849,
+    "their_flop": 95849,
+    "length": 49563,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 86443,
+    "their_flop": 86443,
+    "length": 44699,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 87361,
+    "their_flop": 87361,
+    "length": 45174,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 14,
+    "their_count": 80879,
+    "their_flop": 80879,
+    "length": 41822,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 14,
+    "their_count": 102640,
+    "their_flop": 102640,
+    "length": 53075,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 16377,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 25324,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 26089,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 23137,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 23014,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 26122,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 23640,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 21882,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 26483,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 24655,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 14,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 14,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 14,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 14,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 14,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 14,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 14,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 36529,
+    "their_count": 125065,
+    "their_flop": 125065,
+    "length": 64671,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 41910,
+    "their_count": 104944,
+    "their_flop": 104944,
+    "length": 54266,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 45928,
+    "their_count": 100244,
+    "their_flop": 100244,
+    "length": 51836,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 39788,
+    "their_count": 91700,
+    "their_flop": 91700,
+    "length": 47418,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 42365,
+    "their_count": 105487,
+    "their_flop": 105487,
+    "length": 54547,
+    "seconds": 1.8
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 46124,
+    "their_count": 101873,
+    "their_flop": 101873,
+    "length": 52678,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 40377,
+    "their_count": 92467,
+    "their_flop": 92467,
+    "length": 47814,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 38649,
+    "their_count": 93385,
+    "their_flop": 93385,
+    "length": 48289,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 46727,
+    "their_count": 86903,
+    "their_flop": 86903,
+    "length": 44937,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 43485,
+    "their_count": 108664,
+    "their_flop": 108664,
+    "length": 56190,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 23694,
+    "their_count": 122905,
+    "their_flop": 122905,
+    "length": 63554,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 32245,
+    "their_count": 102784,
+    "their_flop": 102784,
+    "length": 53149,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 31441,
+    "their_count": 98084,
+    "their_flop": 98084,
+    "length": 50719,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 25917,
+    "their_count": 89540,
+    "their_flop": 89540,
+    "length": 46301,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 32786,
+    "their_count": 103327,
+    "their_flop": 103327,
+    "length": 53430,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 32073,
+    "their_count": 99713,
+    "their_flop": 99713,
+    "length": 51561,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 25743,
+    "their_count": 90307,
+    "their_flop": 90307,
+    "length": 46698,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 26368,
+    "their_count": 91225,
+    "their_flop": 91225,
+    "length": 47172,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 30383,
+    "their_count": 84743,
+    "their_flop": 84743,
+    "length": 43820,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 32279,
+    "their_count": 106504,
+    "their_flop": 106504,
+    "length": 55073,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 36206,
+    "their_count": 125592,
+    "their_flop": 125592,
+    "length": 64943,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 38137,
+    "their_count": 105471,
+    "their_flop": 105471,
+    "length": 54539,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 39184,
+    "their_count": 100771,
+    "their_flop": 100771,
+    "length": 52108,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 37398,
+    "their_count": 92227,
+    "their_flop": 92227,
+    "length": 47690,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 40098,
+    "their_count": 106014,
+    "their_flop": 106014,
+    "length": 54820,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 39313,
+    "their_count": 102400,
+    "their_flop": 102400,
+    "length": 52951,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 37698,
+    "their_count": 92994,
+    "their_flop": 92994,
+    "length": 48087,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 37197,
+    "their_count": 93912,
+    "their_flop": 93912,
+    "length": 48562,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 43113,
+    "their_count": 87430,
+    "their_flop": 87430,
+    "length": 45210,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 38916,
+    "their_count": 109191,
+    "their_flop": 109191,
+    "length": 56462,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 7461,
+    "their_count": 123432,
+    "their_flop": 123432,
+    "length": 63826,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 8864,
+    "their_count": 103311,
+    "their_flop": 103311,
+    "length": 53422,
+    "seconds": 1.9
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 7922,
+    "their_count": 98611,
+    "their_flop": 98611,
+    "length": 50992,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 7894,
+    "their_count": 90067,
+    "their_flop": 90067,
+    "length": 46573,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 8861,
+    "their_count": 103854,
+    "their_flop": 103854,
+    "length": 53703,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 8069,
+    "their_count": 100240,
+    "their_flop": 100240,
+    "length": 51834,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 7985,
+    "their_count": 90834,
+    "their_flop": 90834,
+    "length": 46970,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 7816,
+    "their_count": 91752,
+    "their_flop": 91752,
+    "length": 47445,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 8093,
+    "their_count": 85270,
+    "their_flop": 85270,
+    "length": 44093,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 9166,
+    "their_count": 107031,
+    "their_flop": 107031,
+    "length": 55345,
+    "seconds": 1.4
+   }
+  ],
+  "scores": {
+   "Q": 0.5741776800020126,
+   "Q_grid": 0.5660667419433594,
+   "cost_of_finishing": 62.72146127709739,
+   "frontier": [
+    {
+     "length": 41822,
+     "certified": 14,
+     "n_inputs": 65536
+    },
+    {
+     "length": 41889,
+     "certified": 11725,
+     "n_inputs": 65536
+    },
+    {
+     "length": 43005,
+     "certified": 45719,
+     "n_inputs": 65536
+    },
+    {
+     "length": 44937,
+     "certified": 46727,
+     "n_inputs": 65536
+    },
+    {
+     "length": 292152,
+     "certified": 64769,
+     "n_inputs": 65536
+    },
+    {
+     "length": 65152067,
+     "certified": 65520,
+     "n_inputs": 65536
+    }
+   ]
+  }
+ },
+ "attn-max4-v16-s2": {
+  "id": "attn-max4-v16-s2",
+  "check_max_abs_diff": 2.842170943040401e-14,
+  "proofs": [
+   {
+    "proof": "cubic",
+    "certified": 65183,
+    "their_count": 564984,
+    "their_flop": 564984,
+    "length": 292152,
+    "seconds": 4.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 27929,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 33364,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 34785,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 29483,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.9
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 32587,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 34784,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 28884,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 28674,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 35944,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 34783,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 1667,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 1874,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 1976,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 1727,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 1874,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 1976,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 1727,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 1724,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 2012,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 2003,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 15,
+    "their_count": 121201,
+    "their_flop": 121201,
+    "length": 62673,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 101080,
+    "their_flop": 101080,
+    "length": 52268,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 96380,
+    "their_flop": 96380,
+    "length": 49838,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 87836,
+    "their_flop": 87836,
+    "length": 45420,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 101623,
+    "their_flop": 101623,
+    "length": 52549,
+    "seconds": 1.8
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 98009,
+    "their_flop": 98009,
+    "length": 50680,
+    "seconds": 1.9
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 88603,
+    "their_flop": 88603,
+    "length": 45816,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 89521,
+    "their_flop": 89521,
+    "length": 46291,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 83039,
+    "their_flop": 83039,
+    "length": 42939,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 104800,
+    "their_flop": 104800,
+    "length": 54192,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 15,
+    "their_count": 119041,
+    "their_flop": 119041,
+    "length": 61556,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 98920,
+    "their_flop": 98920,
+    "length": 51151,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 94220,
+    "their_flop": 94220,
+    "length": 48721,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 85676,
+    "their_flop": 85676,
+    "length": 44303,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 99463,
+    "their_flop": 99463,
+    "length": 51432,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 95849,
+    "their_flop": 95849,
+    "length": 49563,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 86443,
+    "their_flop": 86443,
+    "length": 44699,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 87361,
+    "their_flop": 87361,
+    "length": 45174,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 80879,
+    "their_flop": 80879,
+    "length": 41822,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 102640,
+    "their_flop": 102640,
+    "length": 53075,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 14684,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 18209,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 19953,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 15510,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 17869,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 19953,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15494,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15112,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 21291,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 19858,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 691,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 598,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 844,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 700,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 790,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 844,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 700,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 700,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 844,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 813,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 34334,
+    "their_count": 125065,
+    "their_flop": 125065,
+    "length": 64671,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 38833,
+    "their_count": 104944,
+    "their_flop": 104944,
+    "length": 54266,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 41580,
+    "their_count": 100244,
+    "their_flop": 100244,
+    "length": 51836,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 35217,
+    "their_count": 91700,
+    "their_flop": 91700,
+    "length": 47418,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 37397,
+    "their_count": 105487,
+    "their_flop": 105487,
+    "length": 54547,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 41460,
+    "their_count": 101873,
+    "their_flop": 101873,
+    "length": 52678,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 34948,
+    "their_count": 92467,
+    "their_flop": 92467,
+    "length": 47814,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 34133,
+    "their_count": 93385,
+    "their_flop": 93385,
+    "length": 48289,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 43521,
+    "their_count": 86903,
+    "their_flop": 86903,
+    "length": 44937,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 41037,
+    "their_count": 108664,
+    "their_flop": 108664,
+    "length": 56190,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 7967,
+    "their_count": 122905,
+    "their_flop": 122905,
+    "length": 63554,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 8585,
+    "their_count": 102784,
+    "their_flop": 102784,
+    "length": 53149,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 7738,
+    "their_count": 98084,
+    "their_flop": 98084,
+    "length": 50719,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 8550,
+    "their_count": 89540,
+    "their_flop": 89540,
+    "length": 46301,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 8554,
+    "their_count": 103327,
+    "their_flop": 103327,
+    "length": 53430,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 7738,
+    "their_count": 99713,
+    "their_flop": 99713,
+    "length": 51561,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 9006,
+    "their_count": 90307,
+    "their_flop": 90307,
+    "length": 46698,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 8573,
+    "their_count": 91225,
+    "their_flop": 91225,
+    "length": 47172,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 9501,
+    "their_count": 84743,
+    "their_flop": 84743,
+    "length": 43820,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 9059,
+    "their_count": 106504,
+    "their_flop": 106504,
+    "length": 55073,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 27175,
+    "their_count": 125592,
+    "their_flop": 125592,
+    "length": 64943,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 31392,
+    "their_count": 105471,
+    "their_flop": 105471,
+    "length": 54539,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 33087,
+    "their_count": 100771,
+    "their_flop": 100771,
+    "length": 52108,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 28620,
+    "their_count": 92227,
+    "their_flop": 92227,
+    "length": 47690,
+    "seconds": 1.8
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 30789,
+    "their_count": 106014,
+    "their_flop": 106014,
+    "length": 54820,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 32616,
+    "their_count": 102400,
+    "their_flop": 102400,
+    "length": 52951,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 27411,
+    "their_count": 92994,
+    "their_flop": 92994,
+    "length": 48087,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 26179,
+    "their_count": 93912,
+    "their_flop": 93912,
+    "length": 48562,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 34642,
+    "their_count": 87430,
+    "their_flop": 87430,
+    "length": 45210,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 33000,
+    "their_count": 109191,
+    "their_flop": 109191,
+    "length": 56462,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 15,
+    "their_count": 123432,
+    "their_flop": 123432,
+    "length": 63826,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 103311,
+    "their_flop": 103311,
+    "length": 53422,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 98611,
+    "their_flop": 98611,
+    "length": 50992,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 90067,
+    "their_flop": 90067,
+    "length": 46573,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 103854,
+    "their_flop": 103854,
+    "length": 53703,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 100240,
+    "their_flop": 100240,
+    "length": 51834,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 90834,
+    "their_flop": 90834,
+    "length": 46970,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 91752,
+    "their_flop": 91752,
+    "length": 47445,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 85270,
+    "their_flop": 85270,
+    "length": 44093,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 107031,
+    "their_flop": 107031,
+    "length": 55345,
+    "seconds": 1.6
+   }
+  ],
+  "scores": {
+   "Q": 0.5683733525652577,
+   "Q_grid": 0.5596580505371094,
+   "cost_of_finishing": 101.46876796009936,
+   "frontier": [
+    {
+     "length": 41822,
+     "certified": 15,
+     "n_inputs": 65536
+    },
+    {
+     "length": 41889,
+     "certified": 2012,
+     "n_inputs": 65536
+    },
+    {
+     "length": 43005,
+     "certified": 35944,
+     "n_inputs": 65536
+    },
+    {
+     "length": 44937,
+     "certified": 43521,
+     "n_inputs": 65536
+    },
+    {
+     "length": 292152,
+     "certified": 65183,
+     "n_inputs": 65536
+    },
+    {
+     "length": 65152067,
+     "certified": 65535,
+     "n_inputs": 65536
+    }
+   ]
+  }
+ },
+ "attn-max4-v16-s5": {
+  "id": "attn-max4-v16-s5",
+  "check_max_abs_diff": 1.4210854715202004e-14,
+  "proofs": [
+   {
+    "proof": "cubic",
+    "certified": 64976,
+    "their_count": 564984,
+    "their_flop": 564984,
+    "length": 292152,
+    "seconds": 4.0
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 30071,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 40186,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 42047,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 34764,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 40120,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 42029,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 34914,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 35120,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 42820,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 41114,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 14006,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 15034,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 17752,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 15329,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 15463,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 17752,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15330,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15330,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 17972,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 16282,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 11,
+    "their_count": 121201,
+    "their_flop": 121201,
+    "length": 62673,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 11,
+    "their_count": 101080,
+    "their_flop": 101080,
+    "length": 52268,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 11,
+    "their_count": 96380,
+    "their_flop": 96380,
+    "length": 49838,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 11,
+    "their_count": 87836,
+    "their_flop": 87836,
+    "length": 45420,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 11,
+    "their_count": 101623,
+    "their_flop": 101623,
+    "length": 52549,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 11,
+    "their_count": 98009,
+    "their_flop": 98009,
+    "length": 50680,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 11,
+    "their_count": 88603,
+    "their_flop": 88603,
+    "length": 45816,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 11,
+    "their_count": 89521,
+    "their_flop": 89521,
+    "length": 46291,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 11,
+    "their_count": 83039,
+    "their_flop": 83039,
+    "length": 42939,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 11,
+    "their_count": 104800,
+    "their_flop": 104800,
+    "length": 54192,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 11,
+    "their_count": 119041,
+    "their_flop": 119041,
+    "length": 61556,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 11,
+    "their_count": 98920,
+    "their_flop": 98920,
+    "length": 51151,
+    "seconds": 1.8
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 11,
+    "their_count": 94220,
+    "their_flop": 94220,
+    "length": 48721,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 11,
+    "their_count": 85676,
+    "their_flop": 85676,
+    "length": 44303,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 11,
+    "their_count": 99463,
+    "their_flop": 99463,
+    "length": 51432,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 11,
+    "their_count": 95849,
+    "their_flop": 95849,
+    "length": 49563,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 11,
+    "their_count": 86443,
+    "their_flop": 86443,
+    "length": 44699,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 11,
+    "their_count": 87361,
+    "their_flop": 87361,
+    "length": 45174,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 11,
+    "their_count": 80879,
+    "their_flop": 80879,
+    "length": 41822,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 11,
+    "their_count": 102640,
+    "their_flop": 102640,
+    "length": 53075,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 10614,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 13689,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 15687,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 13295,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 13688,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 15723,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 12991,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 13320,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 18942,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 12682,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 3720,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 2459,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 4584,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 2578,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 2459,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 4584,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 2578,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 2581,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 4584,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 4187,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 31495,
+    "their_count": 125065,
+    "their_flop": 125065,
+    "length": 64671,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 40914,
+    "their_count": 104944,
+    "their_flop": 104944,
+    "length": 54266,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 42543,
+    "their_count": 100244,
+    "their_flop": 100244,
+    "length": 51836,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 37455,
+    "their_count": 91700,
+    "their_flop": 91700,
+    "length": 47418,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 40935,
+    "their_count": 105487,
+    "their_flop": 105487,
+    "length": 54547,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 42975,
+    "their_count": 101873,
+    "their_flop": 101873,
+    "length": 52678,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 35783,
+    "their_count": 92467,
+    "their_flop": 92467,
+    "length": 47814,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 35074,
+    "their_count": 93385,
+    "their_flop": 93385,
+    "length": 48289,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 42966,
+    "their_count": 86903,
+    "their_flop": 86903,
+    "length": 44937,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 41944,
+    "their_count": 108664,
+    "their_flop": 108664,
+    "length": 56190,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 25891,
+    "their_count": 122905,
+    "their_flop": 122905,
+    "length": 63554,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 29436,
+    "their_count": 102784,
+    "their_flop": 102784,
+    "length": 53149,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 33064,
+    "their_count": 98084,
+    "their_flop": 98084,
+    "length": 50719,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 28529,
+    "their_count": 89540,
+    "their_flop": 89540,
+    "length": 46301,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 30124,
+    "their_count": 103327,
+    "their_flop": 103327,
+    "length": 53430,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 31715,
+    "their_count": 99713,
+    "their_flop": 99713,
+    "length": 51561,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 28790,
+    "their_count": 90307,
+    "their_flop": 90307,
+    "length": 46698,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 28381,
+    "their_count": 91225,
+    "their_flop": 91225,
+    "length": 47172,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 31953,
+    "their_count": 84743,
+    "their_flop": 84743,
+    "length": 43820,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 32493,
+    "their_count": 106504,
+    "their_flop": 106504,
+    "length": 55073,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 28132,
+    "their_count": 125592,
+    "their_flop": 125592,
+    "length": 64943,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 38124,
+    "their_count": 105471,
+    "their_flop": 105471,
+    "length": 54539,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 38961,
+    "their_count": 100771,
+    "their_flop": 100771,
+    "length": 52108,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 33980,
+    "their_count": 92227,
+    "their_flop": 92227,
+    "length": 47690,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 38107,
+    "their_count": 106014,
+    "their_flop": 106014,
+    "length": 54820,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 38961,
+    "their_count": 102400,
+    "their_flop": 102400,
+    "length": 52951,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 33557,
+    "their_count": 92994,
+    "their_flop": 92994,
+    "length": 48087,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 34102,
+    "their_count": 93912,
+    "their_flop": 93912,
+    "length": 48562,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 35456,
+    "their_count": 87430,
+    "their_flop": 87430,
+    "length": 45210,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 37787,
+    "their_count": 109191,
+    "their_flop": 109191,
+    "length": 56462,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 17630,
+    "their_count": 123432,
+    "their_flop": 123432,
+    "length": 63826,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 19320,
+    "their_count": 103311,
+    "their_flop": 103311,
+    "length": 53422,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 20577,
+    "their_count": 98611,
+    "their_flop": 98611,
+    "length": 50992,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 20469,
+    "their_count": 90067,
+    "their_flop": 90067,
+    "length": 46573,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 19320,
+    "their_count": 103854,
+    "their_flop": 103854,
+    "length": 53703,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 21010,
+    "their_count": 100240,
+    "their_flop": 100240,
+    "length": 51834,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 20470,
+    "their_count": 90834,
+    "their_flop": 90834,
+    "length": 46970,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 20541,
+    "their_count": 91752,
+    "their_flop": 91752,
+    "length": 47445,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 19639,
+    "their_count": 85270,
+    "their_flop": 85270,
+    "length": 44093,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 19345,
+    "their_count": 107031,
+    "their_flop": 107031,
+    "length": 55345,
+    "seconds": 1.3
+   }
+  ],
+  "scores": {
+   "Q": 0.5665190076204423,
+   "Q_grid": 0.5567140579223633,
+   "cost_of_finishing": 101.94227674416972,
+   "frontier": [
+    {
+     "length": 41822,
+     "certified": 11,
+     "n_inputs": 65536
+    },
+    {
+     "length": 41889,
+     "certified": 17972,
+     "n_inputs": 65536
+    },
+    {
+     "length": 43005,
+     "certified": 42820,
+     "n_inputs": 65536
+    },
+    {
+     "length": 44937,
+     "certified": 42966,
+     "n_inputs": 65536
+    },
+    {
+     "length": 52678,
+     "certified": 42975,
+     "n_inputs": 65536
+    },
+    {
+     "length": 292152,
+     "certified": 64976,
+     "n_inputs": 65536
+    },
+    {
+     "length": 65152067,
+     "certified": 65325,
+     "n_inputs": 65536
+    }
+   ]
+  }
+ },
+ "attn-max4-v16-s6": {
+  "id": "attn-max4-v16-s6",
+  "check_max_abs_diff": 1.7763568394002505e-14,
+  "proofs": [
+   {
+    "proof": "cubic",
+    "certified": 65159,
+    "their_count": 564984,
+    "their_flop": 564984,
+    "length": 292152,
+    "seconds": 3.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 27999,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 32607,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 34699,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 24161,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 33347,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 34625,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 26830,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 27411,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 35410,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 34598,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 141,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 145,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 37,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 142,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 145,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 37,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 142,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 142,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 37,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 37,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 15,
+    "their_count": 121201,
+    "their_flop": 121201,
+    "length": 62673,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 101080,
+    "their_flop": 101080,
+    "length": 52268,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 96380,
+    "their_flop": 96380,
+    "length": 49838,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 87836,
+    "their_flop": 87836,
+    "length": 45420,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 101623,
+    "their_flop": 101623,
+    "length": 52549,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 98009,
+    "their_flop": 98009,
+    "length": 50680,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 88603,
+    "their_flop": 88603,
+    "length": 45816,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 89521,
+    "their_flop": 89521,
+    "length": 46291,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 83039,
+    "their_flop": 83039,
+    "length": 42939,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 104800,
+    "their_flop": 104800,
+    "length": 54192,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 15,
+    "their_count": 119041,
+    "their_flop": 119041,
+    "length": 61556,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 98920,
+    "their_flop": 98920,
+    "length": 51151,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 94220,
+    "their_flop": 94220,
+    "length": 48721,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 85676,
+    "their_flop": 85676,
+    "length": 44303,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 99463,
+    "their_flop": 99463,
+    "length": 51432,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 95849,
+    "their_flop": 95849,
+    "length": 49563,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 86443,
+    "their_flop": 86443,
+    "length": 44699,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 87361,
+    "their_flop": 87361,
+    "length": 45174,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 80879,
+    "their_flop": 80879,
+    "length": 41822,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 102640,
+    "their_flop": 102640,
+    "length": 53075,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 4544,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 6864,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 7678,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 3573,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 6760,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 7678,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 4009,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 4135,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 7522,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 7647,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 15,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 35565,
+    "their_count": 125065,
+    "their_flop": 125065,
+    "length": 64671,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 42076,
+    "their_count": 104944,
+    "their_flop": 104944,
+    "length": 54266,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 44789,
+    "their_count": 100244,
+    "their_flop": 100244,
+    "length": 51836,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 35966,
+    "their_count": 91700,
+    "their_flop": 91700,
+    "length": 47418,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 41879,
+    "their_count": 105487,
+    "their_flop": 105487,
+    "length": 54547,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 43451,
+    "their_count": 101873,
+    "their_flop": 101873,
+    "length": 52678,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 35704,
+    "their_count": 92467,
+    "their_flop": 92467,
+    "length": 47814,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 35769,
+    "their_count": 93385,
+    "their_flop": 93385,
+    "length": 48289,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 46642,
+    "their_count": 86903,
+    "their_flop": 86903,
+    "length": 44937,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 44842,
+    "their_count": 108664,
+    "their_flop": 108664,
+    "length": 56190,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 2297,
+    "their_count": 122905,
+    "their_flop": 122905,
+    "length": 63554,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 1648,
+    "their_count": 102784,
+    "their_flop": 102784,
+    "length": 53149,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 2775,
+    "their_count": 98084,
+    "their_flop": 98084,
+    "length": 50719,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 1897,
+    "their_count": 89540,
+    "their_flop": 89540,
+    "length": 46301,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 1404,
+    "their_count": 103327,
+    "their_flop": 103327,
+    "length": 53430,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 2775,
+    "their_count": 99713,
+    "their_flop": 99713,
+    "length": 51561,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 1750,
+    "their_count": 90307,
+    "their_flop": 90307,
+    "length": 46698,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 1750,
+    "their_count": 91225,
+    "their_flop": 91225,
+    "length": 47172,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 2775,
+    "their_count": 84743,
+    "their_flop": 84743,
+    "length": 43820,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 2777,
+    "their_count": 106504,
+    "their_flop": 106504,
+    "length": 55073,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 30572,
+    "their_count": 125592,
+    "their_flop": 125592,
+    "length": 64943,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 36768,
+    "their_count": 105471,
+    "their_flop": 105471,
+    "length": 54539,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 38686,
+    "their_count": 100771,
+    "their_flop": 100771,
+    "length": 52108,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 28747,
+    "their_count": 92227,
+    "their_flop": 92227,
+    "length": 47690,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 37249,
+    "their_count": 106014,
+    "their_flop": 106014,
+    "length": 54820,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 39436,
+    "their_count": 102400,
+    "their_flop": 102400,
+    "length": 52951,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 28892,
+    "their_count": 92994,
+    "their_flop": 92994,
+    "length": 48087,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 28266,
+    "their_count": 93912,
+    "their_flop": 93912,
+    "length": 48562,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 39003,
+    "their_count": 87430,
+    "their_flop": 87430,
+    "length": 45210,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 39528,
+    "their_count": 109191,
+    "their_flop": 109191,
+    "length": 56462,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 15,
+    "their_count": 123432,
+    "their_flop": 123432,
+    "length": 63826,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 103311,
+    "their_flop": 103311,
+    "length": 53422,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 98611,
+    "their_flop": 98611,
+    "length": 50992,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 90067,
+    "their_flop": 90067,
+    "length": 46573,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 103854,
+    "their_flop": 103854,
+    "length": 53703,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 100240,
+    "their_flop": 100240,
+    "length": 51834,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 90834,
+    "their_flop": 90834,
+    "length": 46970,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 91752,
+    "their_flop": 91752,
+    "length": 47445,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 85270,
+    "their_flop": 85270,
+    "length": 44093,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 107031,
+    "their_flop": 107031,
+    "length": 55345,
+    "seconds": 1.3
+   }
+  ],
+  "scores": {
+   "Q": 0.5757296803482395,
+   "Q_grid": 0.5684270858764648,
+   "cost_of_finishing": 97.83338006675967,
+   "frontier": [
+    {
+     "length": 41822,
+     "certified": 15,
+     "n_inputs": 65536
+    },
+    {
+     "length": 41889,
+     "certified": 37,
+     "n_inputs": 65536
+    },
+    {
+     "length": 43005,
+     "certified": 35410,
+     "n_inputs": 65536
+    },
+    {
+     "length": 44937,
+     "certified": 46642,
+     "n_inputs": 65536
+    },
+    {
+     "length": 292152,
+     "certified": 65159,
+     "n_inputs": 65536
+    },
+    {
+     "length": 65152067,
+     "certified": 65535,
+     "n_inputs": 65536
+    }
+   ]
+  }
+ },
+ "attn-max4-v16-s8": {
+  "id": "attn-max4-v16-s8",
+  "check_max_abs_diff": 1.2434497875801753e-14,
+  "proofs": [
+   {
+    "proof": "cubic",
+    "certified": 65257,
+    "their_count": 564984,
+    "their_flop": 564984,
+    "length": 292152,
+    "seconds": 3.8
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 39621,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 42923,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 44940,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 40981,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 42923,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 44937,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 40903,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 40631,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 45523,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 44302,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 17846,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 18235,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 18233,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 18434,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 18235,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 18233,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 18461,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 18536,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 18245,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 18337,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 1375,
+    "their_count": 121201,
+    "their_flop": 121201,
+    "length": 62673,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 1675,
+    "their_count": 101080,
+    "their_flop": 101080,
+    "length": 52268,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 1677,
+    "their_count": 96380,
+    "their_flop": 96380,
+    "length": 49838,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 375,
+    "their_count": 87836,
+    "their_flop": 87836,
+    "length": 45420,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 1675,
+    "their_count": 101623,
+    "their_flop": 101623,
+    "length": 52549,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 1677,
+    "their_count": 98009,
+    "their_flop": 98009,
+    "length": 50680,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 375,
+    "their_count": 88603,
+    "their_flop": 88603,
+    "length": 45816,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 375,
+    "their_count": 89521,
+    "their_flop": 89521,
+    "length": 46291,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 1677,
+    "their_count": 83039,
+    "their_flop": 83039,
+    "length": 42939,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 1677,
+    "their_count": 104800,
+    "their_flop": 104800,
+    "length": 54192,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 14,
+    "their_count": 119041,
+    "their_flop": 119041,
+    "length": 61556,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 14,
+    "their_count": 98920,
+    "their_flop": 98920,
+    "length": 51151,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 14,
+    "their_count": 94220,
+    "their_flop": 94220,
+    "length": 48721,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 85676,
+    "their_flop": 85676,
+    "length": 44303,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 14,
+    "their_count": 99463,
+    "their_flop": 99463,
+    "length": 51432,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 14,
+    "their_count": 95849,
+    "their_flop": 95849,
+    "length": 49563,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 86443,
+    "their_flop": 86443,
+    "length": 44699,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 14,
+    "their_count": 87361,
+    "their_flop": 87361,
+    "length": 45174,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 14,
+    "their_count": 80879,
+    "their_flop": 80879,
+    "length": 41822,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 14,
+    "their_count": 102640,
+    "their_flop": 102640,
+    "length": 53075,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 22738,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 22724,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 24377,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 21600,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 22724,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 24377,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 21564,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 21319,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 24135,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 25130,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 7226,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 5501,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 6670,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 6373,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 5501,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 6670,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 6334,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 6334,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 5806,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 6197,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 38198,
+    "their_count": 125065,
+    "their_flop": 125065,
+    "length": 64671,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 41411,
+    "their_count": 104944,
+    "their_flop": 104944,
+    "length": 54266,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 44110,
+    "their_count": 100244,
+    "their_flop": 100244,
+    "length": 51836,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 39802,
+    "their_count": 91700,
+    "their_flop": 91700,
+    "length": 47418,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 41495,
+    "their_count": 105487,
+    "their_flop": 105487,
+    "length": 54547,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 43783,
+    "their_count": 101873,
+    "their_flop": 101873,
+    "length": 52678,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 39664,
+    "their_count": 92467,
+    "their_flop": 92467,
+    "length": 47814,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 40515,
+    "their_count": 93385,
+    "their_flop": 93385,
+    "length": 48289,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 43804,
+    "their_count": 86903,
+    "their_flop": 86903,
+    "length": 44937,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 43230,
+    "their_count": 108664,
+    "their_flop": 108664,
+    "length": 56190,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 29812,
+    "their_count": 122905,
+    "their_flop": 122905,
+    "length": 63554,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 30605,
+    "their_count": 102784,
+    "their_flop": 102784,
+    "length": 53149,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 30475,
+    "their_count": 98084,
+    "their_flop": 98084,
+    "length": 50719,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 28075,
+    "their_count": 89540,
+    "their_flop": 89540,
+    "length": 46301,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 28877,
+    "their_count": 103327,
+    "their_flop": 103327,
+    "length": 53430,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 30513,
+    "their_count": 99713,
+    "their_flop": 99713,
+    "length": 51561,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 28111,
+    "their_count": 90307,
+    "their_flop": 90307,
+    "length": 46698,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 27606,
+    "their_count": 91225,
+    "their_flop": 91225,
+    "length": 47172,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 32351,
+    "their_count": 84743,
+    "their_flop": 84743,
+    "length": 43820,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 32349,
+    "their_count": 106504,
+    "their_flop": 106504,
+    "length": 55073,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 35610,
+    "their_count": 125592,
+    "their_flop": 125592,
+    "length": 64943,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 40474,
+    "their_count": 105471,
+    "their_flop": 105471,
+    "length": 54539,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 41685,
+    "their_count": 100771,
+    "their_flop": 100771,
+    "length": 52108,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 35641,
+    "their_count": 92227,
+    "their_flop": 92227,
+    "length": 47690,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 40489,
+    "their_count": 106014,
+    "their_flop": 106014,
+    "length": 54820,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 41580,
+    "their_count": 102400,
+    "their_flop": 102400,
+    "length": 52951,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 35290,
+    "their_count": 92994,
+    "their_flop": 92994,
+    "length": 48087,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 35142,
+    "their_count": 93912,
+    "their_flop": 93912,
+    "length": 48562,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 40535,
+    "their_count": 87430,
+    "their_flop": 87430,
+    "length": 45210,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 41517,
+    "their_count": 109191,
+    "their_flop": 109191,
+    "length": 56462,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 13498,
+    "their_count": 123432,
+    "their_flop": 123432,
+    "length": 63826,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 13690,
+    "their_count": 103311,
+    "their_flop": 103311,
+    "length": 53422,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 14759,
+    "their_count": 98611,
+    "their_flop": 98611,
+    "length": 50992,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 13725,
+    "their_count": 90067,
+    "their_flop": 90067,
+    "length": 46573,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 13728,
+    "their_count": 103854,
+    "their_flop": 103854,
+    "length": 53703,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 14759,
+    "their_count": 100240,
+    "their_flop": 100240,
+    "length": 51834,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 13689,
+    "their_count": 90834,
+    "their_flop": 90834,
+    "length": 46970,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 13689,
+    "their_count": 91752,
+    "their_flop": 91752,
+    "length": 47445,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 14971,
+    "their_count": 85270,
+    "their_flop": 85270,
+    "length": 44093,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 14865,
+    "their_count": 107031,
+    "their_flop": 107031,
+    "length": 55345,
+    "seconds": 1.2
+   }
+  ],
+  "scores": {
+   "Q": 0.5748922936818639,
+   "Q_grid": 0.5658798217773438,
+   "cost_of_finishing": 114.59874743191378,
+   "frontier": [
+    {
+     "length": 41822,
+     "certified": 14,
+     "n_inputs": 65536
+    },
+    {
+     "length": 41889,
+     "certified": 18245,
+     "n_inputs": 65536
+    },
+    {
+     "length": 43005,
+     "certified": 45523,
+     "n_inputs": 65536
+    },
+    {
+     "length": 292152,
+     "certified": 65257,
+     "n_inputs": 65536
+    },
+    {
+     "length": 65152067,
+     "certified": 65535,
+     "n_inputs": 65536
+    }
+   ]
+  }
+ },
+ "attn-max4-v16-s9": {
+  "id": "attn-max4-v16-s9",
+  "check_max_abs_diff": 1.0658141036401503e-14,
+  "proofs": [
+   {
+    "proof": "cubic",
+    "certified": 65460,
+    "their_count": 564984,
+    "their_flop": 564984,
+    "length": 292152,
+    "seconds": 4.0
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 35409,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 40170,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 40329,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 37821,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 39955,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 40298,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 37854,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 36575,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 41006,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 40292,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 5270,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 5985,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 6074,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 5933,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 5916,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 6074,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 6041,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 6041,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 6507,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-mean-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 6506,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 15,
+    "their_count": 121201,
+    "their_flop": 121201,
+    "length": 62673,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 101080,
+    "their_flop": 101080,
+    "length": 52268,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 96380,
+    "their_flop": 96380,
+    "length": 49838,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 87836,
+    "their_flop": 87836,
+    "length": 45420,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 101623,
+    "their_flop": 101623,
+    "length": 52549,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 98009,
+    "their_flop": 98009,
+    "length": 50680,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 88603,
+    "their_flop": 88603,
+    "length": 45816,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 89521,
+    "their_flop": 89521,
+    "length": 46291,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 83039,
+    "their_flop": 83039,
+    "length": 42939,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 104800,
+    "their_flop": 104800,
+    "length": 54192,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 15,
+    "their_count": 119041,
+    "their_flop": 119041,
+    "length": 61556,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 15,
+    "their_count": 98920,
+    "their_flop": 98920,
+    "length": 51151,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 15,
+    "their_count": 94220,
+    "their_flop": 94220,
+    "length": 48721,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 85676,
+    "their_flop": 85676,
+    "length": 44303,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 15,
+    "their_count": 99463,
+    "their_flop": 99463,
+    "length": 51432,
+    "seconds": 1.1
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 15,
+    "their_count": 95849,
+    "their_flop": 95849,
+    "length": 49563,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 86443,
+    "their_flop": 86443,
+    "length": 44699,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 15,
+    "their_count": 87361,
+    "their_flop": 87361,
+    "length": 45174,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 15,
+    "their_count": 80879,
+    "their_flop": 80879,
+    "length": 41822,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-svd-query+max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 15,
+    "their_count": 102640,
+    "their_flop": 102640,
+    "length": 53075,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-svd",
+    "certified": 9398,
+    "their_count": 121329,
+    "their_flop": 121329,
+    "length": 62739,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 13554,
+    "their_count": 101208,
+    "their_flop": 101208,
+    "length": 52334,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 15483,
+    "their_count": 96508,
+    "their_flop": 96508,
+    "length": 49904,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 10491,
+    "their_count": 87964,
+    "their_flop": 87964,
+    "length": 45486,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 13593,
+    "their_count": 101751,
+    "their_flop": 101751,
+    "length": 52615,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 15482,
+    "their_count": 98137,
+    "their_flop": 98137,
+    "length": 50746,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 10519,
+    "their_count": 88731,
+    "their_flop": 88731,
+    "length": 45883,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 10346,
+    "their_count": 89649,
+    "their_flop": 89649,
+    "length": 46357,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 16478,
+    "their_count": 83167,
+    "their_flop": 83167,
+    "length": 43005,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 15577,
+    "their_count": 104928,
+    "their_flop": 104928,
+    "length": 54258,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 33,
+    "their_count": 119169,
+    "their_flop": 119169,
+    "length": 61622,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 36,
+    "their_count": 99048,
+    "their_flop": 99048,
+    "length": 51218,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 36,
+    "their_count": 94348,
+    "their_flop": 94348,
+    "length": 48787,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 124,
+    "their_count": 85804,
+    "their_flop": 85804,
+    "length": 44369,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 36,
+    "their_count": 99591,
+    "their_flop": 99591,
+    "length": 51498,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 36,
+    "their_count": 95977,
+    "their_flop": 95977,
+    "length": 49629,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 124,
+    "their_count": 86571,
+    "their_flop": 86571,
+    "length": 44766,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 124,
+    "their_count": 87489,
+    "their_flop": 87489,
+    "length": 45240,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 36,
+    "their_count": 81007,
+    "their_flop": 81007,
+    "length": 41889,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 36,
+    "their_count": 102768,
+    "their_flop": 102768,
+    "length": 53141,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 38138,
+    "their_count": 125065,
+    "their_flop": 125065,
+    "length": 64671,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 40123,
+    "their_count": 104944,
+    "their_flop": 104944,
+    "length": 54266,
+    "seconds": 1.7
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 42731,
+    "their_count": 100244,
+    "their_flop": 100244,
+    "length": 51836,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 39167,
+    "their_count": 91700,
+    "their_flop": 91700,
+    "length": 47418,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 40126,
+    "their_count": 105487,
+    "their_flop": 105487,
+    "length": 54547,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 42701,
+    "their_count": 101873,
+    "their_flop": 101873,
+    "length": 52678,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 39221,
+    "their_count": 92467,
+    "their_flop": 92467,
+    "length": 47814,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 38638,
+    "their_count": 93385,
+    "their_flop": 93385,
+    "length": 48289,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 42490,
+    "their_count": 86903,
+    "their_flop": 86903,
+    "length": 44937,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 42191,
+    "their_count": 108664,
+    "their_flop": 108664,
+    "length": 56190,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 17025,
+    "their_count": 122905,
+    "their_flop": 122905,
+    "length": 63554,
+    "seconds": 1.4
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 23604,
+    "their_count": 102784,
+    "their_flop": 102784,
+    "length": 53149,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 23545,
+    "their_count": 98084,
+    "their_flop": 98084,
+    "length": 50719,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 19366,
+    "their_count": 89540,
+    "their_flop": 89540,
+    "length": 46301,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 23432,
+    "their_count": 103327,
+    "their_flop": 103327,
+    "length": 53430,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 23545,
+    "their_count": 99713,
+    "their_flop": 99713,
+    "length": 51561,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 19775,
+    "their_count": 90307,
+    "their_flop": 90307,
+    "length": 46698,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 18852,
+    "their_count": 91225,
+    "their_flop": 91225,
+    "length": 47172,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 22557,
+    "their_count": 84743,
+    "their_flop": 84743,
+    "length": 43820,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 22839,
+    "their_count": 106504,
+    "their_flop": 106504,
+    "length": 55073,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-svd",
+    "certified": 36591,
+    "their_count": 125592,
+    "their_flop": 125592,
+    "length": 64943,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff",
+    "certified": 41983,
+    "their_count": 105471,
+    "their_flop": 105471,
+    "length": 54539,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct",
+    "certified": 42985,
+    "their_count": 100771,
+    "their_flop": 100771,
+    "length": 52108,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-subproduct-recursive",
+    "certified": 37939,
+    "their_count": 92227,
+    "their_flop": 92227,
+    "length": 47690,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff",
+    "certified": 41831,
+    "their_count": 106014,
+    "their_flop": 106014,
+    "length": 54820,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct",
+    "certified": 42973,
+    "their_count": 102400,
+    "their_flop": 102400,
+    "length": 52951,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 38378,
+    "their_count": 92994,
+    "their_flop": 92994,
+    "length": 48087,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 35874,
+    "their_count": 93912,
+    "their_flop": 93912,
+    "length": 48562,
+    "seconds": 1.5
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 43243,
+    "their_count": 87430,
+    "their_flop": 87430,
+    "length": 45210,
+    "seconds": 1.9
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-mean-query+diff--attn-err-max-diff-exact",
+    "certified": 42871,
+    "their_count": 109191,
+    "their_flop": 109191,
+    "length": 56462,
+    "seconds": 1.6
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-svd",
+    "certified": 1053,
+    "their_count": 123432,
+    "their_flop": 123432,
+    "length": 63826,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff",
+    "certified": 678,
+    "their_count": 103311,
+    "their_flop": 103311,
+    "length": 53422,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct",
+    "certified": 588,
+    "their_count": 98611,
+    "their_flop": 98611,
+    "length": 50992,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-subproduct-recursive",
+    "certified": 947,
+    "their_count": 90067,
+    "their_flop": 90067,
+    "length": 46573,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff",
+    "certified": 678,
+    "their_count": 103854,
+    "their_flop": 103854,
+    "length": 53703,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct",
+    "certified": 589,
+    "their_count": 100240,
+    "their_flop": 100240,
+    "length": 51834,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean+max-diff-subproduct-recursive",
+    "certified": 926,
+    "their_count": 90834,
+    "their_flop": 90834,
+    "length": 46970,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-mean-recursive+max-diff-subproduct-recursive",
+    "certified": 708,
+    "their_count": 91752,
+    "their_flop": 91752,
+    "length": 47445,
+    "seconds": 1.3
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-exact-EQKE+max-diff-exact",
+    "certified": 1245,
+    "their_count": 85270,
+    "their_flop": 85270,
+    "length": 44093,
+    "seconds": 1.2
+   },
+   {
+    "proof": "EUPU-global-max-diff-exact--attn-drop-average-query-per-output-logit-reasoning--attn-err-max-diff-exact",
+    "certified": 842,
+    "their_count": 107031,
+    "their_flop": 107031,
+    "length": 55345,
+    "seconds": 1.3
+   }
+  ],
+  "scores": {
+   "Q": 0.5700873026215103,
+   "Q_grid": 0.5607118606567383,
+   "cost_of_finishing": 177.66518744082177,
+   "frontier": [
+    {
+     "length": 41822,
+     "certified": 15,
+     "n_inputs": 65536
+    },
+    {
+     "length": 41889,
+     "certified": 6507,
+     "n_inputs": 65536
+    },
+    {
+     "length": 43005,
+     "certified": 41006,
+     "n_inputs": 65536
+    },
+    {
+     "length": 44937,
+     "certified": 42490,
+     "n_inputs": 65536
+    },
+    {
+     "length": 45210,
+     "certified": 43243,
+     "n_inputs": 65536
+    },
+    {
+     "length": 292152,
+     "certified": 65460,
+     "n_inputs": 65536
+    },
+    {
+     "length": 65152067,
+     "certified": 65535,
+     "n_inputs": 65536
+    }
+   ]
+  }
+ }
+}
