@@ -99,7 +99,7 @@ class Context:
         bad = changed(self.versions, self.folder)
         if bad:
             raise RoundError(f"trusted files changed during the run ({', '.join(bad)}); the run halts")
-        planted = compiled_files_since([REPO_ROOT / "core", self.folder.path], self.since)
+        planted = compiled_files_since([REPO_ROOT / "core", REPO_ROOT / "rules", self.folder.path], self.since)
         if planted:
             raise RoundError(f"compiled files appeared in trusted folders during the run ({', '.join(planted[:3])}); the run halts")
 

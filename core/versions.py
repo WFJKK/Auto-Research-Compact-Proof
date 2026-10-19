@@ -14,6 +14,8 @@ from .util import REPO_ROOT, sha256_bytes, sha256_files
 
 CHECKER_FILES = (
     "core/check/*.py",
+    "rules/*/rule.py",  # rules adopted through the rule route (core/check/plugins.py), and their status
+    "rules/*/status.json",
     "core/diagnostics.py",
     "core/inputs.py",
     "core/model_folder.py",

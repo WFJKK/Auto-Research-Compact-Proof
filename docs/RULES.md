@@ -85,3 +85,7 @@ For networks beyond linear maps (`core/check/tokens.py`). The task must confirm 
 **Reused rows.** A row that depends on its token alone (made only from a lookup and constants that do not depend on the input) is the same in every leaf, so the checker computes it once per proof and keeps it under (node, the node where its term began, position, token). Rows that depend on anything else (the query, for example) are recomputed in every leaf. This changes what is charged, never what is certified.
 
 **Tests.** `tests/test_token_interval.py` compares the bound with the float network's smallest margin on random leaves of all four attention folders: never above it, and within 10^-3 of it when one position varies. It also checks that reused rows are charged once and that linear networks refuse the rule.
+
+## Adopted rules
+
+Rules that come through the rule route (docs/RULE_ROUTE.md) live in `rules/<name>/`, each with its own soundness argument in `SOUNDNESS.md`, its tests, the proposal it implements and a `status.json` recording the checks it passed. The checker uses one only while its files match the hashes recorded at adoption. The first is `token_convex` (`rules/token_convex/SOUNDNESS.md`): token_interval plus the softmax's structure, so that a leaf where several positions vary is bounded by the exact minimum of the attention-weighted average, not weight by weight.

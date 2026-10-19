@@ -66,7 +66,7 @@ Everything outside the untrusted box is trusted code. The zoo feeds the same wei
 
 After a run, the final evaluator runs the frontier recipes on the held-out networks, checks every proof in Python and, where the rules have Lean proofs, in Lean, and writes the report.
 
-**Trust boundary.** The agent, its recipes and everything the sandbox outputs are untrusted. The core's checker, cost model and scoring, every model folder, the zoo weights (all hash-pinned) and the Lean proofs are trusted.
+**Trust boundary.** The agent, its recipes and everything the sandbox outputs are untrusted. The core's checker, cost model and scoring, every model folder, the zoo weights (all hash-pinned) and the Lean proofs are trusted. Rules adopted through the rule route (`rules/<name>/`, added 19 October 2026) join the trusted checker only after its audits and review, are hash-pinned like the rest, and are audited again at run time (docs/RULE_ROUTE.md).
 
 **Lean's three roles**
 
@@ -76,7 +76,7 @@ After a run, the final evaluator runs the frontier recipes on the held-out netwo
 
 A model whose rules have no Lean proofs yet (`max2` at first) runs the same loop; its numbers are labelled Python-checked.
 
-**Out of scope for this build:** models other than max2 (since extended, at the user's request, to the xorformer attention model on MAJORITY_12, `models/xorformer-majority`, with the general evaluator in `core/check/general.py`, and on 15 October 2026 to Gross et al.'s one-head transformer on max and min of 2 and 4 tokens, `models/attn-max4`, `attn-min4`, `attn-max2`, `attn-min2`), tools for the agent (it gets one prompt and returns one response), a second agent, and new rules. The prompt collects new-rule ideas, but nothing acts on them yet.
+**Out of scope for this build:** models other than max2 (since extended, at the user's request, to the xorformer attention model on MAJORITY_12, `models/xorformer-majority`, with the general evaluator in `core/check/general.py`, and on 15 October 2026 to Gross et al.'s one-head transformer on max and min of 2 and 4 tokens, `models/attn-max4`, `attn-min4`, `attn-max2`, `attn-min2`), tools for the agent (it gets one prompt and returns one response), a second agent, and new rules. The prompt collects new-rule ideas. (Since 19 October 2026, at the user's request, the rule route acts on them: a separate implementer agent writes a proposed rule, audits and an adversarial reviewer agent check it, and it is adopted into `rules/` only if everything passes; the agent being scored still writes no checker code. See docs/RULE_ROUTE.md.)
 
 ## 3. Design principles
 
@@ -117,6 +117,9 @@ Auto-Research-Compact-Proof/
       build_prompt.py    fills the template from the model folder and the archive
       parse.py           splits a response into its sections
       backends/          fake.py, manual.py, api.py
+    rules_route/         proposal, implementer, check box, audit, reviewer, adoption (docs/RULE_ROUTE.md)
+  rules/
+    <name>/              an adopted rule: rule.py, SOUNDNESS.md, test_rule.py, PROPOSAL.md, status.json
   models/
     max2/
       model.py           the architecture: one torch nn.Module, nothing else

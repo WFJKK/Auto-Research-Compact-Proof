@@ -26,7 +26,7 @@ from pathlib import Path
 from ..archive import RunDir
 from ..check import cost
 from ..check.rules import describe
-from ..diagnostics import RULE_ORDER, at_label, knob_lines, render_attempt, share
+from ..diagnostics import at_label, knob_lines, render_attempt, rule_order, share
 from ..model_folder import ModelFolder
 from ..scoring import budget_grid, default_budget_ratio, q_grid, q_score, summarize
 from ..zoo import read_manifest
@@ -342,7 +342,7 @@ def result_lines(rs: list[dict]) -> str:
             out += ["  " + ln for ln in lines]
             kr = sorted((r for r in ok if r["knob"] == best), key=lambda r: r["length"])
             mid = kr[len(kr) // 2]
-            parts = [(c, mid["length_by_rule"].get(c, 0)) for c in RULE_ORDER if mid["length_by_rule"].get(c)]
+            parts = [(c, mid["length_by_rule"].get(c, 0)) for c in rule_order() if mid["length_by_rule"].get(c)]
             out.append(
                 f"    length by rule at {at_label(mid)} ({mid['network']}): "
                 + ", ".join(f"{c} {share(v, mid['length'])}" for c, v in parts)

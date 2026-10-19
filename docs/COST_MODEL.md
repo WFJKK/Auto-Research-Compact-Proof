@@ -19,6 +19,8 @@ Each operation on exact numbers counts 1: a multiply-add, an addition or subtrac
 | `token_interval` | everything else in `token_interval` leaves | the same counts per row, or per input where a value is kept per input, doubled for interval values; boxing rows: 2 per entry; decision per term and other output: 3 per input (exact weight) or 5 (interval weight), or 3 per token plus 8 with several varying positions; then 1 per input and other output, and outputs − 1 for the constant part |
 | `symmetry` | counting the inputs a leaf certifies | 1 per accepted leaf |
 
+Rules adopted through the rule route (docs/RULE_ROUTE.md) add a category of their own for their per-leaf work and use `tables` for work they share across leaves; each rule's description, shown to the agent, lists its charges (for `token_convex`, see `rules/token_convex/rule.py`). Adopting a rule changes the length of no proof without its leaves.
+
 ## Why these choices
 
 - **Everything the checker does is charged.** That includes reading the proof file and converting weights, so no work can hide in a large proof file or in a hint the checker trusts. The checker trusts nothing a proof claims. For this charge to be fair, every operation must be on a small number: proof numbers are required to be dyadic and bounded (see `docs/RULES.md`), so a proof cannot make one operation secretly expensive. A proof that is still slow to check, for any reason, is cut off by a per-proof time limit (`check_timeout_s`) and rejected.

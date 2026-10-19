@@ -2,6 +2,8 @@
 
 Leaf rules apply to one piece of the split tree; global rules are top-level
 keys of the proof file. A model folder may add rules of its own in rules.py.
+Rules adopted through the rule route (rules/<name>/, core/check/plugins.py)
+are leaf rules too; their descriptions come from their own rule.py.
 """
 
 RULES = {
@@ -93,8 +95,29 @@ NUMBERS = (
 )
 
 
+def adopted_rules() -> dict:
+    """Rules adopted through the rule route (core/check/plugins.py), by name."""
+    from .plugins import adopted
+
+    return adopted()
+
+
+def generic_rules() -> tuple:
+    """The rules a run may name: the generic ones and the adopted ones."""
+    return GENERIC_RULES + tuple(sorted(adopted_rules()))
+
+
+def leaf_rules() -> tuple:
+    return LEAF_RULES + tuple(sorted(adopted_rules()))
+
+
 def describe(rule_names=GENERIC_RULES) -> str:
+    extra = adopted_rules()
     lines = [f"- split: {RULES['split']}"]
-    lines += [f"- {name}: {RULES[name]}" for name in rule_names if name in RULES]
+    for name in rule_names:
+        if name in RULES:
+            lines.append(f"- {name}: {RULES[name]}")
+        elif name in extra:
+            lines.append(f"- {name}: {extra[name].description}")
     lines.append(NUMBERS)
     return "\n".join(lines)

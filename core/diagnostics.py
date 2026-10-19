@@ -29,6 +29,13 @@ CHUNK = 1 << 13
 RULE_ORDER = ("extract", "read", "tree", "contract", "approximate", "single", "interval", "tables", "token_interval", "symmetry")
 
 
+def rule_order() -> tuple:
+    """RULE_ORDER, then the categories of adopted rules (core/check/plugins.py)."""
+    from .check.cost import EXTRA_CATEGORIES
+
+    return RULE_ORDER + tuple(sorted(EXTRA_CATEGORIES - set(RULE_ORDER)))
+
+
 def float_margins(folder: ModelFolder, network_id: str, allow_held_out: bool = False) -> np.ndarray:
     """Per input, in float: the label's output minus the largest other output (not positive when wrong)."""
     import torch
@@ -215,7 +222,7 @@ def render_attempt(records: list[dict], grouping: str = "group") -> str:
         at = f" at {_at(kr[0])}" if len(knob_lines_) > 1 else ""
 
         mid = sorted(kr, key=lambda r: r["length"])[len(kr) // 2]
-        parts = [(c, mid["length_by_rule"].get(c, 0)) for c in RULE_ORDER if mid["length_by_rule"].get(c)]
+        parts = [(c, mid["length_by_rule"].get(c, 0)) for c in rule_order() if mid["length_by_rule"].get(c)]
         lines.append(
             f"  length by rule{at} ({mid['network']}): "
             + ", ".join(f"{c} {share(v, mid['length'])}" for c, v in parts)

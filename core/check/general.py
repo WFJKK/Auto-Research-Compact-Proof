@@ -33,7 +33,7 @@ from .arith import Exact
 from .cost import Counter
 from .evaluate import CheckError
 from .interval import IT, concat, exp, softmax
-from .tokens import DOMAIN, TokenBox, TokenEvaluator, Var
+from .tokens import TokenBox, TokenEvaluator, Var
 from .trace import UnsupportedOp
 
 # (fx op, target) -> name used by the interpreter
@@ -464,8 +464,14 @@ class GeneralProgram:
 
     def run_token_interval(self, ranges: list, label: int, counter: Counter):
         """A token_interval leaf (core.check.tokens): (certified, lowest margin bound, the other output reaching it)."""
+        return self.run_token_leaf(ranges, label, counter, TokenEvaluator)
+
+    def run_token_leaf(self, ranges: list, label: int, counter: Counter, evaluator=TokenEvaluator, memo: dict | None = None):
+        """One leaf evaluated in a token domain: token_interval's (TokenEvaluator) or an adopted rule's subclass of
+        it, which may keep more kinds of values (evaluator.domain) and take over nodes before the token rules see
+        them (evaluator.intercept). Returns (certified, lowest margin bound, the other output reaching it)."""
         box = TokenBox(ranges, self._n_values)
-        ev = TokenEvaluator(self, self._token_memo, counter, box)
+        ev = evaluator(self, self._token_memo if memo is None else memo, counter, box)
         env = dict(self.const)
         for n in self.graph.nodes:
             if n.name in env:
@@ -480,14 +486,18 @@ class GeneralProgram:
         return bool(m > 0), m, j
 
     def _eval_token(self, n: Node, env: dict, ev: TokenEvaluator, counter: Counter):
+        domain = ev.domain
+        v = ev.intercept(n, env)
+        if v is not None:
+            return v
         names = _node_refs((*n.args, *n.kwargs.values()))
-        if not any(isinstance(env.get(x), DOMAIN) for x in names):
-            return self._eval(n, env, counter, "token_interval", 2)
+        if not any(isinstance(env.get(x), domain) for x in names):
+            return self._eval(n, env, counter, ev.category, 2)
         args = self._value(n.args, env)
         kwargs = {k: self._value(v, env) for k, v in n.kwargs.items()}
-        if n.kind == "getattr" and args[1] == "shape" and isinstance(args[0], DOMAIN):
+        if n.kind == "getattr" and args[1] == "shape" and isinstance(args[0], domain):
             return tuple(args[0].shape)
-        if n.kind == "size" and isinstance(args[0], DOMAIN):
+        if n.kind == "size" and isinstance(args[0], domain):
             dim = kwargs.get("dim", args[1] if len(args) > 1 else None)
             return tuple(args[0].shape) if dim is None else args[0].shape[int(dim)]
         free = [not self._refs_input(a) for a in n.args]
@@ -496,7 +506,7 @@ class GeneralProgram:
             return v
         env2 = dict(env)
         for x in names:
-            if isinstance(env.get(x), DOMAIN):
+            if isinstance(env.get(x), domain):
                 env2[x] = ev.leave(env[x])
         if any(isinstance(env2.get(x), Var) for x in names):
             args2 = self._value(n.args, env2)
@@ -507,7 +517,7 @@ class GeneralProgram:
             for x in names:
                 if isinstance(env2.get(x), Var):
                     env2[x] = ev.collapse(env2[x])
-        return self._eval(n, env2, counter, "token_interval", 2)
+        return self._eval(n, env2, counter, ev.category, 2)
 
 
 def _node_refs(a) -> list[str]:

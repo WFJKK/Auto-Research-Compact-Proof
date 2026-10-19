@@ -150,7 +150,17 @@ def _min_max(r: IT) -> IT:
 
 
 class TokenEvaluator:
-    """Evaluates one token_interval leaf; memo (shared by the proof's leaves) holds the pure rows."""
+    """Evaluates one token_interval leaf; memo (shared by the proof's leaves) holds the pure rows.
+
+    An adopted rule (core/check/plugins.py) may subclass it: domain lists the kinds of values the evaluator
+    keeps, category is where its per-leaf work is charged, and intercept may take over a node before the token
+    rules see it (it returns None to decline, which is all this class does)."""
+
+    domain = DOMAIN
+    category = LEAF
+
+    def intercept(self, n, env):
+        return None
 
     def __init__(self, prog, memo: dict, counter: Counter, box: TokenBox):
         self.prog, self.memo, self.counter = prog, memo, counter
@@ -160,7 +170,7 @@ class TokenEvaluator:
         self.k = len(box.tokens[self.pstar]) if self.pstar is not None else 1
 
     def charge(self, n) -> None:
-        self.counter.add(LEAF, int(n))
+        self.counter.add(self.category, int(n))
 
     # memoized rows ------------------------------------------------------------------------
     def rows(self, key: tuple, tokens: list, prev: IT, fn, cost_per_row: int, pure: bool) -> IT:

@@ -18,7 +18,9 @@ held-out networks; any other worker refuses them.
 
 with one JSON line on stdout: {"result": ..., "diagnosis": ...} or
 {"error": ...}. It hashes the trusted files again before every check, and an
-error stops the run.
+error stops the run. When a proof has leaves of a rule adopted through the rule
+route (core/check/plugins.py), every accepted one is compared with the float
+margins of its inputs, and a bound above them is such an error.
 """
 
 from __future__ import annotations
@@ -77,6 +79,7 @@ def serve(folder_path: str, expected: dict, held_out: bool = False) -> None:
     from ..versions import changed
     from ..zoo import correct_mask, network_entry
     from .checker import check_proof
+    from .plugins import adopted, runtime_audit
 
     folder = load_model_folder(folder_path)
     float_view: dict = {}
@@ -111,7 +114,12 @@ def serve(folder_path: str, expected: dict, held_out: bool = False) -> None:
                         float_margins(folder, nid, allow_held_out=held_out),
                         correct_mask(folder, nid, allow_held_out=held_out),
                     )
-                diagnosis = diagnose(folder, network_entry(folder, nid), result, *float_view[nid])
+                entry = network_entry(folder, nid)
+                bad = runtime_audit(result["outcomes"], float_view[nid][0], folder.input_space(entry["setting"]), adopted())
+                if bad:  # an adopted rule claimed more than the network's own margins allow: the rule is wrong
+                    raise CheckerError(f"adopted rule {bad[0]['rule']!r} claimed a margin above the float margin "
+                                       f"of an input in its leaf ({bad[0]}); {len(bad)} such leaves")
+                diagnosis = diagnose(folder, entry, result, *float_view[nid])
             result.pop("mask", None)
             result.pop("outcomes", None)
             reply = {"result": result, "diagnosis": diagnosis}

@@ -27,7 +27,7 @@ from .cost import VERSION as COST_VERSION
 from .cost import Counter, count_scalars
 from .evaluate import CheckError
 from .proof import SCHEMA, TOP_KEYS, certified_mask, full_tree, sorted_orbit_count, walk
-from .rules import GENERIC_RULES, LEAF_RULES
+from .rules import GENERIC_RULES, adopted_rules, leaf_rules
 from .trace import UnsupportedOp, build_any, make_program
 
 MAX_REJECTED_REPORTED = 50
@@ -151,9 +151,13 @@ def check_proof(
         # tree ------------------------------------------------------------------
         leaves, n_nodes = walk(proof["tree"], space, lim["max_nodes"])
         counter.add("tree", n_nodes)
+        allowed_leaves = leaf_rules()
+        plugins = adopted_rules()
         for leaf in leaves:
-            if leaf.rule not in LEAF_RULES or leaf.rule not in rule_set + ("skip",):
+            if leaf.rule not in allowed_leaves or leaf.rule not in rule_set + ("skip",):
                 raise CheckError(f"{leaf.path}: rule {leaf.rule!r} is not allowed in this run")
+            if leaf.rule in plugins and plugins[leaf.rule].applies_to == "general" and not getattr(graph, "general", False):
+                raise CheckError(f"{leaf.path}: rule {leaf.rule!r} is only for networks beyond linear maps")
             if leaf.approx is not None and leaf.approx not in approximations:
                 raise CheckError(f"{leaf.path}: unknown approximation {leaf.approx!r}")
 
@@ -205,7 +209,7 @@ def check_proof(
             if l.rule == "skip":
                 skipped += 1
                 outcome(l, False, "skipped")
-            elif l.rule in ("interval", "token_interval"):
+            elif l.rule in ("interval", "token_interval") or l.rule in plugins:
                 label = folder.task.constant_label(l.ranges, sizes)
                 if label is None:
                     rejected.append({"path": l.path, "rule": l.rule, "ranges": l.ranges, "reason": "label not constant"})
@@ -213,8 +217,14 @@ def check_proof(
                     continue
                 if l.rule == "interval":
                     good, worst, j = prog.run_interval(l.ranges, int(label), counter, approximations.get(l.approx))
-                else:
+                elif l.rule == "token_interval":
                     good, worst, j = prog.run_token_interval(l.ranges, int(label), counter)
+                else:
+                    good, worst, j = plugins[l.rule].check_leaf(prog, l.ranges, int(label), counter)
+                    if isinstance(worst, bool) or not isinstance(worst, (int, Fraction)):
+                        raise TypeError(f"rule {l.rule!r} returned a bound that is not an exact rational")
+                    worst = Fraction(worst)
+                    good = bool(good) and worst > 0  # the rule's verdict must agree with its own bound
                 if good:
                     accepted.append(l)
                     outcome(l, True, margin=_safe_float(worst), label=int(label), worst_output=int(j))

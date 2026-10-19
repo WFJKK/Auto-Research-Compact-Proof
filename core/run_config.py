@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from .check.rules import GENERIC_RULES
+from .check.rules import generic_rules
 from .util import REPO_ROOT, read_yaml
 
 DEFAULTS_PATH = REPO_ROOT / "config" / "defaults.yaml"
@@ -110,8 +110,9 @@ def validate(cfg: dict, source: str = "run config") -> None:
     if not isinstance(ws, str) or not ws or ws in FORBIDDEN_KEY_VARIABLES:
         errors.append("api_workspace_env must name an environment variable")
     rules = cfg["rule_set"]
-    if not isinstance(rules, list) or not rules or not set(rules) <= set(GENERIC_RULES):
-        errors.append(f"rule_set must be a non-empty list drawn from {list(GENERIC_RULES)}")
+    allowed = generic_rules()  # the generic rules and those adopted through the rule route (rules/)
+    if not isinstance(rules, list) or not rules or not set(rules) <= set(allowed):
+        errors.append(f"rule_set must be a non-empty list drawn from {list(allowed)}")
     if not isinstance(cfg["prompt_template"], str) or not (REPO_ROOT / "core" / "agent" / "prompts" / f"{cfg['prompt_template']}.md").is_file():
         errors.append(f"prompt_template {cfg['prompt_template']!r} is not in core/agent/prompts")
     thinking = cfg["thinking"]

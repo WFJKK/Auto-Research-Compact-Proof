@@ -60,6 +60,12 @@ other output for the minimum, and (outputs - 1) for the constant part.
 
 E is the extract cost. B is the length of the brute-force proof, which checks
 every input with the single rule and nothing else.
+
+Rules adopted through the rule route (rules/<name>/, core/check/plugins.py)
+charge their per-leaf work to a category of their own, named in their rule.py,
+and work they share across leaves to tables; their description, shown to the
+agent, says what they charge. A proof without their leaves has the same length
+as before, so adopting a rule changes no earlier number.
 """
 
 from __future__ import annotations
@@ -77,6 +83,8 @@ VERSION = "cost-v3"
 # and the error subtraction and the low-rank differences are charged. E and B are unchanged.
 
 CATEGORIES = ("extract", "read", "tree", "contract", "approximate", "single", "interval", "tables", "token_interval", "symmetry")
+# The categories of adopted rules (core/check/plugins.py adds them when it loads a rule).
+EXTRA_CATEGORIES: set[str] = set()
 
 
 class Counter:
@@ -84,7 +92,7 @@ class Counter:
         self.by_rule: dict[str, int] = defaultdict(int)
 
     def add(self, category: str, n) -> None:
-        if category not in CATEGORIES:
+        if category not in CATEGORIES and category not in EXTRA_CATEGORIES:
             raise ValueError(f"unknown cost category {category!r}")
         n = int(n)
         if n < 0:
