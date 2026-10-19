@@ -195,3 +195,24 @@ def test_two_terms_with_one_origin_keep_their_own_rows():
             _, bound, _ = prog.run_token_interval(ranges, int(label), Counter())
             assert float(bound) <= true + 1e-9
         module = folder.build(setting)
+
+
+def test_a_mix_of_scalar_rows_becomes_its_exact_value():
+    """A sum over the positions of scores (rows that are scalars) is a Mix whose terms hold scalar rows; when every
+    term has one row, leaving the token rules makes it its exact value. This used to fail on the scalar rows
+    (found with tests/stub_query, 19 October 2026)."""
+    folder = load_model_folder(Path(__file__).resolve().parent / "stub_query")
+    setting = folder.setting_names()[0]
+    rng = np.random.default_rng(3)
+    template = {k: v.detach().numpy() for k, v in folder.build(setting).state_dict().items()}
+    w = {k: (rng.uniform(-1, 1, size=v.shape) * max(1e-3, float(np.abs(v).max()))).astype(np.float32) for k, v in template.items()}
+    prog = make_program(build_any(folder.build(setting)), w, Counter(), folder.input_space(setting))
+    module = folder.build(setting).double()
+    module.load_state_dict({k: torch.tensor(v, dtype=torch.float64) for k, v in w.items()})
+    e = {"setting": setting}
+    for ranges in ([(2, 2), (4, 4), (5, 5)], [(5, 5), (1, 1), (0, 0)], [(0, 3), (4, 4), (2, 2)], [(1, 1), (5, 5), (0, 4)]):
+        label = folder.task.constant_label(ranges, folder.sizes(setting))
+        _, bound, _ = prog.run_token_interval(ranges, label, Counter())
+        true = true_margin(folder, e, module, ranges, label)
+        assert float(bound) <= true + 1e-9 * max(1.0, abs(true))
+        assert float(bound) >= true - 1e-6 * max(1.0, abs(true))  # one varying position: per input, exact

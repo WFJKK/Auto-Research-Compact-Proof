@@ -278,7 +278,8 @@ class TokenEvaluator:
             return None
         out = v.const
         for t in v.terms:
-            out = out + t.w * IT.exact(t.rows.lo[0][None], t.rows.exp)
+            # the one row, keeping its leading axis: (1, *rest), also when the rows are scalars (rest empty)
+            out = out + t.w * IT.exact(t.rows.lo[0:1], t.rows.exp)
             self.charge(2 * _size(v.const.shape))
         return out
 
