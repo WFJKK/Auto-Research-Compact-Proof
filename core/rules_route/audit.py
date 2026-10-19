@@ -6,8 +6,9 @@
 For each model folder whose network goes beyond linear maps, it takes
 trained development networks, random-weight networks at several scales (sharp softmaxes included), and trained
 networks with their weights perturbed, and on each it samples leaves with a constant label: one varying
-position, several with the last position fixed, several with every position free, and boxes that hold the
-label token at one position. Per leaf it runs the rule and brute force in float64 on every input:
+position, several with the last position fixed, several with every position free, boxes that hold the
+label token at one position, and boxes whose positions in a set hold one token while all the others lie below
+it (or all above). Per leaf it runs the rule and brute force in float64 on every input:
 
 - a bound above the leaf's smallest float64 margin (beyond float rounding) is a violation: the rule is unsound;
 - a certified leaf must have every input certified by the exact single rule too, else a violation;
@@ -134,15 +135,38 @@ def network(folder, setting, spec: str) -> Net:
     raise ValueError(f"unknown network spec {spec!r}")
 
 
+def label_set_ranges(space, rng):
+    """A box whose positions in a random nonempty set S hold one token M and whose other positions all lie below M
+    (or all above it), each from M - 1 down to 0 or to a random token (up to M + 1 .. the last): the shape of
+    proofs that split each position at the largest token. None if M leaves no room."""
+    P = len(space)
+    M = int(rng.integers(0, min(space)))
+    S = [p for p in range(P) if rng.random() < 0.35] or [int(rng.integers(0, P))]
+    below = rng.random() < 0.5
+    ranges = []
+    for p in range(P):
+        if p in S:
+            ranges.append((M, M))
+        elif below:
+            if M == 0:
+                return None
+            ranges.append((0 if rng.random() < 0.5 else int(rng.integers(0, M)), M - 1))
+        else:
+            if M == space[p] - 1:
+                return None
+            ranges.append((M + 1, space[p] - 1 if rng.random() < 0.5 else int(rng.integers(M + 1, space[p]))))
+    return ranges
+
+
 def sample_leaves(folder, setting, rng, n: int, max_inputs: int) -> list:
-    """Leaves with a constant label, of four kinds, none larger than max_inputs."""
+    """Leaves with a constant label, of five kinds, none larger than max_inputs."""
     sizes = folder.sizes(setting)
     space = folder.input_space(setting)
     P = len(space)
     out, tries = [], 0
     while len(out) < n and tries < 200 * n:
         tries += 1
-        kind = ("one", "fixed_last", "free", "label_token")[len(out) % 4]
+        kind = ("one", "fixed_last", "free", "label_token", "label_set")[len(out) % 5]
         ranges = []
         free = int(rng.integers(0, P))
         for p in range(P):
@@ -160,6 +184,10 @@ def sample_leaves(folder, setting, rng, n: int, max_inputs: int) -> list:
             bottom = min(lo for lo, _ in ranges)
             p = int(rng.integers(0, P))
             ranges[p] = (top, top) if rng.random() < 0.5 else (bottom, bottom)
+        if kind == "label_set":
+            ranges = label_set_ranges(space, rng)
+            if ranges is None:
+                continue
         size = int(np.prod([hi - lo + 1 for lo, hi in ranges]))
         label = folder.task.constant_label(ranges, sizes)
         if label is None or size > max_inputs:
