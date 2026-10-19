@@ -29,11 +29,18 @@ def version2(folder, setting):
             "acc": v1.med([x["full_share_of_correct"] for x in d]), "n": len(d)}
 
 
+SETTINGS = list(v1.AGENT) + [("attn-max4", "v64")]  # v64: the paper's size (no agent run there yet)
+
+
 def main():
     lines = ["| Task, size | Proof | Full proof | Accuracy | Q | Q_grid | Cost of finishing |", "| --- | --- | --- | --- | --- | --- | --- |"]
-    for (folder, setting), (q, qg, cof, full) in v1.AGENT.items():
+    for folder, setting in SETTINGS:
         task = f"{folder.split('-')[1].replace('max', 'max of ').replace('min', 'min of ')}, {setting}"
-        lines.append(f"| {task} | agent (token_interval) | {full} | 1 | {q:.3f} | {qg:.3f} | {cof} |")
+        if (folder, setting) in v1.AGENT:
+            q, qg, cof, full = v1.AGENT[(folder, setting)]
+            lines.append(f"| {task} | agent (token_interval) | {full} | 1 | {q:.3f} | {qg:.3f} | {cof} |")
+        else:
+            lines.append(f"| {task} | agent | no run yet | | | | |")
         c = v1.cubic(folder, setting)
         if c:
             lines.append(f"| | Gross cubic | B/{c['full']:.0f} | {c['acc']:.3f} | {v1.fmt(c['Q'])} | {v1.fmt(c['Q_grid'])} | {c['cof']:.0f} |")
