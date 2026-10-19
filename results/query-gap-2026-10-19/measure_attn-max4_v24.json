@@ -1,0 +1,1406 @@
+{
+ "attn-max4-v24-s0": {
+  "points": [
+   {
+    "knob": 0.02,
+    "length": 53658,
+    "certified": 8000,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 50483,
+     "token_convex": 246,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 1,
+     "rejected": 0,
+     "skipped": 345
+    }
+   },
+   {
+    "knob": 0.05,
+    "length": 67618,
+    "certified": 27026,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1041,
+     "tables": 63700,
+     "token_convex": 984,
+     "tree": 693
+    },
+    "leaves": {
+     "total": 347,
+     "accepted": 4,
+     "rejected": 0,
+     "skipped": 343
+    }
+   },
+   {
+    "knob": 0.1,
+    "length": 74198,
+    "certified": 42119,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1044,
+     "tables": 69537,
+     "token_convex": 1722,
+     "tree": 695
+    },
+    "leaves": {
+     "total": 348,
+     "accepted": 7,
+     "rejected": 0,
+     "skipped": 341
+    }
+   },
+   {
+    "knob": 0.2,
+    "length": 134801,
+    "certified": 73502,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1047,
+     "tables": 126173,
+     "token_convex": 5684,
+     "tree": 697
+    },
+    "leaves": {
+     "total": 349,
+     "accepted": 13,
+     "rejected": 0,
+     "skipped": 336
+    }
+   },
+   {
+    "knob": 0.35,
+    "length": 161929,
+    "certified": 119132,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1047,
+     "tables": 145537,
+     "token_convex": 13448,
+     "tree": 697
+    },
+    "leaves": {
+     "total": 349,
+     "accepted": 17,
+     "rejected": 0,
+     "skipped": 332
+    }
+   },
+   {
+    "knob": 0.5,
+    "length": 184413,
+    "certified": 168829,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1050,
+     "tables": 156166,
+     "token_convex": 25298,
+     "tree": 699
+    },
+    "leaves": {
+     "total": 350,
+     "accepted": 25,
+     "rejected": 0,
+     "skipped": 325
+    }
+   },
+   {
+    "knob": 0.65,
+    "length": 218376,
+    "certified": 224663,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1059,
+     "tables": 170692,
+     "token_convex": 44720,
+     "tree": 705
+    },
+    "leaves": {
+     "total": 353,
+     "accepted": 39,
+     "rejected": 0,
+     "skipped": 314
+    }
+   },
+   {
+    "knob": 0.8,
+    "length": 242179,
+    "certified": 265898,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1071,
+     "tables": 176328,
+     "token_convex": 62867,
+     "tree": 713
+    },
+    "leaves": {
+     "total": 357,
+     "accepted": 54,
+     "rejected": 0,
+     "skipped": 303
+    }
+   },
+   {
+    "knob": 0.9,
+    "length": 279372,
+    "certified": 300104,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1086,
+     "tables": 190332,
+     "token_convex": 86031,
+     "tree": 723
+    },
+    "leaves": {
+     "total": 362,
+     "accepted": 92,
+     "rejected": 0,
+     "skipped": 270
+    }
+   },
+   {
+    "knob": 0.95,
+    "length": 303653,
+    "certified": 315431,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1098,
+     "tables": 193392,
+     "token_convex": 107232,
+     "tree": 731
+    },
+    "leaves": {
+     "total": 366,
+     "accepted": 135,
+     "rejected": 0,
+     "skipped": 231
+    }
+   },
+   {
+    "knob": 1.0,
+    "length": 416512,
+    "certified": 331760,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1110,
+     "tables": 203685,
+     "token_convex": 209778,
+     "tree": 739
+    },
+    "leaves": {
+     "total": 370,
+     "accepted": 354,
+     "rejected": 0,
+     "skipped": 16
+    }
+   }
+  ],
+  "Q": 0.6206857990271375,
+  "Q_grid": 0.6019092780417479,
+  "cost_of_finishing": 1642.5749150084512,
+  "shortest_full": 416512,
+  "B": 684152163,
+  "E": 1200,
+  "real_correct": 331760,
+  "full_B_over_length": 1642.5749150084512,
+  "full_share_of_correct": 1.0,
+  "boxes": 346,
+  "build": {
+   "boxes": 346,
+   "leaves": 330,
+   "skipped": 16,
+   "oracle_calls": 1702
+  },
+  "seconds": 8.1,
+  "seconds_build": 5.0,
+  "rule": "/home/claude/auto-research-compact-proof/rules/token_convex",
+  "depth": 2,
+  "dear": 1200
+ },
+ "attn-max4-v24-s2": {
+  "points": [
+   {
+    "knob": 0.02,
+    "length": 61038,
+    "certified": 12167,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 57863,
+     "token_convex": 246,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 1,
+     "rejected": 0,
+     "skipped": 345
+    }
+   },
+   {
+    "knob": 0.05,
+    "length": 64415,
+    "certified": 22815,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 60994,
+     "token_convex": 492,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 2,
+     "rejected": 0,
+     "skipped": 344
+    }
+   },
+   {
+    "knob": 0.1,
+    "length": 70917,
+    "certified": 40076,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 67004,
+     "token_convex": 984,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 4,
+     "rejected": 0,
+     "skipped": 342
+    }
+   },
+   {
+    "knob": 0.2,
+    "length": 137456,
+    "certified": 77101,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 131831,
+     "token_convex": 2696,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 8,
+     "rejected": 0,
+     "skipped": 338
+    }
+   },
+   {
+    "knob": 0.35,
+    "length": 141450,
+    "certified": 116799,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 133575,
+     "token_convex": 4946,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 13,
+     "rejected": 0,
+     "skipped": 333
+    }
+   },
+   {
+    "knob": 0.5,
+    "length": 147339,
+    "certified": 172399,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1044,
+     "tables": 134295,
+     "token_convex": 10105,
+     "tree": 695
+    },
+    "leaves": {
+     "total": 348,
+     "accepted": 24,
+     "rejected": 0,
+     "skipped": 324
+    }
+   },
+   {
+    "knob": 0.65,
+    "length": 162636,
+    "certified": 218193,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1062,
+     "tables": 140376,
+     "token_convex": 19291,
+     "tree": 707
+    },
+    "leaves": {
+     "total": 354,
+     "accepted": 40,
+     "rejected": 0,
+     "skipped": 314
+    }
+   },
+   {
+    "knob": 0.8,
+    "length": 192374,
+    "certified": 270100,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1074,
+     "tables": 154221,
+     "token_convex": 35164,
+     "tree": 715
+    },
+    "leaves": {
+     "total": 358,
+     "accepted": 54,
+     "rejected": 0,
+     "skipped": 304
+    }
+   },
+   {
+    "knob": 0.9,
+    "length": 220890,
+    "certified": 298719,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1092,
+     "tables": 164523,
+     "token_convex": 53348,
+     "tree": 727
+    },
+    "leaves": {
+     "total": 364,
+     "accepted": 94,
+     "rejected": 0,
+     "skipped": 270
+    }
+   },
+   {
+    "knob": 0.95,
+    "length": 245817,
+    "certified": 315377,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1098,
+     "tables": 168195,
+     "token_convex": 74593,
+     "tree": 731
+    },
+    "leaves": {
+     "total": 366,
+     "accepted": 133,
+     "rejected": 0,
+     "skipped": 233
+    }
+   },
+   {
+    "knob": 1.0,
+    "length": 328196,
+    "certified": 331760,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1107,
+     "tables": 175701,
+     "token_convex": 149451,
+     "tree": 737
+    },
+    "leaves": {
+     "total": 369,
+     "accepted": 353,
+     "rejected": 0,
+     "skipped": 16
+    }
+   }
+  ],
+  "Q": 0.6335479023938053,
+  "Q_grid": 0.6198901795504386,
+  "cost_of_finishing": 2084.5840991358823,
+  "shortest_full": 328196,
+  "B": 684152163,
+  "E": 1200,
+  "real_correct": 331760,
+  "full_B_over_length": 2084.5840991358823,
+  "full_share_of_correct": 1.0,
+  "boxes": 346,
+  "build": {
+   "boxes": 346,
+   "leaves": 330,
+   "skipped": 16,
+   "oracle_calls": 1108
+  },
+  "seconds": 5.6,
+  "seconds_build": 3.1,
+  "rule": "/home/claude/auto-research-compact-proof/rules/token_convex",
+  "depth": 2,
+  "dear": 1200
+ },
+ "attn-max4-v24-s3": {
+  "points": [
+   {
+    "knob": 0.02,
+    "length": 56118,
+    "certified": 9261,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 52943,
+     "token_convex": 246,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 1,
+     "rejected": 0,
+     "skipped": 345
+    }
+   },
+   {
+    "knob": 0.05,
+    "length": 59327,
+    "certified": 17261,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 55906,
+     "token_convex": 492,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 2,
+     "rejected": 0,
+     "skipped": 344
+    }
+   },
+   {
+    "knob": 0.1,
+    "length": 110668,
+    "certified": 36450,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 106181,
+     "token_convex": 1558,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 5,
+     "rejected": 0,
+     "skipped": 341
+    }
+   },
+   {
+    "knob": 0.2,
+    "length": 125273,
+    "certified": 70972,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 118526,
+     "token_convex": 3818,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 9,
+     "rejected": 0,
+     "skipped": 337
+    }
+   },
+   {
+    "knob": 0.35,
+    "length": 139921,
+    "certified": 124309,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1041,
+     "tables": 127647,
+     "token_convex": 9340,
+     "tree": 693
+    },
+    "leaves": {
+     "total": 347,
+     "accepted": 18,
+     "rejected": 0,
+     "skipped": 329
+    }
+   },
+   {
+    "knob": 0.5,
+    "length": 159300,
+    "certified": 177499,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1062,
+     "tables": 138857,
+     "token_convex": 17474,
+     "tree": 707
+    },
+    "leaves": {
+     "total": 354,
+     "accepted": 31,
+     "rejected": 0,
+     "skipped": 323
+    }
+   },
+   {
+    "knob": 0.65,
+    "length": 175634,
+    "certified": 219617,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1083,
+     "tables": 144720,
+     "token_convex": 27910,
+     "tree": 721
+    },
+    "leaves": {
+     "total": 361,
+     "accepted": 47,
+     "rejected": 0,
+     "skipped": 314
+    }
+   },
+   {
+    "knob": 0.8,
+    "length": 201851,
+    "certified": 265586,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1092,
+     "tables": 155184,
+     "token_convex": 43648,
+     "tree": 727
+    },
+    "leaves": {
+     "total": 364,
+     "accepted": 61,
+     "rejected": 0,
+     "skipped": 303
+    }
+   },
+   {
+    "knob": 0.9,
+    "length": 236306,
+    "certified": 298686,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1104,
+     "tables": 166710,
+     "token_convex": 66557,
+     "tree": 735
+    },
+    "leaves": {
+     "total": 368,
+     "accepted": 99,
+     "rejected": 0,
+     "skipped": 269
+    }
+   },
+   {
+    "knob": 0.95,
+    "length": 260520,
+    "certified": 315203,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1125,
+     "tables": 169374,
+     "token_convex": 88072,
+     "tree": 749
+    },
+    "leaves": {
+     "total": 375,
+     "accepted": 138,
+     "rejected": 0,
+     "skipped": 237
+    }
+   },
+   {
+    "knob": 1.0,
+    "length": 393253,
+    "certified": 331760,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1161,
+     "tables": 177165,
+     "token_convex": 212954,
+     "tree": 773
+    },
+    "leaves": {
+     "total": 387,
+     "accepted": 371,
+     "rejected": 0,
+     "skipped": 16
+    }
+   }
+  ],
+  "Q": 0.628544517049028,
+  "Q_grid": 0.6071888388868584,
+  "cost_of_finishing": 1739.7252226937874,
+  "shortest_full": 393253,
+  "B": 684152163,
+  "E": 1200,
+  "real_correct": 331760,
+  "full_B_over_length": 1739.7252226937874,
+  "full_share_of_correct": 1.0,
+  "boxes": 346,
+  "build": {
+   "boxes": 346,
+   "leaves": 330,
+   "skipped": 16,
+   "oracle_calls": 1678
+  },
+  "seconds": 8.6,
+  "seconds_build": 5.8,
+  "rule": "/home/claude/auto-research-compact-proof/rules/token_convex",
+  "depth": 2,
+  "dear": 1200
+ },
+ "attn-max4-v24-s5": {
+  "points": [
+   {
+    "knob": 0.02,
+    "length": 56118,
+    "certified": 9261,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 52943,
+     "token_convex": 246,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 1,
+     "rejected": 0,
+     "skipped": 345
+    }
+   },
+   {
+    "knob": 0.05,
+    "length": 62278,
+    "certified": 19495,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1041,
+     "tables": 58360,
+     "token_convex": 984,
+     "tree": 693
+    },
+    "leaves": {
+     "total": 347,
+     "accepted": 4,
+     "rejected": 0,
+     "skipped": 343
+    }
+   },
+   {
+    "knob": 0.1,
+    "length": 122426,
+    "certified": 38017,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1047,
+     "tables": 116894,
+     "token_convex": 2588,
+     "tree": 697
+    },
+    "leaves": {
+     "total": 349,
+     "accepted": 8,
+     "rejected": 0,
+     "skipped": 341
+    }
+   },
+   {
+    "knob": 0.2,
+    "length": 126932,
+    "certified": 67855,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1059,
+     "tables": 118280,
+     "token_convex": 5688,
+     "tree": 705
+    },
+    "leaves": {
+     "total": 353,
+     "accepted": 16,
+     "rejected": 0,
+     "skipped": 337
+    }
+   },
+   {
+    "knob": 0.35,
+    "length": 155054,
+    "certified": 124732,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1059,
+     "tables": 138212,
+     "token_convex": 13878,
+     "tree": 705
+    },
+    "leaves": {
+     "total": 353,
+     "accepted": 22,
+     "rejected": 0,
+     "skipped": 331
+    }
+   },
+   {
+    "knob": 0.5,
+    "length": 165033,
+    "certified": 170462,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1086,
+     "tables": 139956,
+     "token_convex": 22068,
+     "tree": 723
+    },
+    "leaves": {
+     "total": 362,
+     "accepted": 39,
+     "rejected": 0,
+     "skipped": 323
+    }
+   },
+   {
+    "knob": 0.65,
+    "length": 184043,
+    "certified": 218118,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1113,
+     "tables": 145626,
+     "token_convex": 35363,
+     "tree": 741
+    },
+    "leaves": {
+     "total": 371,
+     "accepted": 60,
+     "rejected": 0,
+     "skipped": 311
+    }
+   },
+   {
+    "knob": 0.8,
+    "length": 213563,
+    "certified": 269904,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1128,
+     "tables": 156174,
+     "token_convex": 54310,
+     "tree": 751
+    },
+    "leaves": {
+     "total": 376,
+     "accepted": 73,
+     "rejected": 0,
+     "skipped": 303
+    }
+   },
+   {
+    "knob": 0.9,
+    "length": 232551,
+    "certified": 299082,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1161,
+     "tables": 160836,
+     "token_convex": 68581,
+     "tree": 773
+    },
+    "leaves": {
+     "total": 387,
+     "accepted": 108,
+     "rejected": 0,
+     "skipped": 279
+    }
+   },
+   {
+    "knob": 0.95,
+    "length": 252695,
+    "certified": 315251,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1173,
+     "tables": 164028,
+     "token_convex": 85513,
+     "tree": 781
+    },
+    "leaves": {
+     "total": 391,
+     "accepted": 149,
+     "rejected": 0,
+     "skipped": 242
+    }
+   },
+   {
+    "knob": 1.0,
+    "length": 381886,
+    "certified": 331760,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1230,
+     "tables": 173445,
+     "token_convex": 205192,
+     "tree": 819
+    },
+    "leaves": {
+     "total": 410,
+     "accepted": 394,
+     "rejected": 0,
+     "skipped": 16
+    }
+   }
+  ],
+  "Q": 0.6256377849714113,
+  "Q_grid": 0.6064345252599089,
+  "cost_of_finishing": 1791.5088874690352,
+  "shortest_full": 381886,
+  "B": 684152163,
+  "E": 1200,
+  "real_correct": 331760,
+  "full_B_over_length": 1791.5088874690352,
+  "full_share_of_correct": 1.0,
+  "boxes": 346,
+  "build": {
+   "boxes": 346,
+   "leaves": 330,
+   "skipped": 16,
+   "oracle_calls": 1802
+  },
+  "seconds": 8.0,
+  "seconds_build": 4.8,
+  "rule": "/home/claude/auto-research-compact-proof/rules/token_convex",
+  "depth": 2,
+  "dear": 1200
+ },
+ "attn-max4-v24-s7": {
+  "points": [
+   {
+    "knob": 0.02,
+    "length": 61038,
+    "certified": 12167,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 57863,
+     "token_convex": 246,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 1,
+     "rejected": 0,
+     "skipped": 345
+    }
+   },
+   {
+    "knob": 0.05,
+    "length": 64247,
+    "certified": 20167,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 60826,
+     "token_convex": 492,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 2,
+     "rejected": 0,
+     "skipped": 344
+    }
+   },
+   {
+    "knob": 0.1,
+    "length": 116690,
+    "certified": 38689,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1041,
+     "tables": 112198,
+     "token_convex": 1558,
+     "tree": 693
+    },
+    "leaves": {
+     "total": 347,
+     "accepted": 5,
+     "rejected": 0,
+     "skipped": 342
+    }
+   },
+   {
+    "knob": 0.2,
+    "length": 130561,
+    "certified": 73211,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1041,
+     "tables": 123809,
+     "token_convex": 3818,
+     "tree": 693
+    },
+    "leaves": {
+     "total": 347,
+     "accepted": 9,
+     "rejected": 0,
+     "skipped": 338
+    }
+   },
+   {
+    "knob": 0.35,
+    "length": 144070,
+    "certified": 123052,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1059,
+     "tables": 131812,
+     "token_convex": 9294,
+     "tree": 705
+    },
+    "leaves": {
+     "total": 353,
+     "accepted": 20,
+     "rejected": 0,
+     "skipped": 333
+    }
+   },
+   {
+    "knob": 0.5,
+    "length": 161705,
+    "certified": 170637,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1068,
+     "tables": 138771,
+     "token_convex": 19955,
+     "tree": 711
+    },
+    "leaves": {
+     "total": 356,
+     "accepted": 30,
+     "rejected": 0,
+     "skipped": 326
+    }
+   },
+   {
+    "knob": 0.65,
+    "length": 184935,
+    "certified": 216701,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1086,
+     "tables": 148812,
+     "token_convex": 33114,
+     "tree": 723
+    },
+    "leaves": {
+     "total": 362,
+     "accepted": 42,
+     "rejected": 0,
+     "skipped": 320
+    }
+   },
+   {
+    "knob": 0.8,
+    "length": 220161,
+    "certified": 267449,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1086,
+     "tables": 163032,
+     "token_convex": 54120,
+     "tree": 723
+    },
+    "leaves": {
+     "total": 362,
+     "accepted": 61,
+     "rejected": 0,
+     "skipped": 301
+    }
+   },
+   {
+    "knob": 0.9,
+    "length": 254823,
+    "certified": 298777,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1086,
+     "tables": 173616,
+     "token_convex": 78198,
+     "tree": 723
+    },
+    "leaves": {
+     "total": 362,
+     "accepted": 94,
+     "rejected": 0,
+     "skipped": 268
+    }
+   },
+   {
+    "knob": 0.95,
+    "length": 287636,
+    "certified": 315542,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1101,
+     "tables": 180321,
+     "token_convex": 104281,
+     "tree": 733
+    },
+    "leaves": {
+     "total": 367,
+     "accepted": 137,
+     "rejected": 0,
+     "skipped": 230
+    }
+   },
+   {
+    "knob": 1.0,
+    "length": 454104,
+    "certified": 331759,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1179,
+     "tables": 191685,
+     "token_convex": 259255,
+     "tree": 785
+    },
+    "leaves": {
+     "total": 393,
+     "accepted": 376,
+     "rejected": 0,
+     "skipped": 17
+    }
+   }
+  ],
+  "Q": 0.6245230056703616,
+  "Q_grid": 0.6066134665367122,
+  "cost_of_finishing": 1506.5979665451086,
+  "shortest_full": 454104,
+  "B": 684152163,
+  "E": 1200,
+  "real_correct": 331759,
+  "full_B_over_length": 1506.5979665451086,
+  "full_share_of_correct": 1.0,
+  "boxes": 346,
+  "build": {
+   "boxes": 346,
+   "leaves": 329,
+   "skipped": 17,
+   "oracle_calls": 2277
+  },
+  "seconds": 10.0,
+  "seconds_build": 7.2,
+  "rule": "/home/claude/auto-research-compact-proof/rules/token_convex",
+  "depth": 2,
+  "dear": 1200
+ },
+ "attn-max4-v24-s8": {
+  "points": [
+   {
+    "knob": 0.02,
+    "length": 61038,
+    "certified": 12167,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 57863,
+     "token_convex": 246,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 1,
+     "rejected": 0,
+     "skipped": 345
+    }
+   },
+   {
+    "knob": 0.05,
+    "length": 64415,
+    "certified": 22815,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 60994,
+     "token_convex": 492,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 2,
+     "rejected": 0,
+     "skipped": 344
+    }
+   },
+   {
+    "knob": 0.1,
+    "length": 70917,
+    "certified": 40076,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 67004,
+     "token_convex": 984,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 4,
+     "rejected": 0,
+     "skipped": 342
+    }
+   },
+   {
+    "knob": 0.2,
+    "length": 122037,
+    "certified": 69776,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1038,
+     "tables": 116584,
+     "token_convex": 2524,
+     "tree": 691
+    },
+    "leaves": {
+     "total": 346,
+     "accepted": 9,
+     "rejected": 0,
+     "skipped": 337
+    }
+   },
+   {
+    "knob": 0.35,
+    "length": 141078,
+    "certified": 121983,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1050,
+     "tables": 130512,
+     "token_convex": 7617,
+     "tree": 699
+    },
+    "leaves": {
+     "total": 350,
+     "accepted": 19,
+     "rejected": 0,
+     "skipped": 331
+    }
+   },
+   {
+    "knob": 0.5,
+    "length": 155447,
+    "certified": 167954,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1068,
+     "tables": 138499,
+     "token_convex": 13969,
+     "tree": 711
+    },
+    "leaves": {
+     "total": 356,
+     "accepted": 30,
+     "rejected": 0,
+     "skipped": 326
+    }
+   },
+   {
+    "knob": 0.65,
+    "length": 174070,
+    "certified": 216260,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1077,
+     "tables": 144880,
+     "token_convex": 26196,
+     "tree": 717
+    },
+    "leaves": {
+     "total": 359,
+     "accepted": 40,
+     "rejected": 0,
+     "skipped": 319
+    }
+   },
+   {
+    "knob": 0.8,
+    "length": 212706,
+    "certified": 266937,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1077,
+     "tables": 162778,
+     "token_convex": 46934,
+     "tree": 717
+    },
+    "leaves": {
+     "total": 359,
+     "accepted": 57,
+     "rejected": 0,
+     "skipped": 302
+    }
+   },
+   {
+    "knob": 0.9,
+    "length": 246190,
+    "certified": 299400,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1095,
+     "tables": 172981,
+     "token_convex": 70185,
+     "tree": 729
+    },
+    "leaves": {
+     "total": 365,
+     "accepted": 94,
+     "rejected": 0,
+     "skipped": 271
+    }
+   },
+   {
+    "knob": 0.95,
+    "length": 269380,
+    "certified": 315351,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1095,
+     "tables": 176028,
+     "token_convex": 90328,
+     "tree": 729
+    },
+    "leaves": {
+     "total": 365,
+     "accepted": 129,
+     "rejected": 0,
+     "skipped": 236
+    }
+   },
+   {
+    "knob": 1.0,
+    "length": 376282,
+    "certified": 331760,
+    "n_inputs": 331776,
+    "length_by_rule": {
+     "extract": 1200,
+     "read": 1107,
+     "tables": 186789,
+     "token_convex": 186449,
+     "tree": 737
+    },
+    "leaves": {
+     "total": 369,
+     "accepted": 353,
+     "rejected": 0,
+     "skipped": 16
+    }
+   }
+  ],
+  "Q": 0.6300177696781972,
+  "Q_grid": 0.6093174151742202,
+  "cost_of_finishing": 1818.1899825131152,
+  "shortest_full": 376282,
+  "B": 684152163,
+  "E": 1200,
+  "real_correct": 331760,
+  "full_B_over_length": 1818.1899825131152,
+  "full_share_of_correct": 1.0,
+  "boxes": 346,
+  "build": {
+   "boxes": 346,
+   "leaves": 330,
+   "skipped": 16,
+   "oracle_calls": 1715
+  },
+  "seconds": 7.8,
+  "seconds_build": 5.1,
+  "rule": "/home/claude/auto-research-compact-proof/rules/token_convex",
+  "depth": 2,
+  "dear": 1200
+ }
+}
