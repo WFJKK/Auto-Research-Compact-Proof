@@ -70,8 +70,9 @@ GUARD_BITS = 64  # a group's bound is rounded down at 2**-64 of its rows' unit
 DESCRIPTION = (
     'Leaf rule {"leaf": "token_convex"}. For networks with operations beyond linear maps (softmax attention, '
     "say). The correct output must be the same for every input in the leaf. It certifies every leaf "
-    "token_interval certifies (up to exp's rounding), and more through the softmax. A softmax over the "
-    "positions keeps the box of its scores (per "
+    "token_interval certifies, up to the rounding of its bounds (at 2**-64 of the rows' unit, far below the margins "
+    "of trained networks), and more through the softmax. A softmax over the positions keeps the box of its "
+    "scores (per "
     "position, the smallest and largest score over the leaf) and, when the scores are exact per token (the query "
     "fixed in the leaf, say) or per pair of tokens (the query varying, below), those scores. When its weights "
     "multiply exact per-token rows and are summed over the positions, the bound uses that the weights are a "
@@ -104,9 +105,12 @@ DESCRIPTION = (
     "an output not positive ends the search, and the leaf is not certified. With at most one varying position, "
     "a softmax with scores exact per token or per pair is kept as well and these levels are tried first; if they "
     "leave the leaf not certified, it is evaluated again with every value per input, as token_interval and "
-    "version 1 evaluate it (charged as they charge it, with the reuse below), and the larger bound is kept. So "
-    "such a leaf is certified exactly when all its inputs are correct (up to exp's rounding), a leaf that is not "
-    "certified gets its smallest margin, and a certified leaf's bound may be below its smallest margin. "
+    "version 1 evaluate it (charged as they charge it, with the reuse below; not repeated when the first pass kept "
+    "no softmax or query structure, since it then was that evaluation), and the larger bound is kept. So such a "
+    "leaf is certified whenever token_interval certifies it, a leaf that is not certified gets at least "
+    "token_interval's bound (its smallest margin wherever token_interval keeps every value per input; "
+    "concatenating, stacking or expanding values boxes them), and a certified leaf's bound may be below its "
+    "smallest margin. "
     "REUSE. The smallest difference of a row that depends on its token alone, over a range of tokens starting at "
     "the first token or ending at the last, comes from running minima kept for the whole proof per row, label "
     "and direction (to tables: 2 per token and output for level 2's; 3 per token for level 0's); the smallest "
@@ -308,6 +312,7 @@ class ConvexEvaluator(TokenEvaluator):
         self._leaf = {}  # per-term minima computed once in this leaf (the term is kept alive with its value)
         self.tokens = box.tokens
         self.qpos = None  # the position whose token a QVal depends on, once one is made
+        self.structured = False  # True once a Soft or a QVal is made (check_leaf's second pass is then not a repeat)
 
     def tables(self, n) -> None:
         self.counter.add(TABLES, int(n))
@@ -467,6 +472,7 @@ class ConvexEvaluator(TokenEvaluator):
         vals = self.rows(key, toks, ids, fn, (2 * len(m.terms) + 1) * _size(rest), key is not None)
         dims = shape[:d] + (1,) + shape[d:]
         self.qpos = p0
+        self.structured = True
         return QVal(p0, toks, IT.exact(_obj(vals.lo.reshape((len(toks),) + dims)), vals.exp), dims, key)
 
     def pair_scores(self, pp: PProd):
@@ -616,6 +622,7 @@ class ConvexEvaluator(TokenEvaluator):
         self._n_of[self._next_gid] = _size(box.shape)
         if pair is not None:
             self._box_cost[self._next_gid] = 2 * pair.n_entries
+        self.structured = True
         return Soft(box, weights, 1, self._next_gid, rows, pair)
 
     def pay_weights(self, gids) -> None:
@@ -1362,11 +1369,20 @@ class PerInputEvaluator(ConvexEvaluator):
 def check_leaf(prog, ranges, label, counter):
     """(certified, lowest margin bound as a Fraction, the other output reaching it) for one token_convex leaf.
     With at most one varying position, a leaf the softmax levels leave not certified is evaluated again with every
-    value per input, as version 1 and token_interval evaluate it; both bounds hold, and the larger is kept."""
+    value per input, as version 1 and token_interval evaluate it; both bounds hold, and the larger is kept. If the
+    first pass made no Soft and no QVal, it already was that evaluation, and it is not repeated (version 2.2)."""
     if not isinstance(prog, GeneralProgram):
         raise CheckError("token_convex is only for networks beyond linear maps")
-    ok, bound, other = prog.run_token_leaf(ranges, label, counter, ConvexEvaluator)
-    if not ok and sum(1 for lo, hi in ranges if int(hi) > int(lo)) <= 1:
+    made = []
+
+    def first(*args):
+        ev = ConvexEvaluator(*args)
+        made.append(ev)
+        return ev
+
+    ok, bound, other = prog.run_token_leaf(ranges, label, counter, first)
+    one_varies = sum(1 for lo, hi in ranges if int(hi) > int(lo)) <= 1
+    if not ok and one_varies and any(ev.structured for ev in made):
         ok2, bound2, other2 = prog.run_token_leaf(ranges, label, counter, PerInputEvaluator)
         if bound2 > bound:
             ok, bound, other = ok2, bound2, other2

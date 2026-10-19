@@ -67,11 +67,13 @@ def tol(x):
 
 def random_leaves(folder, e, rng, n, fixed_query, max_width=6):
     sizes = folder.sizes(e["setting"])
-    V, P = sizes["d_vocab"], sizes["n_ctx"]
+    space = folder.input_space(e["setting"])
+    P = len(space)
     out = []
     while len(out) < n:
         ranges = []
         for p in range(P):
+            V = space[p]
             lo = int(rng.integers(0, V))
             w = 0 if (fixed_query and p == P - 1) else int(rng.integers(0, max_width))
             ranges.append((lo, min(V - 1, lo + w)))
@@ -192,10 +194,11 @@ def test_exact_decision_when_one_position_varies(rule, name):
             done += 1
 
 
-@pytest.mark.parametrize("name", ["stub_general", "stub_twopaths", "stub_query"])
+@pytest.mark.parametrize("name", ["stub_general", "stub_twopaths", "stub_query", "xorformer-majority"])
 def test_never_weaker_than_token_interval_on_the_synthetic_architectures(rule, name):
-    """Random leaves (one varying position or several) on random-weight networks of the synthetic folders, whose
-    operations the attention folders do not use: whatever token_interval certifies, the rule certifies too."""
+    """Random leaves (one varying position or several) on random-weight networks of the synthetic folders and of
+    xorformer-majority (whose concatenation token_interval boxes), whose operations the attention folders do not
+    use: whatever token_interval certifies, the rule certifies too."""
     rng = np.random.default_rng(15)
     for folder, e, prog, module in nets(name, rng, scales=(1.0, 4.0, 16.0)):
         for ranges, label in random_leaves(folder, e, rng, 25, fixed_query=False, max_width=4):
@@ -552,3 +555,29 @@ def test_a_whole_proof_with_varying_queries(rule):
     fixed = {"schema": SCHEMA, "network": e["id"], "tree": peeling_tree(folder, e["setting"], prog, rule)}
     res_fixed = check_proof(fixed, folder, e["id"], rule_set=("single", "token_convex", "skip"))
     assert res["length"] < res_fixed["length"]
+
+
+def test_the_second_pass_is_not_a_repeat(rule):
+    """xorformer-majority's softmax scores are a box (its query is boxed through a concatenation), so with one
+    varying position the first pass keeps no softmax or query structure; a leaf it does not certify is then not
+    evaluated again (version 2.2): check_leaf charges what one pass charges."""
+    mod = rule.module
+    rng = np.random.default_rng(16)
+    folder, e, prog, module = nets("xorformer-majority", rng, scales=(4.0,))[-1]
+    sizes = folder.sizes(e["setting"])
+    space = folder.input_space(e["setting"])
+    seen = 0
+    for _ in range(400):
+        free = int(rng.integers(0, len(space)))
+        ranges = [(int(t), int(t)) for t in rng.integers(0, 2, size=len(space))]
+        ranges[free] = (0, 1)
+        label = folder.task.constant_label(ranges, sizes)
+        if label is None:
+            continue
+        c1, c2 = Counter(), Counter()
+        ok, bound, _ = rule.check_leaf(prog, ranges, int(label), c1)
+        ok1, bound1, _ = prog.run_token_leaf(ranges, int(label), c2, mod.ConvexEvaluator)
+        assert (ok, bound) == (ok1, bound1)
+        assert c1.as_dict().get("token_convex", 0) == c2.as_dict().get("token_convex", 0)
+        seen += not ok
+    assert seen > 0

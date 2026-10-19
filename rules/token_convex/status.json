@@ -1,10 +1,10 @@
 {
-  "adopted_at": "2026-10-19T14:01:49+00:00",
+  "adopted_at": "2026-10-19T14:29:39+00:00",
   "checks": {
     "audit": {
-      "certified": 1028,
-      "exact_singles": 44143,
-      "leaves": 2302,
+      "certified": 992,
+      "exact_singles": 44063,
+      "leaves": 2323,
       "level": "full",
       "passed": true
     },
@@ -13,30 +13,30 @@
     "tests": {
       "returncode": 0,
       "tail": [
-        "................................                                         [100%]"
+        "..................................                                       [100%]"
       ],
       "timed_out": false
     }
   },
   "files_sha256": {
-    "PROPOSAL.md": "f8aabc94c0955976ca656600a752f11bbe4cd56f354e9599a58de1f7052df8e1",
-    "SOUNDNESS.md": "0bdf1b8889d68c4e195fb542cc684e2fe4f981bfa36c6ff85ea4360858302f5c",
-    "rule.py": "f2b32937a5f6fdf2578784dd89e2deb9862a040f002a584b7c2a6a7f844b5364",
-    "test_rule.py": "0aa5b35227f7ed36a56401e4a10b33b580a56209be6dc76ca795a78a6b684ddc"
+    "PROPOSAL.md": "24c9b80cb3dc879fb3ec1d7d815fd470db981a1832e55dd00e0b4260b8caebcb",
+    "SOUNDNESS.md": "07296bd4dc6346da034aead98cc1e25cb9345a19492e979dbeb53809dd1a89ec",
+    "rule.py": "e10b5396cfd90a1b76c570cfddfe5e19d2d7d32750ce1b4726e3ec21a5d0e1d8",
+    "test_rule.py": "bfd075dadd634e9b256fe29e59092d886e209d22c2b2ed3adec062c56bc88fa9"
   },
   "name": "token_convex",
   "provenance": {
     "attempt": 0,
-    "commit": "2a2cb9985b8feaf940bbaa4fc9c0fd5261bd2396",
+    "commit": "4a2a68c3c4ec929dcf4949f1bb4f8b4aedffd3dd",
     "implemented_by": "Claude (session of 19 October 2026), by hand, as the route's implementer",
-    "proposal": "/root/auto-research-compact-proof-runs/rule-route/candidates/token-convex-2.1/token_convex/PROPOSAL.md",
-    "route_config_sha256": "1faaeb3aadc22c5367725e257eac607ddcf7ed578122e71aef6f4c6f398116a9",
-    "route_id": "token-convex-2.1-2026-10-19"
+    "proposal": "/root/auto-research-compact-proof-runs/rule-route/candidates/token-convex-2.2/token_convex/PROPOSAL.md",
+    "route_config_sha256": "cf6bf227ccbe5d2697a33cf3c93826ba17f858c34923d6f901b4338a3156ac45",
+    "route_id": "token-convex-2.2-2026-10-19"
   },
   "reviews": [
     {
       "backend": "manual",
-      "counterexamples": 7,
+      "counterexamples": 4,
       "model": null,
       "verdict": "SOUND"
     }

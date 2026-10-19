@@ -2,78 +2,71 @@
 
 ## Review 1: SOUND (manual backend, model not recorded)
 
-Summary. I found no soundness or trust problem in 2.1. The code change is small and sound by construction:
-- check_leaf (rule.py 1362-1373) keeps the larger of two lower bounds.
-- PerInputEvaluator (1355-1359) differs from ConvexEvaluator only in declining qval (424) and intercept (596) in leaves with at most one varying position.
-- Each pass is an evaluation already reviewed (version 2, and version 1's per-input path).
+Summary. I found no soundness or trust problem in 2.2. The rule change has two parts:
+- a flag, structured (rule.py 315), set only where a QVal is created (475) or a new Soft is created (625);
+- check_leaf (1369-1389), which records the first pass's evaluator through a factory and runs the second pass only when that evaluator made structure.
+Both passes are the evaluations I reviewed before. The skip removes only a pass that would repeat the first exactly. The core fix (concretize) is correct and preserves values.
 
-Nothing I tried makes either pass exceed a margin, including on the paths stub_query reaches for the first time. The cases above are passing regression sequences, not counterexamples. Through the route's audit (--only-counterexamples) they give 21 leaves plus the 62 fixed regressions: 0 violations, 37 certified, 18,324 exact single checks.
+The cases above are passing regression sequences, not counterexamples:
+- leaves certified through a completed query-by-query pass with two pair groups;
+- leaves that only the second pass certifies, on the four-head stub_query;
+- single-input leaves whose second pass reaches the fixed concretize.
+The stub_query networks carry explicit weights (see item 4). Through the route's audit (--only-counterexamples) they give 14 leaves plus the 83 fixed regressions: 0 violations, 37 certified, 18,086 exact single checks.
 
-The verdict covers soundness and trust only. The new agent-facing claim about leaves with at most one varying position is false on xorformer-majority (item A), and the "(up to exp's rounding)" qualifier is inexact (item B). Since the agent reads the DESCRIPTION, the wording should be corrected before adoption.
+Items from my 2.1 review
 
-Earlier points
+A. RESOLVED. The DESCRIPTION (rule.py 104-113), SOUNDNESS.md section 8 and the core's descriptions (core/check/rules.py line 50, docs/RULES.md line 80) now promise, with at most one varying position, only that the leaf is certified whenever token_interval certifies it, and that an uncertified leaf gets at least token_interval's bound, which is its smallest margin wherever token_interval keeps every value per input.
 
-1. RESOLVED. The second pass restores version 1's per-input evaluation in leaves with at most one varying position, and the bound is the maximum of the two passes. On 504 such leaves over all eight folders (random and trained), the second pass's bound equals token_interval's bound exactly, every time. So 2.1 never certifies less than token_interval there. Every v2 example from my last review now certifies with the exact margin:
-- stub_twopaths random:4:16.0 [[0,3],[4,4],[3,3]] label 4 now gives 9886.91;
-- stub_twopaths random:2:4.0 [[1,1],[1,1],[0,1]] label 1 now gives 2.01749;
-- stub_general random:2:4.0 [[3,3],[1,1],[2,3]] label 3 now gives 0.117765.
-On every folder except xorformer-majority (item A), aligned leaves are certified exactly when all inputs are correct, and an uncertified leaf gets its smallest margin (504 leaves, 0 exceptions outside xorformer).
+I checked this on 1,500 leaves with one varying position (trained and random networks). On the seven folders where token_interval keeps every value per input, every uncertified leaf got its exact smallest margin, and no leaf with all inputs correct was left uncertified. On xorformer-majority, 33 of 210 uncertified leaves are inexact and 7 leaves with all inputs correct are uncertified, exactly as with token_interval and as the new text says.
 
-2. RESOLVED. Uncertified query-varying leaves now get the exact margin. For example, attn-max4 random:5:4.0 gives -22.2033 for [[10,10],[15,15],[9,9],[6,11]] label 15 and -51.2736 for [[14,14],[10,10],[14,14],[1,5]] label 14, both equal to the true minimum. The exactness test now runs on random networks too, which would have caught the gap. It still leaves out xorformer-majority (item A).
+One precision: the list "concatenating, stacking or expanding values" is not exhaustive. var_op (core/check/tokens.py, 521) has no per-input rule for nn.Linear, transpose or .T either, so those also box a per-input value. No current folder applies them to one. The text should say "such as", in the rule and in the core.
 
-3. RESOLVED in the text. PROPOSAL.md line 39 now promises "Lose anything token_interval or version 1 certifies", and a new section lists what version 2 changed. The QVal docstring and SOUNDNESS.md section 8 are corrected. The new promise holds except at the GUARD_BITS edge of item B, where token_interval certifies and 2.1 does not.
+B. RESOLVED in the wording. Sentence 3 of the DESCRIPTION (rule.py 73) now names the 2**-64 floor, and SOUNDNESS.md section 3 explains GUARD_BITS. My 2.1 case (the token-independent attn-max4 network, now in regressions.json) behaves as stated: token_interval certifies the leaf with three varying positions, the rule returns 0, and the one-varying leaf is certified through the second pass.
 
-4. MOSTLY RESOLVED. I instrumented stub_query. It reaches:
-- two-term, keyed QVals;
-- pair_margin with three groups side by side (pair, per-token rows, box);
-- the query-position term at weight -0.5, so level A's negative branch (1132) and pessimised with w < 0;
-- query_view and fixed_levels with non-pair groups next to a pair group;
-- query_var and collapse_query for a QVal and a PProd.
+Minor: exp's 2**-120 rounding is also part of "the rounding of its bounds". It is relative to the weights, hence scaled by the rows' magnitude, and it can exceed 2**-64 of the rows' unit. Both are far below trained margins, so the parenthetical understates the rounding but does not mislead.
 
-Still unreached on every folder:
-- a PScores leaving the token rules, i.e. the PScores branches of query_var (535-541) and collapse_query (555-557);
-- two pair groups in one decision;
-- pair_margin's singles and others classes (1094 and 1098), which are always empty.
+C. RESOLVED. The xorformer leaf from my 2.1 review (random:4:4.0, one varying position) now costs 4,561, token_interval's charge, instead of 9,122.
 
-On random stub_query weights, by_query almost always stops early: 27 of 27 decisions in one sample. So certification through the completed query-by-query pass with three groups is rare. I found such leaves and put them in the cases above (random:4:0.5, random:16:0.5, with bounds as tight as 0.003614 against a true minimum of 0.003663). I read the unreached branches and found them correct, but no audit exercises them.
+The skip logic is sound, and it answers both of the coordinator's questions:
+- Where per_input is read: only in qval (429) and intercept (602).
+- Where structured is set: exactly where a QVal (475) or a new Soft (625) is created. Every other Soft, PScores or PProd construction (518, 663, 674, 1318, 1322) needs an existing Soft or QVal.
+- A first pass that made no structure therefore took PerInputEvaluator's path node by node, with the same values read from the same memo. On 150 xorformer leaves its bound and output equal PerInputEvaluator's.
+- A first pass that made a Soft or QVal and then turned it into plain values (a discarded branch) still has structured True, so the second pass runs. That can only cost more; it never loses a bound.
+- A first pass that made none but differs from the second pass is impossible, since the two evaluators differ only in declining those two constructions.
 
-5. DOCUMENTED, NOT CHANGED. SOUNDNESS.md section 6 now says the pair box and its interval softmax are computed when the Soft is made and charged only if used (rule.py 608-614). When the levels decide, this work is still done and not charged. That is acceptable as a stated convention, but computing them lazily would make charge and work match.
+Minor wording: sentence 19 (rule.py 108) says "not repeated when the first pass kept no softmax or query structure". The code tests whether the first pass made structure, not whether it kept it.
 
-New findings
+4. RESOLVED. I instrumented the four-head stub_query. It reaches:
+- two pair groups in one decision, next to a per-token group and a box group;
+- a PScores leaving the token rules (query_var and collapse_query of a PScores);
+- pair_margin's singles and others classes (residual[:, 0] @ F, with one token or several at position 0).
 
-A. With at most one varying position, the new exactness claims are false on xorformer-majority. The claims are:
-- DESCRIPTION, rule.py 105-109: "So such a leaf is certified exactly when all its inputs are correct (up to exp's rounding), a leaf that is not certified gets its smallest margin".
-- SOUNDNESS.md section 8 (line 135): PerInputEvaluator "keeps every value one per input in such a leaf ... The second pass's bound is token_interval's, exact per input up to the rounding of exp and of the softmax's division".
+One gap remains. On random weights, by_query never completed in my sample (44 of 44 stopped), and the route's audit samples random weights. I found leaves that certify through a completed query-by-query pass with two pair groups and give them in the first two cases.
 
-The bound is token_interval's, but token_interval is not exact here. Its per-input evaluation boxes values at operations var_op does not cover (core/check/tokens.py, var_op: no cat, stack or expand). In xorformer-majority, positions = torch.cat([bits, query.expand(...)]). I traced it in both passes: node cat receives the bits' per-token CSep and an IT, var_op declines cat, the per-input value is collapsed, and cat returns the box over the leaf. stack and expand behave the same way. Everything after that is interval arithmetic over the box.
+Note also that changing stub_query's parameters changed what every "random:<seed>:<scale>" case on it draws. My three 2.1 stub_query sequences in regressions.json now run on different networks: the leaves that were certified through a completed query-by-query pass are no longer certified, and by_query now stops early or is never reached (8 of 8 re-run). They are still valid soundness checks but no longer test what they were added for. Regressions on synthetic folders should carry explicit weights; a changed folder then makes the case malformed, visibly, instead of silently different.
 
-Leaves where every input is correct but the leaf is not certified (token_interval gives the same bound):
-- random:4:4.0 [[1,1],[1,1],[1,1],[0,0],[0,0],[0,1],[1,1],[0,0],[0,0],[0,0],[0,0],[1,1]] label 0: bound -172.874, true +6.665.
-- random:1:4.0 [[0,1],[1,1] eleven times] label 1: -899.157 vs +18.232.
-- perturbed:xorformer-majority-n12h1d8-s2:1:2.0 [[0,0],[0,0],[0,0],[0,0],[1,1],[0,0],[1,1],[0,1],[1,1],[1,1],[1,1],[0,0]] label 0: -721.386 vs +22.884.
+The core fix (commit 7dfd8b1, core/check/tokens.py, concretize). It is correct and preserves values:
+- The old code read rows.lo[0][None], which indexes a Python int when the rows are scalars (TypeError, so the whole proof is rejected).
+- The new rows.lo[0:1] gives the same (1, *rest) array whenever the old code worked.
 
-An uncertified leaf whose bound is not its smallest margin: random:4:4.0 [[1,1],[0,1],[1,1],[0,0],[0,0],[0,0],[0,0],[1,1],[1,1],[1,1],[1,1],[1,1]] label 1: -199.371 vs -6.665.
+Confirmed:
+- On the core test's stub_query leaves, the old code raised TypeError in token_interval and in token_convex's second pass; the new code gives the exact margins.
+- On 60 single-input attn-max4 leaves, old and new give identical bounds.
+- 67 single-input stub_query leaves reach the fixed path inside token_convex's second pass; three are in the last case.
+- The pattern occurs nowhere else in the core or the rule.
 
-Correct-but-uncertified leaves per 40 one-varying-bit leaves: random:4:4.0 21, random:3:1.0 22, perturbed s2:1:2.0 22, random:2:16.0 6, perturbed s0:0:0.5 5. On the six trained networks and three perturbed by 0.1 to 0.2, all of about 10,400 sampled one-varying-bit leaves were correct and certified, so the effect on the scored networks is small; the claim is still false as stated.
+Every agent-facing claim in the DESCRIPTION, once more
+- Sentence 3 (certifies every leaf token_interval certifies, up to rounding): true; see B. No leaf with several varying positions lost certification: 1,404 tested, 170 certified by token_interval.
+- Levels 0 to 3, A, B and query by query: implemented as described. I checked every intermediate level below.
+- Sentence 18 (rule.py 104), "the first query token that leaves an output not positive ends the search, and the leaf is not certified": with one varying position the second pass can still certify the leaf. On the GUARD_BITS network in regressions.json, leaf [[15,15],[0,0],[0,0],[0,14]] label 15: by_query stops, the first pass returns 0, and check_leaf certifies with 7.31e-26 through the second pass. This can happen only at the rounding edge on current folders. Say "the levels leave the leaf not certified".
+- Sentence 19: see C ("kept" against "made").
+- Sentence 20: true; see A for the list.
+- Charges: one small mismatch with the code. "level 0: 1 per position (a table read; else 3 per token)", but a position with one token costs 2 (min_difference_all, rule.py 798).
 
-The core makes the same overclaim: core/check/rules.py lines 49-50 (token_interval's description) and docs/RULES.md (the Var paragraph, line 80). 2.1 inherits it. The 2.1 exactness test does not run on xorformer-majority, which would have caught this.
-
-Fix: qualify the claim, for example "exact when token_interval keeps every value per input; values are boxed at operations its per-input evaluation does not cover, such as torch.cat, torch.stack and expand". Alternatively, teach the core's var_op those operations. Either way, add xorformer-majority to the exactness test.
-
-B. "It certifies every leaf token_interval certifies (up to exp's rounding)" (rule.py 72-73) is inexact with several varying positions. In both decisions, each group's bound is rounded down at 2**e0, with e0 at most a group's row exponent minus GUARD_BITS = 64 (rule.py 69, 849, 1101). That is 2**-64 of the rows' unit. token_interval sums at 2**-120.
-
-The last case above is a constructed, token-independent attn-max4 v16 network where logit 15 = a_0 - a_1, about 7.3e-26 for every input. On the leaf [[15,15],[0,14],[0,14],[0,14]] label 15 (three varying positions), token_interval certifies with bound 7.311e-26, which is the exact margin, and the single rule certifies every input. 2.1 returns 0. The one-varying leaf [[15,15],[0,0],[0,0],[0,14]] is certified through the second pass. Float64 shows a margin of 0 here; only the exact recheck sees it.
-
-No trained network comes near this: it needs a margin below 2**-64 of the rows' unit. So only the wording matters. Either say "up to rounding at 2**-64 of a group's row unit, and exp's", or keep the larger of the levels' bound and token_interval's term-wise bound in leaves with several varying positions too.
-
-C. Charges. Both passes are charged. The second pass charges what token_interval charges, except that context rows are kept for the proof (tables) and matched per leaf, as the DESCRIPTION says. For example, attn-max2 random:7:16.0 [[57,57],[46,46]]: pass 2 costs 94 less per leaf and 126 more in tables than token_interval. That is the 126 score entries kept, minus the 32 numbers paid to match the query.
-
-When the first pass makes no Soft and no QVal (every xorformer leaf, for example), the second pass repeats it exactly. random:4:4.0's leaf in item A costs 4,561 per pass, 9,122 in all, for the same bound. This is honest but wasteful; check_leaf could skip the second pass in that case.
-
-What held up (2.1 loaded with use_candidate on its own path):
-- The two-pass logic. Both bounds are lower bounds, ok follows the kept bound, and the condition at 1369 matches the evaluator's own test for at most one varying position. The passes share memo keys only for identical computations (pure rows, tables, top2). The second pass's context rows use version 1's keys, which the first pass never writes.
-- Differential memo test of check_leaf. Each leaf with a fresh memo against long shared sequences (repeats, token_interval interleaved), 24,140 leaves on all eight folders: identical bounds and outputs.
-- Exact oracle: the single rule's interval for every input, no tolerance. 32,475 leaves: 15,000 on stub_query with random weights at scales 0.25 to 512; 4,000 with crafted stub_query weights (small integers with exact ties, exponents 2**-40 to 2**40, mixed per entry, sparse, duplicate rows, s = 0 and s < 0); the rest on all folders. No bound above the exact minimum, no crash.
-- Every intermediate bound on stub_query: level A, level B per output, fixed_levels per query token and output, and levels 0 to 3 per output for the non-pair decision. 656 pair and 370 non-pair decisions, no excess.
-- Float64 brute force: all 9,261 boxes with a random second label on two stub_query networks, 23,070 leaves, token_interval interleaved.
-- Never weaker than token_interval: 3,882 leaves with several varying positions on all folders. token_interval certified 530 of them, and 2.1 certified every one.
+What held up (2.2 loaded with use_candidate on its own path; byte-code writing disabled throughout):
+- Exact oracle (the single rule's interval for every input, no tolerance): 16,450 leaves, 10,875 of them on the four-head stub_query at scales 0.25 to 512. No bound above the exact minimum, no crash; worst relative slack about 5e-47.
+- Every intermediate bound on the four-head stub_query: level A, level B per output, fixed_levels per query token and output, and levels 0 to 3 per output for the non-pair decision. 936 pair decisions (two pair groups) and 469 non-pair decisions, no excess.
+- Differential memo test of check_leaf: each leaf with a fresh memo against long shared sequences (repeats, token_interval interleaved), 10,064 leaves on all eight folders. Bounds and outputs identical.
+- Float64 brute force: all 9,261 boxes with a random second label on a four-head stub_query network (11,535 leaves), token_interval interleaved.
+- With one varying position: 1,050 leaves compared with PerInputEvaluator and token_interval (first passes without structure identical; nothing token_interval certifies left uncertified), and 1,500 leaves for exactness (item A).
+- Static guard passes. The files match the hashes in checks.json, and the prompt's rule.py is identical to the candidate's.
