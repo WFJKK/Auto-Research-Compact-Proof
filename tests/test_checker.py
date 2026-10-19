@@ -490,3 +490,14 @@ def test_segments_are_located_by_index(zoo):
             l = int(rng.integers(0, n_out))
             out = a.row_min_diffs(l, lo, hi, Counter())
             assert all(out[j] == min(P[l, t] - P[j, t] for t in range(lo, hi + 1)) for j in range(n_out))
+
+
+def test_full_tree_counts_match_the_built_tree():
+    from core.check.checker import full_tree_counts
+    from core.check.cost import count_scalars
+    from core.check.proof import full_tree, walk
+
+    for space in ([3], [4, 4], [2, 3, 5], [3, 1, 4], [2, 2, 2, 2]):
+        tree = full_tree(space)
+        _, n_nodes = walk(tree, space, 10**6)
+        assert full_tree_counts(space) == (n_nodes, count_scalars(tree))

@@ -27,6 +27,16 @@ Agent: Fable 5.1, effort high, 4 rounds, scored on Q, with `token_interval` (`co
 | min of 4, v24 | cubic | B/705 | 0.995 | 0.492 | **0.471** | **165** |
 | | agent | B/86 to B/124 | 1 | **0.495** | 0.470 | 99 |
 
+### At the paper's own size (added 19 October 2026)
+
+`attn-max4` now has the paper's setting v64 (d_vocab 64, n_ctx 4, d_model = d_head 32; ten networks, 99.97 to 100% accurate). `run_cubic.py <checkout> attn-max4:v64` writes `cubic_results_attn-max4_v64.json`. There B = 220,822,257,923 (about 2^37.7) and E = 8,320.
+
+| Task, size | Proof | Length | Accuracy | Q | Q_grid | Cost of finishing |
+| --- | --- | --- | --- | --- | --- | --- |
+| max of 4, v64 | cubic | B/12,283 | 0.975 | 0.537 | 0.528 | 40 |
+
+The paper reports a 0.953 bound on accuracy itself (ours is the share of correct inputs) and 2^47 against 2^25 FLOPs for brute force and the cubic proof; our count gives a ratio of about 2^13.6, because their FLOP estimate of brute force carries a much larger constant than our count of the checker's operations. No agent run at v64 yet: `config/attn-max4-v64-q-api-tokens.yaml`.
+
 ## Reading
 
 - **Two tokens:** the agent's proofs are better on every measure. With two positions the cubic proof's pessimisation costs accuracy and saves little length.

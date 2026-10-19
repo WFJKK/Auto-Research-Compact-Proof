@@ -15,6 +15,13 @@ size_settings:
     d_vocab: 24
     d_model: 12
     d_head: 12
+  # The paper's own size (added 19 October 2026). B comes from the shapes; brute
+  # force itself is never run, so runs at v64 replay no baselines.
+  v64:
+    n_ctx: 4
+    d_vocab: 64
+    d_model: 32
+    d_head: 32
 
 seeds: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 

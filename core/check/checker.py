@@ -300,10 +300,23 @@ def extraction_and_brute_force_costs(folder: ModelFolder, network_id: str) -> tu
     tok = np.zeros((1, len(space)), dtype=np.int64)
     lab = np.asarray(folder.task.label(tok, folder.sizes(entry["setting"])), dtype=np.int64)
     prog.run_singles(tok, lab, one)
-    proof = brute_force_proof(folder, network_id)
-    _, n_nodes = walk(proof["tree"], space, limits(n)["max_nodes"])
-    B = E + count_scalars(proof) + n_nodes + n * one.total
+    n_nodes, n_scalars = full_tree_counts(space)
+    # the proof file's other scalars: its schema and network strings
+    B = E + 2 + n_scalars + n_nodes + n * one.total
     return E, B
+
+
+def full_tree_counts(space: list[int]) -> tuple[int, int]:
+    """(nodes, scalars) of full_tree(space) and its single leaves, by counting rather than building it
+    (at millions of inputs the tree itself would not fit in memory). A test compares both with the built tree."""
+    nodes, scalars, width = 0, 0, 1
+    for v in space:
+        if v == 1:
+            continue
+        nodes += width  # one split per node at this depth
+        scalars += width * v  # its position and v - 1 cuts
+        width *= v
+    return nodes + width, scalars + width  # and one leaf per input, each holding its rule name
 
 
 def main(argv=None):

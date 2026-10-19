@@ -1,6 +1,6 @@
 """Gross et al.'s cubic proof for Max-of-K, run on our attention zoos and measured in our units.
 
-    python results/gross-cubic-2026-10-16/run_cubic.py <checkout of JasonGross/guarantees-based-mechanistic-interpretability>
+    python results/gross-cubic-2026-10-16/run_cubic.py <checkout of JasonGross/guarantees-based-mechanistic-interpretability> [folder:setting]
 
 The proof itself is their code, unchanged: compute_extreme_softmaxed_right_attention_cubic_simple,
 compute_largest_wrong_logit_cubic and count_correct_sequences_cubic from
@@ -146,14 +146,15 @@ def length_in_our_units(V: int, n: int, d: int, dh: int, E_cost: int) -> int:
     return ops
 
 
-def main(checkout: str) -> None:
+def main(checkout: str, only: str | None = None) -> None:
+    """only: "<folder>:<setting>" to run one size setting (written to its own results file)."""
     cubic = load_their_cubic(Path(checkout))
     out = {}
     for name in FOLDERS:
         folder = load_model_folder(REPO / "models" / name)
         reverse = "min" in name
         for e in networks(folder):
-            if e["split"] != "dev":
+            if e["split"] != "dev" or (only and f"{name}:{e['setting']}" != only):
                 continue
             s = folder.sizes(e["setting"])
             V, n, d, dh = s["d_vocab"], s["n_ctx"], s["d_model"], s["d_head"]
@@ -181,7 +182,8 @@ def main(checkout: str) -> None:
             print(f"{e['id']}: certified {certified}/{n_inputs} ({r['normalised']:.4f} of correct), "
                   f"length {L:,} (B/{r['B_over_length']:.0f}), Q {r['Q']:.4f}, Q_grid {r['Q_grid']:.4f}, "
                   f"cost of finishing {r['cost_of_finishing']:.2f}", flush=True)
-    (Path(__file__).parent / "cubic_results.json").write_text(json.dumps(out, indent=1))
+    name = "cubic_results.json" if not only else f"cubic_results_{only.replace(':', '_')}.json"
+    (Path(__file__).parent / name).write_text(json.dumps(out, indent=1))
 
 
 class _NoBar:
@@ -190,4 +192,4 @@ class _NoBar:
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)

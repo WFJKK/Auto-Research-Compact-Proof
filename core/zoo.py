@@ -96,4 +96,8 @@ def correct_mask(folder: ModelFolder, network_id: str, allow_held_out: bool = Fa
     entry = network_entry(folder, network_id)
     if entry["split"] == "held_out" and not allow_held_out:
         raise ZooError(f"{network_id} is held out")
-    return np.load(folder.zoo_dir() / entry["correct"], allow_pickle=False)
+    path = folder.zoo_dir() / entry["correct"]
+    if path.suffix == ".npz":
+        with np.load(path, allow_pickle=False) as z:
+            return z["correct"]
+    return np.load(path, allow_pickle=False)

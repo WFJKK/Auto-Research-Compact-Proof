@@ -32,6 +32,8 @@ from .util import sha256_file, sha256_json
 from .zoo import read_manifest, split_assignment, write_manifest
 
 TRAINER_VERSION = "train-v1"
+# Correctness masks over more inputs than this are stored compressed (.npz); not a size of any model.
+LARGE_MASK = 1 << 20
 
 
 def training_key(folder: ModelFolder, setting: str, seed: int) -> str:
@@ -164,8 +166,12 @@ def train_zoo(folder: ModelFolder, settings=None, seeds=None, force=False, log=p
             weights = {k: v.detach().cpu().numpy().astype(store) for k, v in module.state_dict().items()}
             np.savez(wpath, **weights)
             correct = float_correct(folder, setting, module)
-            cpath = folder.zoo_dir() / f"{nid}.correct.npy"
-            np.save(cpath, correct)
+            if len(correct) > LARGE_MASK:  # millions of inputs: store the mask compressed (it is nearly all True)
+                cpath = folder.zoo_dir() / f"{nid}.correct.npz"
+                np.savez_compressed(cpath, correct=correct)
+            else:
+                cpath = folder.zoo_dir() / f"{nid}.correct.npy"
+                np.save(cpath, correct)
             entry = {
                 "id": nid,
                 "setting": setting,
