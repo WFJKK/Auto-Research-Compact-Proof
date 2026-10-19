@@ -410,7 +410,9 @@ class TokenEvaluator:
         rows = []
         for p, r in enumerate(sep.rows):
             cp = IT.exact(_obj(np.array(b[0, p])), c.exp)
-            rows.append(self.rows((n.name, sep.origin, p), sep.tokens[p], r, lambda R, cp=cp: R + cp, _size(sep.rest), pure))
+            # "+" keeps these rows apart from the rows a linear node's own product keeps under (node, origin, p):
+            # an nn.Linear with a bias multiplies and then adds the bias at the same node
+            rows.append(self.rows((n.name, "+", sep.origin, p), sep.tokens[p], r, lambda R, cp=cp: R + cp, _size(sep.rest), pure))
         return Sep(rows, sep.tokens, pure, sep.origin)
 
     def mul_sep(self, n, sep: Sep, c: IT, c_free: bool):

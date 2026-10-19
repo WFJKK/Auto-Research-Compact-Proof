@@ -65,14 +65,17 @@ class Net:
 
 
 def general_folders(names=None) -> list:
+    """(folder, smallest setting) for every model folder beyond linear maps: the real ones in models/, and the
+    synthetic ones in tests/ (no trained zoo; random weights only), which use operations the real ones do not."""
     out = []
-    for path in sorted((REPO_ROOT / "models").iterdir()):
-        if not (path / "model.py").is_file() or (names and path.name not in names):
-            continue
-        folder = load_model_folder(path)
-        setting = min(folder.setting_names(), key=lambda s: folder.n_inputs(s))
-        if getattr(build_any(folder.build(setting)), "general", False) and networks(folder, setting=setting):
-            out.append((folder, setting))
+    for root in (REPO_ROOT / "models", REPO_ROOT / "tests"):
+        for path in sorted(p for p in root.iterdir() if p.is_dir()):
+            if not ((path / "model.py").is_file() and (path / "config.yaml").is_file()) or (names and path.name not in names):
+                continue
+            folder = load_model_folder(path)
+            setting = min(folder.setting_names(), key=lambda s: folder.n_inputs(s))
+            if getattr(build_any(folder.build(setting)), "general", False):
+                out.append((folder, setting))
     return out
 
 
@@ -235,10 +238,12 @@ def audit(rule_dir: Path, level: str = "full", folders=None, seed: int = 0, coun
     singles_left = [cfg["singles"]]
     try:
         for folder, setting in general_folders(folders):
-            dev = [e["id"] for e in networks(folder, setting=setting)]
+            dev = [e["id"] for e in networks(folder, setting=setting)] if folder.zoo_dir().is_dir() else []
             specs = [f"zoo:{nid}" for nid in dev[: cfg["trained"]]]
-            specs += [f"random:{seed + i}:{SCALES[i % len(SCALES)]}" for i in range(cfg["random"])]
-            specs += [f"perturbed:{dev[i % len(dev)]}:{seed + i}:{RELATIVE[i % len(RELATIVE)]}" for i in range(cfg["perturbed"])]
+            n_random = cfg["random"] if dev else cfg["random"] + cfg["trained"] + cfg["perturbed"]  # no zoo: random only
+            specs += [f"random:{seed + i}:{SCALES[i % len(SCALES)]}" for i in range(n_random)]
+            if dev:
+                specs += [f"perturbed:{dev[i % len(dev)]}:{seed + i}:{RELATIVE[i % len(RELATIVE)]}" for i in range(cfg["perturbed"])]
             for spec in specs:
                 net = _attach(network(folder, setting, spec))
                 for leaf in sample_leaves(folder, setting, rng, cfg["leaves"], cfg["max_inputs"]):

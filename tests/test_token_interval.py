@@ -137,3 +137,34 @@ def test_a_hand_written_strip_proof_certifies_a_network_well_below_brute_force()
     r = check_proof(strip_proof(e["id"], V), folder, e["id"], rule_set=RULES)
     assert r["status"] == "ok" and r["certified"] == e["real_correct"]
     assert r["length"] < e["B"] / 5
+
+
+def test_a_linear_layer_with_a_bias_keeps_its_bias():
+    """Regression (19 October 2026): an nn.Linear with a bias multiplies and adds at one node, and the bias rows
+    were kept under the product's memo key, so the bias was dropped and bounds could exceed the true margin."""
+    import torch as t
+
+    class Net(t.nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.inp = t.nn.Linear(4, 3, bias=True)
+            self.out = t.nn.Linear(3, 4, bias=False)
+
+        def forward(self, x):
+            h = self.inp(x)
+            w = t.softmax(t.sum(h, dim=2), dim=1)
+            return self.out(t.sum(w.unsqueeze(2) * h, dim=1))
+
+    t.manual_seed(0)
+    m = Net()
+    with t.no_grad():
+        m.inp.bias.copy_(t.tensor([5.0, -7.0, 3.0]))
+    weights = {k: v.detach().numpy().astype(np.float32) for k, v in m.state_dict().items()}
+    prog = make_program(build_any(m), weights, Counter(), [4, 4])
+    for ranges in ([(0, 3), (1, 1)], [(0, 3), (0, 3)], [(2, 2), (0, 2)]):
+        toks = np.array(list(itertools.product(*[range(lo, hi + 1) for lo, hi in ranges])))
+        z = m.double()(t.nn.functional.one_hot(t.tensor(toks), 4).double()).detach().numpy()
+        for label in range(4):
+            true = float((z[:, label] - np.delete(z, label, axis=1).max(axis=1)).min())
+            _, bound, _ = prog.run_token_interval(ranges, label, Counter())
+            assert float(bound) <= true + 1e-9
