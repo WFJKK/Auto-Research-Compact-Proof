@@ -650,5 +650,1249 @@
    }
   ],
   "note": "regression (19 October 2026): two terms with one origin read each other's rows (stub_twopaths, a sequence on one program)"
+ },
+ {
+  "folder": "attn-max4",
+  "leaves": [
+   {
+    "ranges": [
+     [
+      12,
+      12
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "ranges": [
+     [
+      12,
+      12
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      0,
+      11
+     ],
+     [
+      12,
+      12
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      12,
+      12
+     ],
+     [
+      0,
+      11
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      12,
+      12
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      12,
+      12
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "ranges": [
+     [
+      5,
+      5
+     ],
+     [
+      15,
+      15
+     ],
+     [
+      12,
+      12
+     ],
+     [
+      0,
+      15
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      2,
+      2
+     ],
+     [
+      10,
+      10
+     ],
+     [
+      4,
+      4
+     ],
+     [
+      3,
+      4
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      0,
+      15
+     ],
+     [
+      15,
+      15
+     ],
+     [
+      0,
+      15
+     ],
+     [
+      7,
+      7
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "ranges": [
+     [
+      0,
+      15
+     ],
+     [
+      15,
+      15
+     ],
+     [
+      0,
+      15
+     ],
+     [
+      7,
+      7
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      0,
+      14
+     ],
+     [
+      15,
+      15
+     ],
+     [
+      0,
+      14
+     ],
+     [
+      0,
+      15
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      15,
+      15
+     ],
+     [
+      0,
+      15
+     ],
+     [
+      0,
+      15
+     ],
+     [
+      0,
+      15
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      9,
+      15
+     ],
+     [
+      15,
+      15
+     ],
+     [
+      9,
+      15
+     ],
+     [
+      9,
+      15
+     ]
+    ]
+   },
+   {
+    "label": 13,
+    "ranges": [
+     [
+      0,
+      12
+     ],
+     [
+      13,
+      13
+     ],
+     [
+      0,
+      12
+     ],
+     [
+      0,
+      12
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      3,
+      3
+     ],
+     [
+      4,
+      4
+     ],
+     [
+      5,
+      5
+     ],
+     [
+      6,
+      6
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      3,
+      3
+     ],
+     [
+      4,
+      4
+     ],
+     [
+      0,
+      5
+     ],
+     [
+      6,
+      6
+     ]
+    ]
+   }
+  ],
+  "network": "zoo:attn-max4-v16-s1",
+  "setting": "v16",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
+ },
+ {
+  "folder": "attn-max2",
+  "leaves": [
+   {
+    "label": 59,
+    "ranges": [
+     [
+      59,
+      59
+     ],
+     [
+      0,
+      55
+     ]
+    ]
+   },
+   {
+    "label": 45,
+    "ranges": [
+     [
+      45,
+      45
+     ],
+     [
+      0,
+      44
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "label": 45,
+    "ranges": [
+     [
+      45,
+      45
+     ],
+     [
+      0,
+      44
+     ]
+    ]
+   },
+   {
+    "label": 45,
+    "ranges": [
+     [
+      45,
+      45
+     ],
+     [
+      16,
+      29
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      0,
+      63
+     ],
+     [
+      63,
+      63
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "ranges": [
+     [
+      0,
+      63
+     ],
+     [
+      63,
+      63
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      63,
+      63
+     ],
+     [
+      0,
+      63
+     ]
+    ]
+   },
+   {
+    "label": 63,
+    "ranges": [
+     [
+      40,
+      63
+     ],
+     [
+      40,
+      63
+     ]
+    ]
+   },
+   {
+    "label": 57,
+    "ranges": [
+     [
+      57,
+      57
+     ],
+     [
+      46,
+      46
+     ]
+    ]
+   },
+   {
+    "label": 47,
+    "ranges": [
+     [
+      42,
+      42
+     ],
+     [
+      47,
+      47
+     ]
+    ]
+   },
+   {
+    "label": 30,
+    "ranges": [
+     [
+      0,
+      30
+     ],
+     [
+      0,
+      30
+     ]
+    ]
+   },
+   {
+    "label": 31,
+    "ranges": [
+     [
+      31,
+      31
+     ],
+     [
+      0,
+      63
+     ]
+    ]
+   }
+  ],
+  "network": "random:7:16.0",
+  "setting": "v64",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
+ },
+ {
+  "folder": "attn-max4",
+  "leaves": [
+   {
+    "label": 14,
+    "ranges": [
+     [
+      14,
+      14
+     ],
+     [
+      10,
+      10
+     ],
+     [
+      14,
+      14
+     ],
+     [
+      1,
+      5
+     ]
+    ]
+   },
+   {
+    "label": 15,
+    "ranges": [
+     [
+      15,
+      15
+     ],
+     [
+      8,
+      8
+     ],
+     [
+      9,
+      9
+     ],
+     [
+      6,
+      7
+     ]
+    ]
+   },
+   {
+    "label": 15,
+    "ranges": [
+     [
+      0,
+      0
+     ],
+     [
+      11,
+      11
+     ],
+     [
+      15,
+      15
+     ],
+     [
+      5,
+      8
+     ]
+    ]
+   },
+   {
+    "label": 13,
+    "ranges": [
+     [
+      2,
+      2
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      0,
+      10
+     ],
+     [
+      13,
+      13
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "label": 13,
+    "ranges": [
+     [
+      2,
+      2
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      0,
+      10
+     ],
+     [
+      13,
+      13
+     ]
+    ]
+   },
+   {
+    "label": 13,
+    "ranges": [
+     [
+      7,
+      7
+     ],
+     [
+      11,
+      11
+     ],
+     [
+      0,
+      11
+     ],
+     [
+      13,
+      13
+     ]
+    ]
+   },
+   {
+    "label": 15,
+    "ranges": [
+     [
+      10,
+      10
+     ],
+     [
+      15,
+      15
+     ],
+     [
+      9,
+      9
+     ],
+     [
+      6,
+      11
+     ]
+    ]
+   },
+   {
+    "label": 15,
+    "ranges": [
+     [
+      0,
+      15
+     ],
+     [
+      0,
+      15
+     ],
+     [
+      15,
+      15
+     ],
+     [
+      0,
+      15
+     ]
+    ]
+   },
+   {
+    "label": 15,
+    "ranges": [
+     [
+      0,
+      15
+     ],
+     [
+      0,
+      15
+     ],
+     [
+      0,
+      15
+     ],
+     [
+      0,
+      15
+     ]
+    ]
+   }
+  ],
+  "network": "random:5:4.0",
+  "setting": "v16",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
+ },
+ {
+  "folder": "stub_twopaths",
+  "leaves": [
+   {
+    "label": 5,
+    "ranges": [
+     [
+      0,
+      5
+     ],
+     [
+      0,
+      5
+     ],
+     [
+      0,
+      5
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      0,
+      5
+     ],
+     [
+      0,
+      5
+     ],
+     [
+      0,
+      5
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      0,
+      4
+     ],
+     [
+      5,
+      5
+     ],
+     [
+      0,
+      5
+     ]
+    ]
+   },
+   {
+    "ranges": [
+     [
+      5,
+      5
+     ],
+     [
+      0,
+      4
+     ],
+     [
+      0,
+      4
+     ]
+    ]
+   },
+   {
+    "label": 3,
+    "ranges": [
+     [
+      1,
+      1
+     ],
+     [
+      2,
+      2
+     ],
+     [
+      0,
+      5
+     ]
+    ]
+   },
+   {
+    "label": 3,
+    "ranges": [
+     [
+      0,
+      2
+     ],
+     [
+      3,
+      3
+     ],
+     [
+      1,
+      2
+     ]
+    ]
+   },
+   {
+    "label": 3,
+    "ranges": [
+     [
+      0,
+      3
+     ],
+     [
+      0,
+      3
+     ],
+     [
+      3,
+      3
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "label": 3,
+    "ranges": [
+     [
+      0,
+      3
+     ],
+     [
+      0,
+      3
+     ],
+     [
+      3,
+      3
+     ]
+    ]
+   }
+  ],
+  "network": "random:9:4.0",
+  "setting": "tiny",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
+ },
+ {
+  "folder": "stub_general",
+  "leaves": [
+   {
+    "label": 5,
+    "ranges": [
+     [
+      5,
+      5
+     ],
+     [
+      4,
+      4
+     ],
+     [
+      5,
+      5
+     ]
+    ]
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      5,
+      5
+     ],
+     [
+      0,
+      5
+     ],
+     [
+      5,
+      5
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      5,
+      5
+     ],
+     [
+      0,
+      5
+     ],
+     [
+      5,
+      5
+     ]
+    ]
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      0,
+      5
+     ],
+     [
+      0,
+      5
+     ],
+     [
+      5,
+      5
+     ]
+    ]
+   },
+   {
+    "label": 3,
+    "ranges": [
+     [
+      3,
+      3
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      2,
+      3
+     ]
+    ]
+   },
+   {
+    "label": 4,
+    "ranges": [
+     [
+      0,
+      4
+     ],
+     [
+      0,
+      4
+     ],
+     [
+      0,
+      4
+     ]
+    ]
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      0,
+      5
+     ],
+     [
+      0,
+      5
+     ],
+     [
+      0,
+      5
+     ]
+    ]
+   }
+  ],
+  "network": "random:8:4.0",
+  "setting": "tiny",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
+ },
+ {
+  "folder": "stub_general",
+  "leaves": [
+   {
+    "label": 3,
+    "ranges": [
+     [
+      3,
+      3
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      2,
+      3
+     ]
+    ]
+   },
+   {
+    "label": 3,
+    "ranges": [
+     [
+      3,
+      3
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      0,
+      3
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "label": 3,
+    "ranges": [
+     [
+      3,
+      3
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      0,
+      3
+     ]
+    ]
+   }
+  ],
+  "network": "random:2:4.0",
+  "setting": "tiny",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
+ },
+ {
+  "folder": "stub_twopaths",
+  "leaves": [
+   {
+    "label": 4,
+    "ranges": [
+     [
+      0,
+      3
+     ],
+     [
+      4,
+      4
+     ],
+     [
+      3,
+      3
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "label": 4,
+    "ranges": [
+     [
+      0,
+      3
+     ],
+     [
+      4,
+      4
+     ],
+     [
+      3,
+      3
+     ]
+    ]
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      5,
+      5
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      2
+     ]
+    ]
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      5,
+      5
+     ],
+     [
+      5,
+      5
+     ],
+     [
+      4,
+      5
+     ]
+    ]
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      0,
+      5
+     ],
+     [
+      4,
+      4
+     ],
+     [
+      3,
+      3
+     ]
+    ]
+   }
+  ],
+  "network": "random:4:16.0",
+  "setting": "tiny",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
+ },
+ {
+  "folder": "stub_twopaths",
+  "leaves": [
+   {
+    "label": 1,
+    "ranges": [
+     [
+      1,
+      1
+     ],
+     [
+      1,
+      1
+     ],
+     [
+      0,
+      1
+     ]
+    ]
+   }
+  ],
+  "network": "random:2:4.0",
+  "setting": "tiny",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
+ },
+ {
+  "folder": "attn-min2",
+  "leaves": [
+   {
+    "label": 0,
+    "ranges": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      127
+     ]
+    ],
+    "rule": "token_interval"
+   },
+   {
+    "label": 0,
+    "ranges": [
+     [
+      0,
+      0
+     ],
+     [
+      0,
+      127
+     ]
+    ]
+   },
+   {
+    "label": 0,
+    "ranges": [
+     [
+      1,
+      127
+     ],
+     [
+      0,
+      0
+     ]
+    ]
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      5,
+      5
+     ],
+     [
+      5,
+      127
+     ]
+    ]
+   },
+   {
+    "label": 5,
+    "ranges": [
+     [
+      6,
+      127
+     ],
+     [
+      5,
+      5
+     ]
+    ]
+   },
+   {
+    "label": 60,
+    "ranges": [
+     [
+      60,
+      60
+     ],
+     [
+      61,
+      127
+     ]
+    ]
+   },
+   {
+    "label": 3,
+    "ranges": [
+     [
+      0,
+      40
+     ],
+     [
+      0,
+      40
+     ]
+    ]
+   }
+  ],
+  "network": "zoo:attn-min2-v128-s0",
+  "setting": "v128",
+  "note": "token_convex version 2's review (19 October 2026): a passing sequence on the version 2 paths"
  }
 ]
