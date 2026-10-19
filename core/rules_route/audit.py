@@ -17,7 +17,9 @@ label token at one position. Per leaf it runs the rule and brute force in float6
 Counterexamples (the adversarial reviewer's, say) are checked the same way: a JSON list of
 {"folder": ..., "setting": ..., "network": "zoo:<id>" | "random:<seed>:<scale>" | "perturbed:<id>:<seed>:<relative>"
 | "file:<path to an .npz of weights>", "ranges": [[lo, hi], ...], "label": optional}, or with "weights":
-{parameter: nested lists} in place of "network".
+{parameter: nested lists} in place of "network", or with "leaves": [{"ranges": ..., "label": optional,
+"rule": optional "token_interval"}, ...] in place of "ranges": a sequence run in order on one program, so that
+bugs in what the rule keeps across leaves show (a "token_interval" leaf only shares the memo).
 
 The report lists every violation with what reproduces it. The exit code is 1 if there is any, 2 if the
 rule could not be loaded. Nothing here trusts the rule: it runs in this process, so the route runs the audit
@@ -247,14 +249,24 @@ def audit(rule_dir: Path, level: str = "full", folders=None, seed: int = 0, coun
             for spec in specs:
                 net = _attach(network(folder, setting, spec))
                 for leaf in sample_leaves(folder, setting, rng, cfg["leaves"], cfg["max_inputs"]):
+                    if rng.random() < 0.5:  # token_interval leaves share the program's memo: interleave some
+                        try:
+                            net.prog.run_token_interval([tuple(r) for r in leaf["ranges"]], leaf["label"], Counter())
+                        except (UnsupportedOp, CheckError):
+                            pass
                     rec = check_case(rule, net, leaf["ranges"], leaf["label"], singles_left)
                     rec["kind"] = leaf["kind"]
                     records.append(rec)
                 log(f"  {folder.name} {spec}: {sum(1 for r in records if r['network'] == spec and r['folder'] == folder.name)} leaves")
         for case in counterexamples or []:
-            folder = load_model_folder(REPO_ROOT / "models" / case["folder"])
-            setting = case.get("setting") or min(folder.setting_names(), key=lambda s: folder.n_inputs(s))
             try:
+                name = str(case.get("folder", ""))
+                paths = [REPO_ROOT / root / name for root in ("models", "tests")]
+                path = next((p for p in paths if name and "/" not in name and (p / "model.py").is_file()), None)
+                if path is None:
+                    raise ValueError(f"no model folder named {name!r} in models/ or tests/")
+                folder = load_model_folder(path)
+                setting = case.get("setting") or min(folder.setting_names(), key=lambda s: folder.n_inputs(s))
                 if "weights" in case:  # a network the reviewer constructed
                     expected = {k: tuple(v.shape) for k, v in folder.build(setting).state_dict().items()}
                     w = {k: np.asarray(v, dtype=np.float32) for k, v in case["weights"].items()}
@@ -265,17 +277,29 @@ def audit(rule_dir: Path, level: str = "full", folders=None, seed: int = 0, coun
                     net = _attach(Net(folder, setting, "inline", w))
                 else:
                     net = _attach(network(folder, setting, case["network"]))
-                ranges = [tuple(int(x) for x in r) for r in case["ranges"]]
-                label = case.get("label")
-                label = int(folder.task.constant_label(ranges, folder.sizes(setting))) if label is None else int(label)
-                if len(leaf_inputs(ranges)) > 200000:
-                    raise ValueError("the leaf is too large to brute-force")
+                # one leaf ("ranges"), or a sequence ("leaves") run in order on one program, sharing its memo
+                seq = case["leaves"] if "leaves" in case else [{"ranges": case["ranges"], "label": case.get("label")}]
+                leaves = []
+                for lf in seq:
+                    ranges = [tuple(int(x) for x in r) for r in lf["ranges"]]
+                    label = lf.get("label")
+                    label = int(folder.task.constant_label(ranges, folder.sizes(setting))) if label is None else int(label)
+                    if len(leaf_inputs(ranges)) > 200000:
+                        raise ValueError("a leaf is too large to brute-force")
+                    leaves.append((ranges, label, lf.get("rule", "rule")))
             except Exception as exc:  # a malformed case is reported, not fatal
                 records.append({"kind": "counterexample", "outcome": "malformed", "case": case, "reason": f"{type(exc).__name__}: {exc}"[:300]})
                 continue
-            rec = check_case(rule, net, ranges, label, singles_left)
-            rec["kind"] = "counterexample"
-            records.append(rec)
+            for ranges, label, which in leaves:
+                if which == "token_interval":  # a leaf of the other rule, only for its effect on the memo
+                    try:
+                        net.prog.run_token_interval(ranges, label, Counter())
+                    except (UnsupportedOp, CheckError):
+                        pass
+                    continue
+                rec = check_case(rule, net, ranges, label, singles_left)
+                rec["kind"] = "counterexample"
+                records.append(rec)
     finally:
         drop_candidates()
     violations = [r for r in records if r.get("outcome") == "violation"]

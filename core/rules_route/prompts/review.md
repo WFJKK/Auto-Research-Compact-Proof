@@ -14,7 +14,7 @@ Counterexamples are run automatically: each is checked against float64 brute for
 
     {"folder": "<model folder>", "setting": "<size setting>", "network": "<spec>", "ranges": [[lo, hi], ...], "label": <optional>}
 
-where <spec> is "zoo:<network id>" (a trained development network), "random:<seed>:<scale>" (the model's initial weights redrawn uniformly at <scale> times their spread), or "perturbed:<network id>:<seed>:<relative>" (trained weights plus noise of <relative> times each tensor's spread); or, instead of "network", "weights": {"<parameter name>": nested lists of numbers} with the model's parameter names and shapes, for a network you construct. Keep leaves under 200,000 inputs. The model folders and their development networks:
+where <spec> is "zoo:<network id>" (a trained development network), "random:<seed>:<scale>" (the model's initial weights redrawn uniformly at <scale> times their spread), or "perturbed:<network id>:<seed>:<relative>" (trained weights plus noise of <relative> times each tensor's spread); or, instead of "network", "weights": {"<parameter name>": nested lists of numbers} with the model's parameter names and shapes, for a network you construct. Instead of "ranges", "leaves": [{"ranges": ..., "label": optional, "rule": optional "token_interval"}, ...] runs a sequence of leaves in order on one program, which shares what rules keep across leaves (a "token_interval" leaf only fills that memo). Keep leaves under 200,000 inputs. The model folders (synthetic ones under tests/ have no trained networks; use random or explicit weights) and their development networks:
 
 {MODELS}
 

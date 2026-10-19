@@ -87,17 +87,19 @@ def models_summary() -> str:
     from ..zoo import networks
 
     lines = []
-    for path in sorted((REPO_ROOT / "models").iterdir()):
-        if not (path / "model.py").is_file():
-            continue
-        folder = load_model_folder(path)
-        for setting in folder.setting_names():
-            if not getattr(build_any(folder.build(setting)), "general", False):
-                break
-            ids = [e["id"] for e in networks(folder, setting=setting)]
-            if ids:
+    for root in (REPO_ROOT / "models", REPO_ROOT / "tests"):
+        for path in sorted(p for p in root.iterdir() if p.is_dir()):
+            if not ((path / "model.py").is_file() and (path / "config.yaml").is_file()):
+                continue
+            folder = load_model_folder(path)
+            for setting in folder.setting_names():
+                if not getattr(build_any(folder.build(setting)), "general", False):
+                    break
+                ids = [e["id"] for e in networks(folder, setting=setting)] if folder.zoo_dir().is_dir() else []
                 params = {k: list(v.shape) for k, v in folder.build(setting).state_dict().items()}
-                lines.append(f"- {folder.name}, setting {setting} (sizes {folder.sizes(setting)}; parameters {params}): {', '.join(ids)}")
+                where = path.relative_to(REPO_ROOT).as_posix()
+                lines.append(f"- {folder.name} ({where}), setting {setting} (sizes {folder.sizes(setting)}; parameters {params}): "
+                             f"{', '.join(ids) if ids else 'no trained networks'}")
     return "\n".join(lines)
 
 

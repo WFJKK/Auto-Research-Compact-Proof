@@ -168,3 +168,30 @@ def test_a_linear_layer_with_a_bias_keeps_its_bias():
             true = float((z[:, label] - np.delete(z, label, axis=1).max(axis=1)).min())
             _, bound, _ = prog.run_token_interval(ranges, label, Counter())
             assert float(bound) <= true + 1e-9
+
+
+def test_two_terms_with_one_origin_keep_their_own_rows():
+    """Regression (19 October 2026, found by the rule route's adversarial review): head @ A + head @ B and
+    h + h @ W put two terms with the same origin and position into one Mix; their rows were kept under
+    (node, origin, position) at the next product, so the second read the first's and leaves were certified
+    with bound 1.0 where the true margin was -9. Rows are now kept under the term's whole chain."""
+    import torch as t
+
+    folder = load_model_folder(REPO / "tests" / "stub_twopaths")
+    setting = folder.setting_names()[0]
+    module = folder.build(setting)
+    rng = np.random.default_rng(3)
+    for scale in (1.0, 6.0):
+        weights = {k: (rng.uniform(-1, 1, size=v.shape) * scale).astype(np.float32) for k, v in module.state_dict().items()}
+        module.load_state_dict({k: t.tensor(v) for k, v in weights.items()})
+        prog = make_program(build_any(folder.build(setting)), weights, Counter(), folder.input_space(setting))
+        V = folder.sizes(setting)["d_vocab"]
+        for ranges in ([(0, V - 1), (0, V - 1), (V - 1, V - 1)], [(1, 1), (2, 2), (V - 1, V - 1)], [(0, 2), (3, 3), (1, 2)]):
+            label = folder.task.constant_label(ranges, folder.sizes(setting))
+            toks = np.array(list(itertools.product(*[range(lo, hi + 1) for lo, hi in ranges])))
+            with t.no_grad():
+                z = module.double()(folder.encode(toks, setting).double()).numpy()
+            true = float((z[:, label] - np.delete(z, label, axis=1).max(axis=1)).min())
+            _, bound, _ = prog.run_token_interval(ranges, int(label), Counter())
+            assert float(bound) <= true + 1e-9
+        module = folder.build(setting)

@@ -84,10 +84,14 @@ class Sep:
 
 class Term:
     """w * R[t] for t among tokens at position pos. R is exact, shape (len(tokens), *rest).
-    w is an IT of shape () or, in a leaf with one varying position, (tokens there,): one weight per input."""
+    w is an IT of shape () or, in a leaf with one varying position, (tokens there,): one weight per input.
+    origin is the node where the term began and chain the constant matrix products applied since, in order:
+    together with pos they determine its rows (two terms of one Mix can share origin and pos, as in
+    h @ A + h @ B, and differ only in their chains)."""
 
-    def __init__(self, w: IT, pos: int, tokens: list, rows: IT, pure: bool, origin: str):
+    def __init__(self, w: IT, pos: int, tokens: list, rows: IT, pure: bool, origin: str, chain: tuple = ()):
         self.w, self.pos, self.tokens, self.rows, self.pure, self.origin = w, pos, tokens, rows, pure, origin
+        self.chain = chain
 
 
 class Mix:
@@ -485,8 +489,9 @@ class TokenEvaluator:
         terms = []
         for t in v.terms:
             pure = t.pure and b_free
-            rows = self.rows((n.name, t.origin, t.pos), t.tokens, t.rows, lambda R: R @ b, cost, pure)
-            terms.append(Term(t.w, t.pos, t.tokens, rows, pure, t.origin))
+            # kept under the term's whole chain, not just (node, origin, pos): see Term
+            rows = self.rows((n.name, t.origin, t.pos, t.chain), t.tokens, t.rows, lambda R: R @ b, cost, pure)
+            terms.append(Term(t.w, t.pos, t.tokens, rows, pure, t.origin, t.chain + (n.name,)))
         if v.const.is_exact and not np.any(v.const.lo):  # a zero constant stays zero (checked entry by entry)
             const = IT.zeros(v.const.shape[:-1] + (b.shape[1],))
             self.charge(_size(v.const.shape))
@@ -506,7 +511,7 @@ class TokenEvaluator:
         return Mix(const, list(x.terms) + list(y.terms))
 
     def scale_mix(self, v: Mix, s: IT) -> Mix:
-        terms = [Term(t.w * s, t.pos, t.tokens, t.rows, t.pure, t.origin) for t in v.terms]
+        terms = [Term(t.w * s, t.pos, t.tokens, t.rows, t.pure, t.origin, t.chain) for t in v.terms]
         const = v.const * s
         self.charge((sum(_size(t.w.shape) for t in v.terms) + _size(const.shape)) * _f(s))
         return Mix(const, terms)
