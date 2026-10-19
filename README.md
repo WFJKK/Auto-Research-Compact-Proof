@@ -2,7 +2,7 @@
 
 An agentic loop that hill-climbs towards better compact proofs of model performance, in the sense of [Gross et al., "Compact Proofs of Model Performance via Mechanistic Interpretability"](https://arxiv.org/abs/2406.11779). Each round, an agent proposes a claim about how a trained network computes and a recipe that turns the network's weights into a proof of a lower bound on its accuracy. A sandbox runs the recipe, a trusted checker verifies every proof with exact arithmetic and measures its length, and the scores feed the next round. A better explanation of the network shows up as a shorter proof of the same bound.
 
-Contents: 1. the idea; 2. the agent loop; 3. the two metrics; 4. the runs of 13 October 2026; 5. the proofs found; 6. how Q can be gamed; 7. status and next steps; 8. using the pipeline.
+Contents: 1. the idea; 2. the agent loop; 3. the two metrics; 4. experiments, one subsection per network (4.1 max of 2, linear network; 4.2 max and min of 2, attention-only transformer; 4.3 max and min of 4, attention-only transformer); 5. status and next steps; 6. using the pipeline.
 
 ## 1. The idea: hill-climb towards mechanistic understanding
 
@@ -75,7 +75,7 @@ $$\text{cost of finishing} = \frac{B}{\min_{\text{proofs}} (L + \lambda U)}$$
 
 that is, how many times cheaper than brute force the cheapest complete certification is. Brute force scores 1; the cubic proof scores 8.6 on v64. In practice the shortest full-accuracy proof wins the minimum, so cost of finishing rewards complete proofs only; Q also rewards partial ones.
 
-**Q_grid: Q at fixed budgets** (added 14 October 2026, after the runs below; section 6 says why). The loop fixes a grid of budgets per size setting, B/2, B/4, B/8, ... down to E, runs each recipe once per budget with the budget as its input, and reads the accuracy only there:
+**Q_grid: Q at fixed budgets** (added 14 October 2026, after the runs below; section 4.1 says why). The loop fixes a grid of budgets per size setting, B/2, B/4, B/8, ... down to E, runs each recipe once per budget with the budget as its input, and reads the accuracy only there:
 
 $$Q_{\text{grid}} = \frac{1}{K} \sum_{k=1}^{K} a(b_k), \qquad b_k = B / 2^k$$
 
@@ -83,7 +83,38 @@ Since the budgets are evenly spaced on the log axis, this is Q sampled at the gr
 
 The run config sets which metric the agent sees as its score; the report always shows all three, plus the shortest full-accuracy proof and the best accuracy within B/10, B/100 and B/1000.
 
-## 4. The runs of 13 October 2026
+## 4. Experiments
+
+Every experiment so far, grouped by the network it ran on. Numbers are medians over a setting's six development networks unless stated otherwise. The agent's proofs and the hand-built ones are checked by the Python checker of section 2; Gross et al.'s proofs run as their own floating-point code, with their lengths counted in our units.
+
+| | network | model folders | what was run |
+| --- | --- | --- | --- |
+| [4.1](#41-max-of-2-linear-network) | max of 2, linear network (the tutorial's) | `max2` | two 10-round agent runs, one scored on Q and one on cost of finishing |
+| [4.2](#42-max-and-min-of-2-attention-only-transformer) | max and min of 2, one-layer attention-only transformer (Gross et al.'s architecture) | `attn-max2`, `attn-min2` | a 4-round agent run with `interval`; the rule it asked for, `token_interval`; 4-round runs with that rule; Gross et al.'s cubic proof |
+| [4.3](#43-max-and-min-of-4-attention-only-transformer) | max and min of 4, the same transformer (Gross et al.'s task) | `attn-max4`, `attn-min4` | 4-round agent runs with `token_interval`; all of Gross et al.'s proofs; the rule `token_convex` (versions 1 and 2) with hand-built proofs |
+
+### 4.1 Max of 2, linear network
+
+#### The network and the known proofs
+
+**The network.** The max-of-2 network of the [proof-based approach tutorial](https://github.com/LouisYRYJ/Proof_based_approach_tutorial/blob/master/proof_public.ipynb): two tokens a and b in, the larger one out. The two one-hot inputs are added, then three linear maps follow with nothing between them, so the network is linear in the summed input:
+
+$$z(a,b) = M e_a + M e_b, \qquad M = W_U W_L W_E$$
+
+with W_E, W_L, W_U the embedding, hidden layer and unembedding, and e_a the one-hot vector of token a. Column t of M is the whole network run on token t alone. The tutorial bounds the expected loss with three proofs (brute force, symmetry, convexity); its section on a cubic proof is an empty heading. Like Gross et al., we bound accuracy.
+
+**The known strategies**, written for accuracy and used as references (never shown to the agent):
+
+- **Brute force.** Run the network on every input; check that the right answer has the highest score. About V³d operations.
+- **Symmetry.** The inputs are added first, so (a, b) and (b, a) give the same scores and the same answer: check only the sorted inputs a ≤ b. Half of brute force.
+- **The cubic proof** ([baseline 03](models/max2/baselines/03_contract_interval.md), hand-written). Because the network is linear, the expensive matrices run once per token instead of once per input: compute M once, and the scores of any input are two columns of M added. For each sorted input a ≤ b, check
+
+  $$z_b > z_j \quad \text{for every } j \ne b, \qquad z_j = M[j,a] + M[j,b]$$
+
+  which costs about 2V operations (V additions, V comparisons). With about V²/2 sorted inputs that is about V³, hence the name. Nothing is approximated, so it certifies exactly the inputs the network gets right: 312,264 operations on v64 (8.6 times shorter than brute force) and 2,446,083 on v128 (16.5 times). [Baseline 04](models/max2/baselines/04_contract_interval_budget.md) is the same proof with a budget knob, so that under Q it gets the partial-proof points an agent's recipe gets.
+- **Convexity** (the tutorial's third proof, and a variant of ours). The logits of (a, b) are the average of those of the doubled inputs (a, a) and (b, b), and the loss is convex in the logits, so the loss of (a, b) is at most the average of the two doubled inputs' losses against b. Only the V doubled inputs are run, so this grows like V²d, but the bound is very loose: on v64 it bounds the average loss by 17.96 against a true loss of 0.021. Applied to the margin instead of the loss ("convexity for accuracy"), the same argument proves about 39% of the v64 inputs at about a sixth of the cubic proof's length; the checker's rules cannot express it yet. Details and numbers are in the [write-up](results/max2-2026-10-13/README.md).
+
+#### The runs of 13 October 2026
 
 Two runs on the max-of-2 model, identical except for the metric the agent was told to maximise: [`config/max2-rerun-q.yaml`](config/max2-rerun-q.yaml) (Q) and [`config/max2-rerun-cof.yaml`](config/max2-rerun-cof.yaml) (cost of finishing).
 
@@ -97,7 +128,7 @@ Two runs on the max-of-2 model, identical except for the metric the agent was to
 
 ![Q and cost of finishing by round](results/max2-2026-10-13/q-and-cost-by-round.png)
 
-Top: median Q per round. Bottom: cost of finishing per round, which is B over the shortest full-accuracy proof so far. Round 0 is brute force. The horizontal lines are reference proofs of section 5: symmetry and the hand-written cubic proof, alone and with a budget knob.
+Top: median Q per round. Bottom: cost of finishing per round, which is B over the shortest full-accuracy proof so far. Round 0 is brute force. The horizontal lines are reference proofs from the list above: symmetry and the hand-written cubic proof, alone and with a budget knob.
 
 The Pareto frontiers themselves, per development network (every proof on a frontier is checked; crosses are the hand-written reference proofs, never shown to the agent):
 
@@ -120,26 +151,7 @@ Medians over the development networks, held-out networks in brackets:
 
 On every network, development and held out, both runs certify exactly the inputs the network gets right (99.90% to 99.99% of them). The per-run reports, with the frontier plots and every round's claim, are [results/max2-rerun-q](results/max2-rerun-q/report.md) and [results/max2-rerun-cof](results/max2-rerun-cof/report.md); every run is listed in [results/RESULTS.md](results/RESULTS.md).
 
-## 5. The proofs found
-
-**The network.** The max-of-2 network of the [proof-based approach tutorial](https://github.com/LouisYRYJ/Proof_based_approach_tutorial/blob/master/proof_public.ipynb): two tokens a and b in, the larger one out. The two one-hot inputs are added, then three linear maps follow with nothing between them, so the network is linear in the summed input:
-
-$$z(a,b) = M e_a + M e_b, \qquad M = W_U W_L W_E$$
-
-with W_E, W_L, W_U the embedding, hidden layer and unembedding, and e_a the one-hot vector of token a. Column t of M is the whole network run on token t alone. The tutorial bounds the expected loss with three proofs (brute force, symmetry, convexity); its section on a cubic proof is an empty heading. Like Gross et al., we bound accuracy.
-
-**The known strategies**, written for accuracy and used as references (never shown to the agent):
-
-- **Brute force.** Run the network on every input; check that the right answer has the highest score. About V³d operations.
-- **Symmetry.** The inputs are added first, so (a, b) and (b, a) give the same scores and the same answer: check only the sorted inputs a ≤ b. Half of brute force.
-- **The cubic proof** ([baseline 03](models/max2/baselines/03_contract_interval.md), hand-written). Because the network is linear, the expensive matrices run once per token instead of once per input: compute M once, and the scores of any input are two columns of M added. For each sorted input a ≤ b, check
-
-  $$z_b > z_j \quad \text{for every } j \ne b, \qquad z_j = M[j,a] + M[j,b]$$
-
-  which costs about 2V operations (V additions, V comparisons). With about V²/2 sorted inputs that is about V³, hence the name. Nothing is approximated, so it certifies exactly the inputs the network gets right: 312,264 operations on v64 (8.6 times shorter than brute force) and 2,446,083 on v128 (16.5 times). [Baseline 04](models/max2/baselines/04_contract_interval_budget.md) is the same proof with a budget knob, so that under Q it gets the partial-proof points an agent's recipe gets.
-- **Convexity** (the tutorial's third proof, and a variant of ours). The logits of (a, b) are the average of those of the doubled inputs (a, a) and (b, b), and the loss is convex in the logits, so the loss of (a, b) is at most the average of the two doubled inputs' losses against b. Only the V doubled inputs are run, so this grows like V²d, but the bound is very loose: on v64 it bounds the average loss by 17.96 against a true loss of 0.021. Applied to the margin instead of the loss ("convexity for accuracy"), the same argument proves about 39% of the v64 inputs at about a sixth of the cubic proof's length; the checker's rules cannot express it yet. Details and numbers are in the [write-up](results/max2-2026-10-13/README.md).
-
-**What the agents found.**
+#### What the agents found
 
 *Round 1 of both runs: the cubic proof.* From brute force, both agents went straight to contraction, symmetry and one interval leaf per larger token, within 0.01% of the hand-written baseline. These ingredients are rules the checker offers and describes, so this is assembling given tools.
 
@@ -159,7 +171,7 @@ Both metrics led to essentially the same best full proof; the Q run found it in 
 
 The full write-up, with the reference table, the scripts that compute it, and figures of the cubic proof on one input and of the gaming issue, is [results/max2-2026-10-13/README.md](results/max2-2026-10-13/README.md).
 
-## 6. How Q can be gamed
+#### How Q can be gamed
 
 The run scored on Q beats the cubic proof with a budget knob by 0.070 (v64) and 0.056 (v128), but its shorter full proof explains only 0.005 and 0.011 of that. The rest comes from its partial proofs, which are better (cheap box bounds on the easy inputs) and also better placed.
 
@@ -169,36 +181,85 @@ $$\max_{L_1 < \dots < L_4} \; \sum_{i} \hat A(L_i) \ln\frac{L_{i+1}}{L_i}$$
 
 with Â its own prediction of what it can certify at each length. Every proof is real and checked; the score just rewards placing points as well as making them.
 
-**Changed on 14 October 2026.** The loop now offers Q_grid (section 3): with `metric: Q_grid` the loop, not the recipe, fixes the budgets (B/2, B/4, ... down to E), runs the recipe once per budget with `info["budget"]` set, and scores the mean accuracy over the grid. Recipes with the same capability then get the same score, and the knob's only job is to spend the budget well. The two runs above were scored under Q and cost of finishing; the next runs use Q_grid, with the hand-written cubic proof at the same budgets (baseline 04 reads `info["budget"]`) as the reference. What Q_grid gives up is resolution: a full proof that is 5% shorter does not cross a budget, so the shortest full-accuracy proof and cost of finishing stay in the report next to it.
+**Changed on 14 October 2026.** The loop now offers Q_grid (section 3): with `metric: Q_grid` the loop, not the recipe, fixes the budgets (B/2, B/4, ... down to E), runs the recipe once per budget with `info["budget"]` set, and scores the mean accuracy over the grid. Recipes with the same capability then get the same score, and the knob's only job is to spend the budget well. The two runs above were scored under Q and cost of finishing. A Q_grid run of this model (`config/max2-grid.yaml`) has the hand-written cubic proof at the same budgets as its reference (`config/max2-baselines-grid.yaml`; baseline 04 reads `info["budget"]`). The attention-model runs of sections 4.2 and 4.3 were scored on Q, with Q_grid reported next to it. What Q_grid gives up is resolution: a full proof that is 5% shorter does not cross a budget, so the shortest full-accuracy proof and cost of finishing stay in the report next to it.
 
-## 7. Status and next steps
+### 4.2 Max and min of 2, attention-only transformer
 
-The pipeline is built and tested end to end (spec Steps 0 to 9): the max2 model folder with its trained zoo, the exact checker, the hardened sandbox, diagnostics, the prompt builder, the loop with fake, manual, API and Claude Code backends, reports, and the held-out evaluation. Two independent reviews found no soundness bug; the robustness and cost gaps they found are fixed and have regression tests. Step 10, the real runs, is under way (section 4).
+#### The model (shared with section 4.3)
 
-**Gross et al.'s own model** (added 15 October 2026): the one-layer, one-head, attention-only transformer of the paper, with no biases, learned positional embeddings and the output read at the last position, in four folders that share the architecture (`model.py` is identical) and differ in the task and sizes:
+The one-layer, one-head, attention-only transformer of Gross et al.'s paper (added 15 October 2026), with no biases, learned positional embeddings and the output read at the last position. Four folders share the architecture (`model.py` is identical) and differ in the task and sizes; this section uses the two-token folders and section 4.3 the four-token ones:
 
 | folder | task | size settings | inputs |
 | --- | --- | --- | --- |
-| `models/attn-max4` | max of 4 tokens, the paper's task | v16 (d_vocab 16, d_model = d_head 8), v24 (24, 12), v64 (64, 32: the paper's size, added 19 October) | 65,536, 331,776 and 16,777,216 |
-| `models/attn-min4` | min of 4 tokens | the same | the same |
-| `models/attn-max2` | max of 2 tokens | v64 (64, 32: the paper's widths), v128 (128, 32) | 4,096 and 16,384 |
+| `models/attn-max2` | max of 2 tokens | v64 (d_vocab 64, d_model = d_head 32: the paper's widths), v128 (128, 32) | 4,096 and 16,384 |
 | `models/attn-min2` | min of 2 tokens | the same | the same |
+| `models/attn-max4` | max of 4 tokens, the paper's task | v16 (16, 8), v24 (24, 12), v64 (64, 32: the paper's size, added 19 October) | 65,536, 331,776 and 16,777,216 |
+| `models/attn-min4` | min of 4 tokens | v16 and v24 | 65,536 and 331,776 |
 
-The paper's full size, d_vocab 64 at n_ctx 4, is 16.8 million inputs, more than the exact checker can brute-force; `attn-max4` has it as v64 all the same, with B computed from the network's shapes and runs that replay no brute-force baseline (`config/attn-max4-v64-round0.yaml`, a dry run, and `config/attn-max4-v64-q-api-tokens.yaml`). Ten trained networks per setting are in each zoo (six development, four held out). These networks use softmax, so the checker evaluates them with the interval evaluator below, and `contract`, `symmetry` and `approximate` do not apply. Configs: `config/attn-<task>-round0.yaml` (fake backend, a dry run), `config/attn-<task>-grid.yaml` (Claude Code login, scored on Q_grid), and `config/attn-max4-grid-api.yaml` (the same through the API). Tests: `tests/test_attn.py`.
+Ten trained networks per setting are in each zoo (six development, four held out). These networks use softmax, so the checker evaluates them with interval arithmetic (`core/check/general.py`): sums and products stay exact, and exp and softmax are enclosed by rational bounds rounded outwards. The argument is in [docs/RULES.md](docs/RULES.md); `contract`, `symmetry` and `approximate` do not apply. Configs: `config/attn-<task>-round0.yaml` (fake backend, a dry run), `config/attn-<task>-grid.yaml` (Claude Code login, scored on Q_grid), and `config/attn-max4-grid-api.yaml` (the same through the API). Tests: `tests/test_attn.py`.
 
-**First run, and the rule it asked for** (16 October 2026). Fable 5.1 (effort high, scored on Q, 4 rounds, $7.17) on `attn-max2` with `single`, `interval` and `skip` stated the mechanism correctly: the query scores each key by a function increasing in the key's token, so attention concentrates on the larger token, and the OV circuit with the direct path copies it into the logits. It could not turn this into a short proof: `interval` boxes the embedding coordinate by coordinate, the box widens through QK and the softmax, and its shortest full-accuracy proof stayed at B/1.1 (Q 0.150, Q_grid 0.11 to 0.12, cost of finishing 1.11 and 1.16). In every round it proposed the same missing rule: keep per-token rows of the key, value-output and direct paths exact, precomputed once per proof. That is Gross et al.'s path decomposition (EQKE, EVOU, EU); the prompt cites their paper, and its round 2 proposal uses their notation.
+#### First run, and the rule it asked for (16 October 2026)
+
+Fable 5.1 (effort high, scored on Q, 4 rounds, $7.17) on `attn-max2` with `single`, `interval` and `skip` stated the mechanism correctly: the query scores each key by a function increasing in the key's token, so attention concentrates on the larger token, and the OV circuit with the direct path copies it into the logits. It could not turn this into a short proof: `interval` boxes the embedding coordinate by coordinate, the box widens through QK and the softmax, and its shortest full-accuracy proof stayed at B/1.1 (Q 0.150, Q_grid 0.11 to 0.12, cost of finishing 1.11 and 1.16). In every round it proposed the same missing rule: keep per-token rows of the key, value-output and direct paths exact, precomputed once per proof. That is Gross et al.'s path decomposition (EQKE, EVOU, EU); the prompt cites their paper (prompts from v4 on no longer name it), and its round 2 proposal uses their notation.
 
 That rule is now `token_interval` ([docs/RULES.md](docs/RULES.md), cost model `cost-v3`). It keeps each allowed token's rows exact through the lookup and constant maps, carries attention-weighted sums as weight times exact row so the output matrices act on rows rather than boxes, computes rows that depend on their token alone once per proof, and, when at most one position varies in a leaf, keeps every value per input, so the bound is that leaf's exact smallest margin. A hand-written proof that uses only this rule (one leaf per column strip where the first token is the maximum, one-input leaves elsewhere) certifies every input of `attn-max2-v64-s0` at B/6.2 and of `attn-max2-v128-s0` at B/4.7, against B/1.1 for the agent's best with `interval`. `config/attn-max2-q-api-tokens.yaml` repeats the run with the rule; the other attention configs now offer it too.
 
-**Gross et al.'s proofs on our networks, and the rule route** (19 October 2026). Run on our development networks and scored the same way, all of Gross et al.'s Max-of-K proofs together (brute force, cubic and every sub-cubic variant; `results/gross-cubic-2026-10-16/run_all_proofs.py`) reach Q 0.57 at v16 and 0.62 at v24, against the agent's 0.48 to 0.50: their sub-cubic proofs certify about 62% of the inputs at B/1,500 (v16) and 73% at B/6,400 (v24). The agent had not found the cubic proof's central idea, and the checker could not express it: with `token_interval`, a leaf where several positions vary is bounded weight by weight, and the softmax weights can add up to far more than one. The new rule `token_convex` (`rules/token_convex/`) bounds an attention-weighted sum by its exact minimum, over the box of scores or over every choice of one token per position (Dinkelbach's method), pessimising over the wrong outputs first. It is the first rule through the **rule route** ([docs/RULE_ROUTE.md](docs/RULE_ROUTE.md)): a proposal, a separate implementer, the candidate's tests and an audit against brute force on trained, random and perturbed networks in a Landlock or container box, an adversarial reviewer whose counterexamples are audited, and adoption into `rules/`, hash-pinned and audited again at run time. The agent being scored never writes checker code. Checking it turned up two memo-keying bugs that the new rule shared with `token_interval` (an `nn.Linear`'s bias, and two terms with one origin reaching one product): the adversarial review found both, and the first also showed up while the audit was being widened. Neither is reachable on our model folders, so no recorded result changes; both are fixed, with regression tests and synthetic model folders the audit now samples. A proof built from `token_convex` (fix the query, then peel by the largest token: `results/convex-rule-2026-10-19`) certifies every correct input at B/180 to B/232 at v16 and B/530 to B/769 at v24, about the cubic proof's length (which certifies 99.2 to 99.5%), so cost of finishing goes from the agent's 27 to 99 (and Gross et al.'s 93 to 165) to about 220 at v16 and 630 to 670 at v24; Q rises to 0.54 and 0.56, still below Gross et al.'s best (0.57 to 0.62).
+#### Runs with `token_interval`, against Gross et al.'s cubic proof (16 October 2026)
 
-**Leaves where the query varies** (19 October 2026). The highest Q among the known ideas was Gross et al.'s sub-cubic proofs, which bound the attention for every query at once. `token_convex` could not express that, because it needed the query fixed in each leaf. Its version 2 can: the query is kept exact per token, the attention scores per pair of tokens, and the softmax's weights relative to the position holding the largest token are boxed for every query at once. This is their gap argument, with the exact score table in place of their low-rank approximation, which costs little at these sizes. It went through the rule route three times (versions 2, 2.1 and 2.2). Each independent review found no soundness problem, but found claims broader than the code and paths no model reached. That led to a second, per-input pass in leaves with one varying position, a new synthetic model folder (`tests/stub_query`), corrected claims in the core's own description of `token_interval`, and a crash in the core fixed (`docs/RULE_ROUTE.md`). A proof with one leaf per largest token M and set of positions holding it (`results/query-gap-2026-10-19`) scores Q 0.61 at v16 and 0.63 at v24, above Gross et al.'s best (0.57 and 0.62) and version 1's 0.54 and 0.56. It certifies every correct input at B/460 to B/497 and B/1,766 to B/1,818, about 2.5 times shorter than their cubic proof, which certifies 99.2 to 99.5%. At the paper's own size (v64) it scores Q 0.64 against their cubic proof's 0.54, and certifies every correct input at B/14,836, where their cubic proof certifies 97.5% at B/12,283. Their sub-cubic proofs are still ahead at the very shortest lengths at v24. Our shared tables are computed per position and are the floor of every short proof; theirs keep the token and position parts apart.
+The same agent and settings with `token_interval` among the rules (`config/attn-max2-q-api-tokens.yaml`, `config/attn-min2-q-api-tokens.yaml`), next to Gross et al.'s cubic proof for Max-of-K, run unchanged on the same networks with its length counted in our cost model's units ([results/gross-cubic-2026-10-16](results/gross-cubic-2026-10-16/README.md)). For the min tasks the vocabulary is reversed, which makes the network compute a max, so their proof applies as is.
 
-A further model is the one-layer, attention-only transformer of [xorformer](https://github.com/VerifiedMechanisms/xorformer) (n bits plus a query token, softmax heads, a thresholded readout), trained on MAJORITY of 12 bits with one head: `models/xorformer-majority`. Softmax puts exp in the network, so its checker (`core/check/general.py`) bounds every value with interval arithmetic instead of computing it exactly: sums and products stay exact, and exp and softmax are enclosed by rational bounds rounded outwards. The argument is in [docs/RULES.md](docs/RULES.md). Its configs are `config/xorformer-majority-round0.yaml` (fake backend) and `config/xorformer-majority-pilot-subscription.yaml`.
+| | max of 2, v64 | max of 2, v128 | min of 2, v64 | min of 2, v128 |
+| --- | --- | --- | --- | --- |
+| agent with `token_interval`: full proof | B/7.5 | B/5.8 | B/7.5 | B/5.8 |
+| agent with `token_interval`: Q | 0.329 | 0.285 | 0.332 | 0.269 |
+| Gross et al.'s cubic proof: length (share of the correct inputs certified) | B/6 (99.1%) | B/4 (98.3%) | B/6 (99.2%) | B/4 (98.3%) |
+| Gross et al.'s cubic proof: Q | 0.219 | 0.149 | 0.219 | 0.149 |
+
+The agent's full proofs certify every input the network gets right. With two positions its proofs are better on every measure: the cubic proof's pessimisation costs accuracy and saves little length.
+
+### 4.3 Max and min of 4, attention-only transformer
+
+The transformer of section 4.2 on Gross et al.'s own task, four tokens (`models/attn-max4`, `models/attn-min4`). Every proof measured on these tasks, scored the same way: median Q over the six development networks, and in brackets the length of the full proof, which certifies every input the network gets right unless a share is given (for the agent, the range over the networks).
+
+| proof | max of 4, v16 | max of 4, v24 | min of 4, v16 | min of 4, v24 |
+| --- | --- | --- | --- | --- |
+| agent, 4 rounds with `token_interval` | 0.481 (B/23 to B/30) | 0.481 (B/53 to B/76) | 0.476 (B/30 to B/47) | 0.495 (B/86 to B/124) |
+| Gross et al.'s cubic proof | 0.460 (B/223, 99.5%) | 0.491 (B/705, 99.2%) | 0.459 (B/223, 99.4%) | 0.492 (B/705, 99.5%) |
+| Gross et al.'s proofs, best of all | 0.572 | 0.615 | 0.570 | 0.617 |
+| `token_convex` version 1, hand-built proof | 0.538 (B/217) | 0.561 (B/630) | 0.536 (B/219) | 0.562 (B/669) |
+| `token_convex` version 2, hand-built proof | **0.610** (B/460) | **0.627** (B/1,766) | **0.610** (B/497) | **0.630** (B/1,818) |
+
+The `token_convex` proofs are built by a script, with the checker choosing where to split; no agent has run with that rule yet. The full tables, with Q_grid, cost of finishing and the share certified within fixed budgets, are in [results/query-gap-2026-10-19](results/query-gap-2026-10-19/README.md).
+
+#### Runs with `token_interval` (16 October 2026)
+
+The agent of section 4.2 (Fable 5.1, effort high, 4 rounds, scored on Q; `config/attn-max4-q-api-tokens.yaml`, `config/attn-min4-q-api-tokens.yaml`) reaches Q 0.48 to 0.50, with full proofs between B/23 and B/124. Gross et al.'s cubic proof is a much shorter single proof but certifies 99.2 to 99.5% of the correct inputs, not all of them. On Q the two are about level (within 0.02 either way), since the agent's partial proofs make up for its longer full proof; on cost of finishing, which rewards the single best trade-off, the cubic proof wins by about 2 to 4 times ([results/gross-cubic-2026-10-16](results/gross-cubic-2026-10-16/README.md)).
+
+#### Gross et al.'s proofs on our networks (19 October 2026)
+
+Run on our development networks and scored the same way, all of Gross et al.'s Max-of-K proofs together (brute force, cubic and every sub-cubic variant; `results/gross-cubic-2026-10-16/run_all_proofs.py`) reach Q 0.57 at v16 and 0.62 at v24, against the agent's 0.48 to 0.50: their sub-cubic proofs certify about 62% of the inputs at B/1,500 (v16) and 73% at B/6,400 (v24).
+
+#### `token_convex`, the first rule through the rule route (19 October 2026)
+
+The agent had not found the cubic proof's central idea, and the checker could not express it: with `token_interval`, a leaf where several positions vary is bounded weight by weight, and the softmax weights can add up to far more than one. The new rule `token_convex` (`rules/token_convex/`) bounds an attention-weighted sum by its exact minimum, over the box of scores or over every choice of one token per position (Dinkelbach's method), pessimising over the wrong outputs first. It is the first rule through the **rule route** ([docs/RULE_ROUTE.md](docs/RULE_ROUTE.md)): a proposal, a separate implementer, the candidate's tests and an audit against brute force on trained, random and perturbed networks in a Landlock or container box, an adversarial reviewer whose counterexamples are audited, and adoption into `rules/`, hash-pinned and audited again at run time. The agent being scored never writes checker code. Checking it turned up two memo-keying bugs that the new rule shared with `token_interval` (an `nn.Linear`'s bias, and two terms with one origin reaching one product): the adversarial review found both, and the first also showed up while the audit was being widened. Neither is reachable on our model folders, so no recorded result changes; both are fixed, with regression tests and synthetic model folders the audit now samples. A hand-built proof from `token_convex` (fix the query, then peel by the largest token: `results/convex-rule-2026-10-19`) certifies every correct input at B/180 to B/232 at v16 and B/530 to B/769 at v24, about the cubic proof's length (which certifies 99.2 to 99.5%), so cost of finishing goes from the agent's 27 to 99 (and Gross et al.'s 93 to 165) to about 220 at v16 and 630 to 670 at v24; Q rises to 0.54 and 0.56, still below Gross et al.'s best (0.57 to 0.62).
+
+#### Leaves where the query varies: `token_convex` version 2 (19 October 2026)
+
+The highest Q among the known ideas was Gross et al.'s sub-cubic proofs, which bound the attention for every query at once. `token_convex` could not express that, because it needed the query fixed in each leaf. Its version 2 can: the query is kept exact per token, the attention scores per pair of tokens, and the softmax's weights relative to the position holding the largest token are boxed for every query at once. This is their gap argument, with the exact score table in place of their low-rank approximation, which costs little at these sizes. It went through the rule route three times (versions 2, 2.1 and 2.2). Each independent review found no soundness problem, but found claims broader than the code and paths no model reached. That led to a second, per-input pass in leaves with one varying position, a new synthetic model folder (`tests/stub_query`), corrected claims in the core's own description of `token_interval`, and a crash in the core fixed (`docs/RULE_ROUTE.md`). A hand-built proof with one leaf per largest token M and set of positions holding it (`results/query-gap-2026-10-19`) scores Q 0.61 at v16 and 0.63 at v24, above Gross et al.'s best (0.57 and 0.62) and version 1's 0.54 and 0.56. It certifies every correct input at B/460 to B/497 and B/1,766 to B/1,818, 2.1 to 2.6 times shorter than their cubic proof, which certifies 99.2 to 99.5%. Their sub-cubic proofs are still ahead at the very shortest lengths at v24. Our shared tables are computed per position and are the floor of every short proof; theirs keep the token and position parts apart.
+
+#### At the paper's size, v64
+
+The paper's full size, d_vocab 64 at n_ctx 4, is 16.8 million inputs, more than the exact checker can brute-force; `attn-max4` has it as v64 all the same, with B computed from the network's shapes and runs that replay no brute-force baseline (`config/attn-max4-v64-round0.yaml`, a dry run, and `config/attn-max4-v64-q-api-tokens.yaml`). There the hand-built `token_convex` version 2 proof scores Q 0.64 against Gross et al.'s cubic proof's 0.54, and certifies every correct input at B/14,836, where their cubic proof certifies 97.5% at B/12,283. No agent has run at v64 yet, and their sub-cubic proofs were not run there.
+
+## 5. Status and next steps
+
+The pipeline is built and tested end to end (spec Steps 0 to 9): the max2 model folder with its trained zoo, the exact checker, the hardened sandbox, diagnostics, the prompt builder, the loop with fake, manual, API and Claude Code backends, reports, and the held-out evaluation. Two independent reviews found no soundness bug; the robustness and cost gaps they found are fixed and have regression tests. Step 10, the real runs, is under way (section 4).
+
+A further model, not run yet, is the one-layer, attention-only transformer of [xorformer](https://github.com/VerifiedMechanisms/xorformer) (n bits plus a query token, softmax heads, a thresholded readout), trained on MAJORITY of 12 bits with one head: `models/xorformer-majority`. Softmax puts exp in the network, so its checker bounds every value with the interval arithmetic of section 4.2 (`core/check/general.py`) instead of computing it exactly. Its configs are `config/xorformer-majority-round0.yaml` (fake backend) and `config/xorformer-majority-pilot-subscription.yaml`.
 
 Next: keep each row's token part and position part apart through linear maps (Gross et al. compute EVOU and PVOU separately), which should shrink the shared tables about 2.4 times at v24 and, by a rescoring of the measured proofs, lift Q to about 0.66 at v16 and 0.68 at v24; rerun the four-token tasks with `token_convex` version 2 in the rule set and see whether the agent finds the proof of `results/query-gap-2026-10-19`, or better; run the rule route on the agent's own NEW RULE IDEA answers; implement the Lean checker (in progress separately), then Lean soundness proofs for adopted rules; repeat each metric with more runs; run the xorformer pilot.
 
-## 8. Using the pipeline
+## 6. Using the pipeline
 
 ### Quick start
 
@@ -268,7 +329,7 @@ A run stops at `rounds_max`, after `patience` rounds without a gain, or when the
 
 In the real-run configs round 0 holds brute force only: the agent is told which proof rules exist, but it has to discover the strategies (the input symmetry, contracting the linear maps, grouping inputs by their label) itself. `config/max2-round0.yaml` runs the hand-written baselines instead (and `config/max2-baselines.yaml` runs only those, on every development network), and `python -m core.report --run <run> --reference <that run>` overlays them as reference marks on the run's plots. Set `baselines` in a run config to `true`, `false` or a list of names to choose.
 
-**No API key, but a Claude subscription?** `config/max2-pilot-subscription.yaml` and the two rerun configs of section 4 run through your own Claude Code login (`backend: claude_code`): the loop runs the official CLI headless with no tools, nothing is billed per call, and usage counts against your subscription's limits (the loop waits and resumes when it hits one). It needs `claude` installed and signed in. Anthropic's terms for Claude Code decide whether this is allowed for your account; see [docs/BACKENDS.md](docs/BACKENDS.md).
+**No API key, but a Claude subscription?** `config/max2-pilot-subscription.yaml` and the two rerun configs of section 4.1 run through your own Claude Code login (`backend: claude_code`): the loop runs the official CLI headless with no tools, nothing is billed per call, and usage counts against your subscription's limits (the loop waits and resumes when it hits one). It needs `claude` installed and signed in. Anthropic's terms for Claude Code decide whether this is allowed for your account; see [docs/BACKENDS.md](docs/BACKENDS.md).
 
 To try the loop without a key, `config/max2-manual.yaml` lets you play the agent: each round writes a prompt for you to paste into Claude, and waits for you to save the answer as `response.md`.
 
