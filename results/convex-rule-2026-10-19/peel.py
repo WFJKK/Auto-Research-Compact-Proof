@@ -10,7 +10,8 @@ about (n - 1) V boxes per query instead of V^(n-1) inputs. For min tasks the tok
 
 Each box is offered to token_convex; a box it cannot certify is split by peeling the top token off its widest
 varying position (the near-maximal tokens are the ones that compete for attention), up to K leaves per box;
-what is left after that is skipped. This uses the checker to decide splits, which a recipe cannot; a recipe
+what is left after that is skipped. With --cost-aware, a box that certifies is still split when its two halves
+certify for less in total (a box that needs the rule's per-output search can cost more than two that do not). This uses the checker to decide splits, which a recipe cannot; a recipe
 would compute the same bound in floats. The work of the search is not part of the proof; the checker counts
 only the final tree.
 """
@@ -39,7 +40,7 @@ RULE = "token_convex"
 
 
 class Builder:
-    def __init__(self, folder, nid, max_leaves, rule):
+    def __init__(self, folder, nid, max_leaves, rule, cost_aware=False):
         self.folder, self.nid, self.rule = folder, nid, rule
         e = network_entry(folder, nid)
         self.setting = e["setting"]
@@ -48,6 +49,7 @@ class Builder:
         self.prog = make_program(build_any(folder.build(self.setting)), load_weights(folder, nid), Counter(), folder.input_space(self.setting))
         self.max_leaves = max_leaves
         self.reverse = "min" in folder.name
+        self.cost_aware = cost_aware
         self.stats = {"boxes": 0, "leaves": 0, "skipped": 0, "oracle_calls": 0}
 
     # tokens in the task's order: for min tasks, token t plays the role of V - 1 - t
@@ -60,11 +62,16 @@ class Builder:
         return (min(a, b), max(a, b))
 
     def certified(self, ranges):
+        return self.leaf_cost(ranges) is not None
+
+    def leaf_cost(self, ranges):
+        """The leaf's per-leaf charge if token_convex certifies it, else None (tables are shared, so not counted)."""
         label = self.folder.task.constant_label(ranges, self.sizes)
         assert label is not None, ranges
         self.stats["oracle_calls"] += 1
-        ok, _, _ = self.rule.check_leaf(self.prog, ranges, int(label), Counter())
-        return ok
+        c = Counter()
+        ok, _, _ = self.rule.check_leaf(self.prog, ranges, int(label), c)
+        return c.by_rule.get("token_convex", 0) + 2 if ok else None  # + the leaf's tree node and its rule name
 
     def split(self, p, ranges, lo_child, hi_child, cut_real):
         """A split of position p's real range at cut_real; children given in task order (low part, high part)."""
@@ -79,12 +86,17 @@ class Builder:
         budget = [self.max_leaves]
         return self.refine(ranges_task, budget)
 
-    def refine(self, rt, budget):
+    def refine(self, rt, budget, depth=0):
         real = [self.rng(lo, hi) for lo, hi in rt]
         if budget[0] <= 0:
             self.stats["skipped"] += 1
             return {"leaf": "skip"}
-        if self.certified(real):
+        cost = self.leaf_cost(real)
+        if cost is not None:
+            if self.cost_aware and depth < 3:
+                alt = self.cheaper_split(rt, budget, cost, depth)
+                if alt is not None:
+                    return alt
             budget[0] -= 1
             self.stats["leaves"] += 1
             return {"leaf": RULE}
@@ -101,8 +113,28 @@ class Builder:
         top[p] = (hi, hi)
         cut_real = self.tok(hi) if not self.reverse else self.tok(hi) + 1
         # real order: for max tasks the top token hi is the upper child; for min tasks tok(hi) is the lowest real token
-        a = self.refine(low, budget)
-        b = self.refine(top, budget)
+        a = self.refine(low, budget, depth + 1)
+        b = self.refine(top, budget, depth + 1)
+        return self.split(p, rt, a, b, cut_real)
+
+    def cheaper_split(self, rt, budget, cost, depth):
+        """Peeling the top token off the widest varying position, if both halves certify for less in total
+        (counting the split's node and its cut): the split subtree, else None."""
+        varying = [p for p, (lo, hi) in enumerate(rt) if hi > lo]
+        if not varying:
+            return None
+        p = max(varying, key=lambda q: (rt[q][1] - rt[q][0], -q))
+        lo, hi = rt[p]
+        low, top = list(rt), list(rt)
+        low[p], top[p] = (lo, hi - 1), (hi, hi)
+        c_low = self.leaf_cost([self.rng(a, b) for a, b in low])
+        c_top = self.leaf_cost([self.rng(a, b) for a, b in top])
+        if c_low is None or c_top is None or c_low + c_top + 3 >= cost:
+            return None
+        self.stats["cost_splits"] = self.stats.get("cost_splits", 0) + 1
+        cut_real = self.tok(hi) if not self.reverse else self.tok(hi) + 1
+        a = self.refine(low, budget, depth + 1)
+        b = self.refine(top, budget, depth + 1)
         return self.split(p, rt, a, b, cut_real)
 
     def peel(self, q, M):
@@ -138,11 +170,12 @@ def main():
     ap.add_argument("network")
     ap.add_argument("--max-leaves-per-box", type=int, default=64)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--cost-aware", action="store_true", help="split a certified box when its halves certify for less")
     args = ap.parse_args()
     rule = use_candidate(REPO / "rules" / RULE)
     folder = load_model_folder(REPO / "models" / args.folder)
     t0 = time.time()
-    b = Builder(folder, args.network, args.max_leaves_per_box, rule)
+    b = Builder(folder, args.network, args.max_leaves_per_box, rule, args.cost_aware)
     proof = {"schema": SCHEMA, "network": args.network, "tree": b.tree()}
     t1 = time.time()
     res = check_proof(proof, folder, args.network, rule_set=("single", "token_interval", RULE, "skip"))

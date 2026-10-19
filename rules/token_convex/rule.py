@@ -118,8 +118,8 @@ class GTerm(Term):
     """A term that knows the memo key of its rows (for range tables) and, if its weight is one softmax weight
     left as it was, its (softmax id, position)."""
 
-    def __init__(self, w, pos, tokens, rows, pure, origin, key=None, group=None):
-        super().__init__(w, pos, tokens, rows, pure, origin)
+    def __init__(self, w, pos, tokens, rows, pure, origin, key=None, group=None, chain=()):
+        super().__init__(w, pos, tokens, rows, pure, origin, chain)
         self.key, self.group = key, group
 
 
@@ -244,7 +244,8 @@ class ConvexEvaluator(TokenEvaluator):
             cp = IT.exact(_obj(np.array(b[0, p])), c.exp)
             base = _ctx(sep, p)
             ctx = () if pure else (base if c_free else (None if base is None else base + (_value_key(cp),)))
-            rr, k = self.crows((n.name, sep.origin, p), ctx, sep.tokens[p], r, lambda R, cp=cp: R + cp, _size(sep.rest))
+            # "+" keeps these rows apart from those of a linear node's own product (an nn.Linear with a bias)
+            rr, k = self.crows((n.name, "+", sep.origin, p), ctx, sep.tokens[p], r, lambda R, cp=cp: R + cp, _size(sep.rest))
             rows.append(rr)
             ctxs.append(ctx)
             keys.append(k)
@@ -303,9 +304,9 @@ class ConvexEvaluator(TokenEvaluator):
         terms = []
         for t in v.terms:
             pure = t.pure and b_free
-            key = (n.name, t.origin, t.pos)
+            key = (n.name, t.origin, t.pos, t.chain)  # the whole chain (core.check.tokens.Term): h @ A + h @ B
             rows = self.rows(key, t.tokens, t.rows, lambda R: R @ b, cost, pure)
-            terms.append(GTerm(t.w, t.pos, t.tokens, rows, pure, t.origin, key if pure else None, _group(t)))
+            terms.append(GTerm(t.w, t.pos, t.tokens, rows, pure, t.origin, key if pure else None, _group(t), t.chain + (n.name,)))
         if v.const.is_exact and not np.any(v.const.lo):  # a zero constant stays zero (checked entry by entry)
             const = IT.zeros(v.const.shape[:-1] + (b.shape[1],))
             self.charge(_size(v.const.shape))
@@ -327,7 +328,7 @@ class ConvexEvaluator(TokenEvaluator):
     def scale_mix(self, v, s):
         # a scaled weight is no longer a softmax weight: the terms leave their group
         self.pay_weights(_groups(v))
-        terms = [GTerm(t.w * s, t.pos, t.tokens, t.rows, t.pure, t.origin, _key(t), None) for t in v.terms]
+        terms = [GTerm(t.w * s, t.pos, t.tokens, t.rows, t.pure, t.origin, _key(t), None, t.chain) for t in v.terms]
         const = v.const * s
         self.charge((sum(_size(t.w.shape) for t in v.terms) + _size(const.shape)) * (1 if s.is_exact else 2))
         return GMix(const, terms, {})
@@ -522,6 +523,8 @@ class ConvexEvaluator(TokenEvaluator):
         n_out = v.shape[1]
         if not 0 <= label < n_out:
             raise UnsupportedOp("label outside the network's outputs")
+        if n_out == 1:  # no other output to beat, as token_interval reports it
+            return Fraction(1), -1
         groups = self.complete_groups(v)
         self.pay_weights([g for g in _groups(v) if g not in groups])  # incomplete groups use interval weights
         in_group = {i for idx in groups.values() for i in idx}

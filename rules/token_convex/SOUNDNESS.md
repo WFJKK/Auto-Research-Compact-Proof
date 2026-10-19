@@ -60,16 +60,38 @@ Only exp rounds, outwards. Every other quantity is an exact integer at a power-o
 
 ## 4. Reuse
 
-Every reused value is a deterministic exact function of what it is kept under:
+Every reused value must be a deterministic exact function of the key it is kept under. The keys, and why each
+determines its value:
 
-- Rows that depend on their token alone are kept under (node, origin, position) and token, as token_interval keeps them (shared with token_interval leaves; the two compute them identically).
-- Rows that also depend on values that are exact and the same for every input of the leaf are kept under the same key plus those values in full (their exponents and integers). An operation's result depends only on its node, its input rows and those values, and the input rows are themselves kept under their own values, so equal keys mean equal rows. Values that are not exact, and inputs that depend on the leaf in any other way, are never kept.
-- Range tables hold running minima (and maxima) of such rows over tokens 0..k or k..V-1, extended with the same rows the leaf would have used, and the per-token minima over outputs are plain functions of kept rows.
+- **Sep rows** are kept under (node, origin, position), plus a tag "+" for the bias step of a linear node (an
+  nn.Linear multiplies and adds its bias at one node, so the two steps need different keys), plus the context.
+  A node's Sep argument is the same graph value in every leaf, and every operation that makes a Sep (the
+  lookup, adding or multiplying by a constant, a sum over a row dimension, a product with a constant matrix)
+  computes its rows from that argument's rows and, at most, one constant. If the constant is the same in every
+  leaf (it does not depend on the input), the rows depend on the token alone, or on the argument's own context.
+  If it depends on the input but is exact in this leaf, its exact value (exponent and integers) is appended to
+  the context. If it is not exact, or a product's matrix depends on the input, the rows are not kept at all,
+  and nor is anything computed from them. So by induction over the graph, a Sep row's value is a function of
+  its node, position, token and context, which is what it is kept under. (token_interval keeps token-only
+  rows under the same keys; the two compute them identically.)
+- **Term rows** are kept under (node, origin, position, chain), where origin is the node where the term began
+  (selecting a position of a Sep, or a sum over the positions) and chain the constant matrix products applied
+  to it since, in order. Two terms of one Mix can share their origin and position and still differ, as in
+  h @ A + h @ B or h + h @ W; their chains tell them apart. A term's first rows are the rows of its origin's
+  Sep argument at its position, and each product in the chain is fixed by its node, so (origin, position,
+  chain) determines the rows. Only terms whose rows depend on the token alone are kept.
+- **Range tables** hold running minima (and maxima) of rows kept as above, over tokens 0..k or k..V-1,
+  extended with the same rows the leaf would have used; the per-token minima over the other outputs are plain
+  functions of kept rows and the label.
 
-So reuse changes the count, never a bound.
+So reuse changes the count, never a bound. Two keying errors of this kind were found while the rule went
+through the route (19 October 2026), both shared with token_interval and neither reachable on the model folders
+of that day: the bias step of an nn.Linear read back the product's rows, and two terms with one origin read
+each other's rows at the next product. Both are fixed, with regression tests and synthetic model folders the
+audit now samples (tests/stub_general, tests/stub_twopaths).
 
 ## 5. Checks
 
 - The rule's tests (test_rule.py): Lemma A and Lemma B against brute force on random small instances in exact arithmetic; the leaf bound never above the smallest float64 margin of the leaf's inputs, on all four attention folders; never certifying less than token_interval; exact when one position varies; reuse charged once; linear networks refused.
-- The route's audit (core/rules_route/audit.py): the same comparison against brute force on trained, random-weight and perturbed networks, and every input of every certified leaf rechecked with the single rule.
+- The route's audit (core/rules_route/audit.py): the same comparison against brute force on trained, random-weight and perturbed networks of every model folder beyond linear maps, synthetic ones included, with leaves of token_interval interleaved on one program so the memo is shared, and every input of every certified leaf rechecked with the single rule.
 - In every run that uses the rule, the checker worker compares each accepted leaf's bound with the float margins of its inputs and halts the run on any excess (core/check/plugins.py, runtime_audit).

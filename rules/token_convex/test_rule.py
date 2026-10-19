@@ -248,3 +248,43 @@ def test_check_proof_needs_the_rule_in_the_run(rule):
     proof = {"schema": SCHEMA, "network": e["id"], "tree": {"leaf": "token_convex"}}
     res = check_proof(proof, folder, e["id"], rule_set=("single", "token_interval"))
     assert res["status"] == "rejected" and "not allowed" in res["reason"]
+
+
+@pytest.mark.parametrize("stub", ["stub_general", "stub_twopaths"])
+def test_sound_on_the_synthetic_architectures(rule, stub):
+    """Biased linear layers (stub_general) and two terms with one origin reaching one product (stub_twopaths),
+    with random weights, many leaves on one program so the memo is shared across them."""
+    folder = load_model_folder(REPO / "tests" / stub)
+    setting = folder.setting_names()[0]
+    module = folder.build(setting)
+    rng = np.random.default_rng(5)
+    for scale in (1.0, 5.0):
+        weights = {k: (rng.uniform(-1, 1, size=v.shape) * scale).astype(np.float32) for k, v in module.state_dict().items()}
+        module.load_state_dict({k: torch.tensor(v) for k, v in weights.items()})
+        prog = make_program(build_any(folder.build(setting)), weights, Counter(), folder.input_space(setting))
+        e = {"setting": setting}
+        for ranges, label in random_leaves(folder, e, rng, 20, fixed_query=False, max_width=4):
+            _, bound, _ = rule.check_leaf(prog, ranges, label, Counter())
+            prog.run_token_interval(ranges, label, Counter())  # interleaved, sharing the memo
+            assert float(bound) <= true_margin(folder, e, module.double(), ranges, label) + 1e-9
+        module = folder.build(setting)
+
+
+def test_range_tables_against_brute_force_with_changing_exponents(rule):
+    """_Table on random prefix and suffix requests whose rows arrive at different exponents."""
+    Table = rule.module._Table
+    rnd = random.Random(4)
+    V, width = 9, 3
+    exact = [[Fraction(rnd.randint(-99, 99), 2 ** rnd.randint(0, 6)) for _ in range(width)] for _ in range(V)]
+    for suffix in (False, True):
+        tab = Table(suffix, True)
+        for _ in range(40):
+            k = rnd.randint(1, V)
+            tokens = list(range(V - k, V)) if suffix else list(range(k))
+            e = -rnd.randint(6, 9)  # every row is a multiple of 2**-6, so any exponent at or below -6 is exact
+            rows = [[int(x * 2 ** -e) for x in exact[t]] for t in tokens]
+            lo, hi, te = tab.query(len(tokens), e, lambda i: rows[i], lambda n: None)
+            want_lo = [min(exact[t][c] for t in tokens) for c in range(width)]
+            want_hi = [max(exact[t][c] for t in tokens) for c in range(width)]
+            assert [Fraction(int(x)) * Fraction(2) ** te for x in lo] == want_lo
+            assert [Fraction(int(x)) * Fraction(2) ** te for x in hi] == want_hi

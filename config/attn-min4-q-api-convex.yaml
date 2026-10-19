@@ -1,0 +1,23 @@
+# The same run as attn-min4-q-api-tokens with token_convex added (19 October 2026), the rule route's first
+# adopted rule (rules/token_convex, docs/RULE_ROUTE.md): does the agent find a proof like the hand-built
+# peeling proof (results/convex-rule-2026-10-19), or a better one? Needs token_convex adopted (status.json).
+# min-of-4 on the one-head transformer through the Messages API, the agent scored
+# on Q, four rounds, with token_interval: the same settings as
+# attn-max2-q-api-tokens, so the four attention tasks compare.
+run_id: attn-min4-q-api-convex
+model: models/attn-min4
+backend: api
+agent_model: claude-fable-5-1
+effort: high
+metric: Q
+rounds_max: 4
+patience: 4
+baselines: [brute_force]
+sandbox: hardened
+# Softmax networks: the checker refuses contract, symmetry and approximate
+# (they need a network of linear maps). token_interval keeps each token's rows
+# exact through the attention (see docs/RULES.md).
+rule_set: [single, interval, token_interval, token_convex, skip]
+# Recipes on the 4-token model can build large tables; 2048 MB was too little
+# for one max-of-4 recipe on 16 October.
+memory_limit_mb: 4096
