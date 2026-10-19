@@ -21,7 +21,10 @@ Counterexamples (the adversarial reviewer's, say) are checked the same way: a JS
 "rule": optional "token_interval"}, ...] in place of "ranges": a sequence run in order on one program, so that
 bugs in what the rule keeps across leaves show (a "token_interval" leaf only shares the memo).
 
-The report lists every violation with what reproduces it. The exit code is 1 if there is any, 2 if the
+Every audit also runs the cases in tests/rule_route/regressions.json (bugs found before, as sequences of leaves
+on one program). A leaf where the rule raises an arithmetic or similar error is recorded as a crash: the
+checker would reject the whole proof there, which is not unsound, so it is reported but does not fail the
+audit. The report lists every violation with what reproduces it. The exit code is 1 if there is any, 2 if the
 rule could not be loaded. Nothing here trusts the rule: it runs in this process, so the route runs the audit
 inside the sandbox.
 """
@@ -47,6 +50,7 @@ from ..model_folder import load_model_folder
 from ..util import REPO_ROOT
 from ..zoo import load_weights, networks
 
+REGRESSIONS = REPO_ROOT / "tests" / "rule_route" / "regressions.json"  # cases every audit runs: past bugs
 TOLERANCE_ABS = 1e-7
 TOLERANCE_REL = 1e-9
 LEVELS = {
@@ -190,6 +194,10 @@ def check_case(rule, net: Net, ranges, label, singles_left: list) -> dict:
     except (UnsupportedOp, CheckError) as exc:
         rec.update(outcome="refused", reason=str(exc)[:200])
         return rec
+    except (ArithmeticError, ValueError, TypeError, IndexError, KeyError, RecursionError, MemoryError) as exc:
+        # the checker would reject the whole proof here: not unsound, but recorded, never fatal to the audit
+        rec.update(outcome="crash", reason=f"{type(exc).__name__}: {str(exc)[:200]}")
+        return rec
     rec["seconds"] = round(time.monotonic() - t0, 3)
     if isinstance(bound, bool) or not isinstance(bound, (int, Fraction)):
         rec.update(outcome="violation", violation=f"the bound is a {type(bound).__name__}, not an exact rational")
@@ -252,13 +260,14 @@ def audit(rule_dir: Path, level: str = "full", folders=None, seed: int = 0, coun
                     if rng.random() < 0.5:  # token_interval leaves share the program's memo: interleave some
                         try:
                             net.prog.run_token_interval([tuple(r) for r in leaf["ranges"]], leaf["label"], Counter())
-                        except (UnsupportedOp, CheckError):
+                        except (UnsupportedOp, CheckError, ArithmeticError, ValueError, TypeError):
                             pass
                     rec = check_case(rule, net, leaf["ranges"], leaf["label"], singles_left)
                     rec["kind"] = leaf["kind"]
                     records.append(rec)
                 log(f"  {folder.name} {spec}: {sum(1 for r in records if r['network'] == spec and r['folder'] == folder.name)} leaves")
-        for case in counterexamples or []:
+        fixed = json.loads(REGRESSIONS.read_text()) if REGRESSIONS.is_file() else []
+        for case in fixed + list(counterexamples or []):
             try:
                 name = str(case.get("folder", ""))
                 paths = [REPO_ROOT / root / name for root in ("models", "tests")]
@@ -294,11 +303,11 @@ def audit(rule_dir: Path, level: str = "full", folders=None, seed: int = 0, coun
                 if which == "token_interval":  # a leaf of the other rule, only for its effect on the memo
                     try:
                         net.prog.run_token_interval(ranges, label, Counter())
-                    except (UnsupportedOp, CheckError):
+                    except (UnsupportedOp, CheckError, ArithmeticError, ValueError, TypeError):
                         pass
                     continue
                 rec = check_case(rule, net, ranges, label, singles_left)
-                rec["kind"] = "counterexample"
+                rec["kind"] = "regression" if case in fixed else "counterexample"
                 records.append(rec)
     finally:
         drop_candidates()
@@ -311,7 +320,8 @@ def audit(rule_dir: Path, level: str = "full", folders=None, seed: int = 0, coun
         "level": level,
         "seed": seed,
         "leaves": len(records),
-        "by_outcome": {k: sum(1 for r in records if r.get("outcome") == k) for k in ("ok", "refused", "violation", "malformed")},
+        "by_outcome": {k: sum(1 for r in records if r.get("outcome") == k) for k in ("ok", "refused", "crash", "violation", "malformed")},
+        "crashes": [r for r in records if r.get("outcome") == "crash"][:10],
         "certified": sum(1 for r in ok if r["certified"]),
         "exact_singles": sum(r.get("exact_singles", 0) for r in records),
         "by_kind": {k: sum(1 for r in records if r.get("kind") == k) for k in sorted({r.get("kind") for r in records})},

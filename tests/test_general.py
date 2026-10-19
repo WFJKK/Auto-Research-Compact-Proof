@@ -298,3 +298,33 @@ def test_functional_softmax_and_keyword_forms_are_accepted():
     ok, margins = prog.run_singles(toks, labels, Counter())
     true = np.sort(ref, axis=1)[:, -1] - np.sort(ref, axis=1)[:, -2]
     assert np.allclose(margins, true, atol=1e-5)
+
+
+def test_interval_products_of_big_scalars_do_not_overflow():
+    """Regression (19 October 2026, found by the rule route's review): a product of 0-d interval tensors went
+    through np.where and np.minimum with Python ints, which raised OverflowError beyond 2**63 (scaling a
+    softmax-weighted head, say), and the checker rejected the whole proof. Products must match the four
+    corners exactly at any size, for 0-d operands and arrays alike."""
+    import random
+
+    import numpy as np
+
+    from core.check.interval import IT, _obj
+
+    rnd = random.Random(0)
+    for _ in range(300):
+        shape = rnd.choice([(), (3,)])
+
+        def make(exact):
+            n = int(np.prod(shape)) if shape else 1
+            lo = [rnd.randint(-(1 << 90), 1 << 90) for _ in range(n)]
+            w = [0 if exact else rnd.randint(0, 1 << 90) for _ in range(n)]
+            arr = lambda v: _obj(np.array(v[0], dtype=object)) if not shape else _obj(np.array(v, dtype=object))
+            return IT.exact(arr(lo), 0) if exact else IT(arr(lo), arr([a + b for a, b in zip(lo, w)]), 0)
+
+        x, y = make(rnd.random() < 0.3), make(rnd.random() < 0.3)
+        z = x * y
+        flat = lambda a: np.asarray(a, dtype=object).reshape(-1)
+        for xl, xh, yl, yh, zl, zh in zip(flat(x.lo), flat(x.hi), flat(y.lo), flat(y.hi), flat(z.lo), flat(z.hi)):
+            corners = [xl * yl, xl * yh, xh * yl, xh * yh]
+            assert zl == min(corners) and zh == max(corners)

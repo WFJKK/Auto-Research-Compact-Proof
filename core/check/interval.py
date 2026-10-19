@@ -121,16 +121,20 @@ class IT:
         e = a.exp + b.exp
         if a.is_exact and b.is_exact:
             return self._new(a.lo * b.lo, None, e)
+        # Products of 0-d operands come back as Python ints; _obj keeps them object arrays, so np.where and
+        # np.minimum never try to fit an integer beyond 2**63 into int64.
         if b.is_exact:
             pos = _obj(b.lo >= 0).astype(bool)
-            return self._new(np.where(pos, a.lo * b.lo, a.hi * b.lo), _obj(np.where(pos, a.hi * b.lo, a.lo * b.lo)), e)
+            lo_if, lo_else, hi_if, hi_else = _obj(a.lo * b.lo), _obj(a.hi * b.lo), _obj(a.hi * b.lo), _obj(a.lo * b.lo)
+            return self._new(_obj(np.where(pos, lo_if, lo_else)), _obj(np.where(pos, hi_if, hi_else)), e)
         if a.is_exact:
             pos = _obj(a.lo >= 0).astype(bool)
-            return self._new(np.where(pos, a.lo * b.lo, a.lo * b.hi), _obj(np.where(pos, a.lo * b.hi, a.lo * b.lo)), e)
-        p = [a.lo * b.lo, a.lo * b.hi, a.hi * b.lo, a.hi * b.hi]
-        lo = np.minimum(np.minimum(p[0], p[1]), np.minimum(p[2], p[3]))
-        hi = np.maximum(np.maximum(p[0], p[1]), np.maximum(p[2], p[3]))
-        return self._new(lo, _obj(hi), e)
+            lo_if, lo_else, hi_if, hi_else = _obj(a.lo * b.lo), _obj(a.lo * b.hi), _obj(a.lo * b.hi), _obj(a.lo * b.lo)
+            return self._new(_obj(np.where(pos, lo_if, lo_else)), _obj(np.where(pos, hi_if, hi_else)), e)
+        p = [_obj(a.lo * b.lo), _obj(a.lo * b.hi), _obj(a.hi * b.lo), _obj(a.hi * b.hi)]
+        lo = _obj(np.minimum(_obj(np.minimum(p[0], p[1])), _obj(np.minimum(p[2], p[3]))))
+        hi = _obj(np.maximum(_obj(np.maximum(p[0], p[1])), _obj(np.maximum(p[2], p[3]))))
+        return self._new(lo, hi, e)
 
     def __matmul__(self, other: "IT") -> "IT":
         a, b = self, other

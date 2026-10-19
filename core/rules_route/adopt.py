@@ -49,7 +49,9 @@ def adopt(candidate: Path, provenance: dict, checks: dict, reviews: list, rules_
     (target / "AUDIT.json").write_text(json.dumps({"audit": summary, "counterexamples": checks.get("counterexample_audits", [])}, indent=1) + "\n")
     lines = ["# Reviews\n"]
     for i, r in enumerate(reviews):
-        lines.append(f"## Review {i + 1}: {r['verdict']} ({r.get('backend', '?')}, {r.get('model', '?')})\n\n{r.get('critique', '').strip()}\n")
+        who = r.get("backend") or "?"
+        who += f", {r['model']}" if r.get("model") else " backend, model not recorded" if who == "manual" else ""
+        lines.append(f"## Review {i + 1}: {r['verdict']} ({who})\n\n{r.get('critique', '').strip()}\n")
     (target / "REVIEW.md").write_text("\n".join(lines))
     status = {
         "name": name,
