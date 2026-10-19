@@ -29,7 +29,11 @@ SANDBOX_FILES = ("core/runner.py", "core/harness.py", "core/helpers.py", "core/s
 def _files(patterns) -> list:
     out = []
     for pattern in patterns:
-        out += sorted(REPO_ROOT.glob(pattern))
+        found = sorted(REPO_ROOT.glob(pattern))
+        if pattern.startswith("rules/"):
+            # only the folders core.check.plugins loads: a replaced rule (rules/.replaced-<name>-<time>) is not one
+            found = [p for p in found if not p.relative_to(REPO_ROOT).parts[1].startswith((".", "_"))]
+        out += found
     return out
 
 

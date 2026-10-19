@@ -66,6 +66,8 @@ def main():
     ap.add_argument("networks", nargs="*")
     ap.add_argument("--knobs", default=",".join(str(k) for k in KNOBS))
     ap.add_argument("--max-leaves-per-box", type=int, default=64)
+    ap.add_argument("--depth", type=int, default=0, help="sdecomp.py's --depth: split dear boxes where cheaper")
+    ap.add_argument("--dear", type=int, default=None, help="sdecomp.py's --dear")
     ap.add_argument("--rule", default=str(REPO / "rules" / "token_convex"))
     ap.add_argument("--tag", default="", help="suffix of the results file (measure_<folder>_<setting><tag>.json)")
     args = ap.parse_args()
@@ -83,7 +85,7 @@ def main():
             continue
         e = network_entry(folder, nid)
         t0 = time.time()
-        b = sdecomp.Builder(folder, nid, args.max_leaves_per_box, rule)
+        b = sdecomp.Builder(folder, nid, args.max_leaves_per_box, rule, args.depth, args.dear)
         tree = b.tree()
         build_s = time.time() - t0
         boxes = box_subtrees(tree, space)
@@ -123,7 +125,7 @@ def main():
             "shortest_full": m["shortest_full"], "B": e["B"], "E": e["E"], "real_correct": e["real_correct"],
             "full_B_over_length": e["B"] / full["length"], "full_share_of_correct": full["certified"] / e["real_correct"],
             "boxes": len(boxes), "build": b.stats, "seconds": round(time.time() - t0, 1), "seconds_build": round(build_s, 1),
-            "rule": str(args.rule),
+            "rule": str(args.rule), "depth": args.depth, "dear": b.dear,
         }
         path.write_text(json.dumps(done, indent=1))
         print(f"{nid}: full proof B/{e['B'] / full['length']:.0f} certifying {full['certified'] / e['real_correct']:.4f} of correct; "

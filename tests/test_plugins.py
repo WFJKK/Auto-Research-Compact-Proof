@@ -91,3 +91,17 @@ def test_adopted_rules_pass_their_own_tests():
         r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-x", "-p", "no:cacheprovider", str(REPO / "rules" / name / "test_rule.py")],
                            cwd=REPO, capture_output=True, text=True, timeout=3600)
         assert r.returncode == 0, r.stdout[-3000:]
+
+
+def test_the_checker_hash_ignores_replaced_rule_folders(tmp_path, monkeypatch):
+    """A rule adopted again with replace: true leaves its old folder as rules/.replaced-<name>-<time>, which the
+    loader skips; the checker hash skips it too, so it changes nothing about what produced a result."""
+    from core import versions
+
+    for name in ("token_convex", ".replaced-token_convex-20261019-000000", "_scratch"):
+        (tmp_path / "rules" / name).mkdir(parents=True)
+        (tmp_path / "rules" / name / "rule.py").write_text("x = 1\n")
+        (tmp_path / "rules" / name / "status.json").write_text("{}\n")
+    monkeypatch.setattr(versions, "REPO_ROOT", tmp_path)
+    found = [p.relative_to(tmp_path).as_posix() for p in versions._files(("rules/*/rule.py", "rules/*/status.json"))]
+    assert found == ["rules/token_convex/rule.py", "rules/token_convex/status.json"]

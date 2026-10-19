@@ -11,8 +11,10 @@ M, about 15 V at n = 4, against about (n - 1) V^2 / 2 for the peeling tree with 
 
 Each box is offered to the rule; a box it cannot certify is split by peeling the top token off its widest
 varying position (the near-maximal tokens compete for attention), up to K leaves per box, and what is left is
-skipped. The checker decides the splits here, which a recipe cannot; a recipe would compute the same bounds in
-floats. The search's work is not part of the proof: the checker counts only the final tree.
+skipped. With --depth D, a box whose leaf costs more than --dear (default 50 V) is also split where that is
+cheaper: peeling the top token off any of its varying positions, both halves solved the same way, D levels deep.
+The checker decides the splits here, which a recipe cannot; a recipe would compute the same bounds in floats.
+The search's work is not part of the proof: the checker counts only the final tree.
 """
 
 from __future__ import annotations
@@ -39,12 +41,15 @@ RULE = "token_convex"
 
 
 class Builder:
-    def __init__(self, folder, nid, max_leaves, rule):
+    def __init__(self, folder, nid, max_leaves, rule, depth=0, dear=None):
         self.folder, self.nid, self.rule = folder, nid, rule
+        self.depth = depth  # with depth > 0, a box dearer than `dear` is split where its parts cost less (cheapest)
+        self.solved = {}
         e = network_entry(folder, nid)
         self.setting = e["setting"]
         self.sizes = folder.sizes(self.setting)
         self.V, self.n = self.sizes["d_vocab"], self.sizes["n_ctx"]
+        self.dear = dear if dear is not None else 50 * self.V
         self.prog = make_program(build_any(folder.build(self.setting)), load_weights(folder, nid), Counter(), folder.input_space(self.setting))
         self.max_leaves = max_leaves
         self.reverse = "min" in folder.name
@@ -88,11 +93,39 @@ class Builder:
         self.box_costs[id(node)] = cost[0]
         return node
 
+    def cheapest(self, rt, depth):
+        """(subtree, its charges) certifying the task-order box rt as cheaply as found: the box as one leaf, or
+        a split peeling the top token off one of its varying positions with both halves solved the same way
+        (while depth allows), or None if neither certifies. Only boxes dearer than self.dear are split."""
+        key = (tuple(rt), depth)
+        if key in self.solved:
+            return self.solved[key]
+        c = self.leaf_cost([self.rng(lo, hi) for lo, hi in rt])
+        best = None if c is None else ({"leaf": RULE}, c)
+        if depth > 0 and (c is None or c > self.dear):
+            for p in [q for q, (lo, hi) in enumerate(rt) if hi > lo]:
+                lo, hi = rt[p]
+                low, top = list(rt), list(rt)
+                low[p], top[p] = (lo, hi - 1), (hi, hi)
+                a = self.cheapest(low, depth - 1)
+                b = self.cheapest(top, depth - 1) if a is not None else None
+                if a is not None and b is not None and (best is None or a[1] + b[1] + 3 < best[1]):
+                    best = (self.split(p, a[0], b[0], self.cut(hi)), a[1] + b[1] + 3)
+        self.solved[key] = best
+        return best
+
     def refine(self, rt, budget, cost):
         real = [self.rng(lo, hi) for lo, hi in rt]
         if budget[0] <= 0:
             self.stats["skipped"] += 1
             return {"leaf": "skip"}
+        if self.depth > 0:
+            found = self.cheapest(rt, self.depth)
+            if found is not None:
+                budget[0] -= 1
+                cost[0] += found[1]
+                self.stats["leaves"] += 1
+                return found[0]
         c = self.leaf_cost(real)
         if c is not None:
             budget[0] -= 1
@@ -139,13 +172,15 @@ def main():
     ap.add_argument("folder")
     ap.add_argument("network")
     ap.add_argument("--max-leaves-per-box", type=int, default=64)
+    ap.add_argument("--depth", type=int, default=0, help="split dear boxes where their parts cost less, this deep")
+    ap.add_argument("--dear", type=int, default=None, help="leaf charge above which a box is split if cheaper")
     ap.add_argument("--rule", default=str(REPO / "rules" / RULE), help="the rule's folder (a candidate, say)")
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
     rule = use_candidate(Path(args.rule))
     folder = load_model_folder(REPO / "models" / args.folder)
     t0 = time.time()
-    b = Builder(folder, args.network, args.max_leaves_per_box, rule)
+    b = Builder(folder, args.network, args.max_leaves_per_box, rule, args.depth, args.dear)
     proof = {"schema": SCHEMA, "network": args.network, "tree": strip(b.tree())}
     t1 = time.time()
     res = check_proof(proof, folder, args.network, rule_set=("single", "token_interval", RULE, "skip"))
