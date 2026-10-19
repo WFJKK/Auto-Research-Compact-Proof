@@ -60,6 +60,11 @@ def true_margin(folder, e, module, ranges, label):
     return float((z[:, label] - np.delete(z, label, axis=1).max(axis=1)).min())
 
 
+def tol(x):
+    """float64 brute force is exact up to about 1e-16 of the values summed; the bound is exact."""
+    return 1e-9 * max(1.0, abs(x))
+
+
 def random_leaves(folder, e, rng, n, fixed_query, max_width=6):
     sizes = folder.sizes(e["setting"])
     V, P = sizes["d_vocab"], sizes["n_ctx"]
@@ -133,33 +138,72 @@ def test_sound_and_never_weaker_than_token_interval(rule, name):
         assert ok or not ok_ti, (ranges, label)
 
 
-@pytest.mark.parametrize("name", ["attn-max4", "attn-min2"])
+def nets(name, rng, scales=(4.0,)):
+    """(folder, entry, program, float64 module) for a trained development network when the folder has a zoo, and
+    for random weights at each scale (the initial weights' largest entry times the scale, uniformly)."""
+    path = REPO / "models" / name
+    folder = load_model_folder(path if path.is_dir() else REPO / "tests" / name)
+    out = []
+    if folder.zoo_dir().is_dir():
+        e = next(iter(networks(folder)))
+        w = load_weights(folder, e["id"])
+        setting = e["setting"]
+        out.append((folder, e, w))
+    else:
+        setting = folder.setting_names()[0]
+    template = {k: v.detach().numpy() for k, v in folder.build(setting).state_dict().items()}
+    for scale in scales:
+        w = {k: (rng.uniform(-1, 1, size=v.shape) * scale * max(1e-3, float(np.abs(v).max()))).astype(np.float32) for k, v in template.items()}
+        out.append((folder, {"setting": setting}, w))
+    res = []
+    for folder, e, w in out:
+        prog = make_program(build_any(folder.build(e["setting"])), w, Counter(), folder.input_space(e["setting"]))
+        m = folder.build(e["setting"]).double()
+        m.load_state_dict({k: torch.tensor(v, dtype=torch.float64) for k, v in w.items()})
+        res.append((folder, e, prog, m))
+    return res
+
+
+@pytest.mark.parametrize("name", ["attn-max4", "attn-min2", "stub_general", "stub_twopaths", "stub_query"])
 def test_exact_decision_when_one_position_varies(rule, name):
-    """With one varying position the rule certifies exactly the leaves whose inputs are all classified correctly,
-    and a leaf it does not certify gets its exact smallest margin (version 2 stops at the first positive bound,
-    so a certified leaf's bound may be lower than its margin)."""
-    folder, e, prog, module = setup(name)
+    """With one varying position (the query's or another's) the rule certifies exactly the leaves whose inputs are
+    all classified correctly, and a leaf it does not certify gets its smallest margin: the softmax levels first,
+    then every value per input (version 2.1). A certified leaf's bound may be lower than its margin."""
     rng = np.random.default_rng(12)
-    sizes = folder.sizes(e["setting"])
-    V, P = sizes["d_vocab"], sizes["n_ctx"]
-    done = failed = 0
-    while done < 40:
-        free = int(rng.integers(0, P))
-        ranges = [(int(t), int(t)) for t in rng.integers(0, V, size=P)]
-        lo = int(rng.integers(0, V))
-        ranges[free] = (lo, min(V - 1, lo + int(rng.integers(1, 8))))
-        label = folder.task.constant_label(ranges, sizes)
-        if label is None:
-            continue
-        ok, bound, _ = rule.check_leaf(prog, ranges, int(label), Counter())
-        true = true_margin(folder, e, module, ranges, int(label))
-        assert float(bound) <= true + 1e-9
-        if abs(true) > 1e-6:
-            assert ok == (true > 0), (ranges, label, true, float(bound))
-        if not ok:
-            assert true - 1e-6 <= float(bound)
-            failed += 1
-        done += 1
+    for folder, e, prog, module in nets(name, rng):
+        sizes = folder.sizes(e["setting"])
+        V, P = sizes["d_vocab"], sizes["n_ctx"]
+        done = 0
+        while done < 30:
+            free = int(rng.integers(0, P))
+            ranges = [(int(t), int(t)) for t in rng.integers(0, V, size=P)]
+            lo = int(rng.integers(0, V))
+            ranges[free] = (lo, min(V - 1, lo + int(rng.integers(1, 8))))
+            label = folder.task.constant_label(ranges, sizes)
+            if label is None:
+                continue
+            ok, bound, _ = rule.check_leaf(prog, ranges, int(label), Counter())
+            true = true_margin(folder, e, module, ranges, int(label))
+            assert float(bound) <= true + tol(true)
+            if abs(true) > 1e-6 * max(1.0, abs(true)):
+                assert ok == (true > 0), (ranges, label, true, float(bound))
+            if not ok:
+                assert true - 1e-6 * max(1.0, abs(true)) <= float(bound), (ranges, label, true, float(bound))
+            done += 1
+
+
+@pytest.mark.parametrize("name", ["stub_general", "stub_twopaths", "stub_query"])
+def test_never_weaker_than_token_interval_on_the_synthetic_architectures(rule, name):
+    """Random leaves (one varying position or several) on random-weight networks of the synthetic folders, whose
+    operations the attention folders do not use: whatever token_interval certifies, the rule certifies too."""
+    rng = np.random.default_rng(15)
+    for folder, e, prog, module in nets(name, rng, scales=(1.0, 4.0, 16.0)):
+        for ranges, label in random_leaves(folder, e, rng, 25, fixed_query=False, max_width=4):
+            ok, bound, _ = rule.check_leaf(prog, ranges, label, Counter())
+            ok_ti, _, _ = prog.run_token_interval(ranges, label, Counter())
+            true = true_margin(folder, e, module, ranges, label)
+            assert float(bound) <= true + tol(true)
+            assert ok or not ok_ti, (ranges, label)
 
 
 def test_boxes_with_two_varying_positions_are_tight_with_a_fixed_query(rule):
@@ -263,10 +307,11 @@ def test_check_proof_needs_the_rule_in_the_run(rule):
     assert res["status"] == "rejected" and "not allowed" in res["reason"]
 
 
-@pytest.mark.parametrize("stub", ["stub_general", "stub_twopaths"])
+@pytest.mark.parametrize("stub", ["stub_general", "stub_twopaths", "stub_query"])
 def test_sound_on_the_synthetic_architectures(rule, stub):
-    """Biased linear layers (stub_general) and two terms with one origin reaching one product (stub_twopaths),
-    with random weights, many leaves on one program so the memo is shared across them."""
+    """Biased linear layers (stub_general), two terms with one origin reaching one product (stub_twopaths), and
+    three kinds of softmax with a two-term, scaled query (stub_query), with random weights, many leaves on one
+    program so the memo is shared across them."""
     folder = load_model_folder(REPO / "tests" / stub)
     setting = folder.setting_names()[0]
     module = folder.build(setting)
@@ -431,7 +476,7 @@ def test_query_varying_leaves_are_sound(rule, name):
                 p.run_token_interval(ranges, label, Counter())
             ok, bound, _ = rule.check_leaf(p, ranges, label, Counter())
             true = true_margin(folder, e, m, ranges, label)
-            assert float(bound) <= true + 1e-9, (kind, ranges, label)
+            assert float(bound) <= true + tol(true), (kind, ranges, label)
             assert ok == (bound > 0)
 
 

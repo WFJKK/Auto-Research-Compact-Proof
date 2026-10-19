@@ -44,8 +44,9 @@ over the leaf's tokens and query tokens, read per query token from running minim
 columns, while r's relative weight is exactly 1. Level A (every output at once) and level B (each output) are
 levels 0 and 2 on that box, with the query position's own terms at their smallest over its tokens. Outputs
 still unsettled then go query token by query token: with the query position's token fixed the scores are
-exact per token (a column of the table), and levels 0 to 3 apply as with a fixed query. Leaves without such
-scores are unchanged.
+exact per token (a column of the table), and levels 0 to 3 apply as with a fixed query. With at most one
+varying position this structure is tried first, and a leaf it leaves not certified is evaluated again as version 1
+evaluates it (every value per input, as token_interval does); the larger bound is kept (version 2.1).
 """
 
 from __future__ import annotations
@@ -68,8 +69,9 @@ TABLES = "tables"
 GUARD_BITS = 64  # a group's bound is rounded down at 2**-64 of its rows' unit
 DESCRIPTION = (
     'Leaf rule {"leaf": "token_convex"}. For networks with operations beyond linear maps (softmax attention, '
-    "say). The correct output must be the same for every input in the leaf. It does everything token_interval "
-    "does; it differs through the softmax. A softmax over the positions keeps the box of its scores (per "
+    "say). The correct output must be the same for every input in the leaf. It certifies every leaf "
+    "token_interval certifies (up to exp's rounding), and more through the softmax. A softmax over the "
+    "positions keeps the box of its scores (per "
     "position, the smallest and largest score over the leaf) and, when the scores are exact per token (the query "
     "fixed in the leaf, say) or per pair of tokens (the query varying, below), those scores. When its weights "
     "multiply exact per-token rows and are summed over the positions, the bound uses that the weights are a "
@@ -100,9 +102,11 @@ DESCRIPTION = (
     "it (the box per position from that column's extremes; the query position's terms exact), and an output's "
     "bound is the larger of level B's and the smallest over the query tokens; the first query token that leaves "
     "an output not positive ends the search, and the leaf is not certified. With at most one varying position, "
-    "a softmax with scores exact per token or per pair is kept as well and these levels decide: they certify "
-    "exactly the leaves whose inputs are all correct (up to exp's rounding), but a certified leaf's bound may be "
-    "below its smallest margin; every other value is kept per input, as by token_interval. "
+    "a softmax with scores exact per token or per pair is kept as well and these levels are tried first; if they "
+    "leave the leaf not certified, it is evaluated again with every value per input, as token_interval and "
+    "version 1 evaluate it (charged as they charge it, with the reuse below), and the larger bound is kept. So "
+    "such a leaf is certified exactly when all its inputs are correct (up to exp's rounding), a leaf that is not "
+    "certified gets its smallest margin, and a certified leaf's bound may be below its smallest margin. "
     "REUSE. The smallest difference of a row that depends on its token alone, over a range of tokens starting at "
     "the first token or ending at the last, comes from running minima kept for the whole proof per row, label "
     "and direction (to tables: 2 per token and output for level 2's; 3 per token for level 0's); the smallest "
@@ -148,9 +152,9 @@ class Soft:
 
 
 class QVal:
-    """A value that depends only on the token at one position (the leaf's query position, where several tokens
-    are allowed): vals[i] (shape `dims`) is its exact value when that position holds tokens[i]. key is the memo
-    key its values are kept under (None if they are not kept)."""
+    """A value that depends only on the token at one position (the leaf's query position, which may hold one
+    token or several): vals[i] (shape `dims`) is its exact value when that position holds tokens[i]. key is the
+    memo key its values are kept under (None if they are not kept)."""
 
     def __init__(self, pos: int, tokens: list, vals: IT, dims: tuple, key):
         self.pos, self.tokens, self.vals, self.dims, self.key = pos, tokens, vals, tuple(dims), key
@@ -291,6 +295,7 @@ class _Table:
 class ConvexEvaluator(TokenEvaluator):
     domain = DOMAIN
     category = CATEGORY
+    per_input = False  # True: with at most one varying position, keep every value per input (PerInputEvaluator)
 
     def __init__(self, prog, memo, counter, box):
         super().__init__(prog, memo, counter, box)
@@ -416,7 +421,7 @@ class ConvexEvaluator(TokenEvaluator):
         position; one per leaf). Kept per token (2 per term and entry, plus 1 per entry for the constant, to
         tables) when every term's rows are kept; the weights and the constant are then part of the key, matched
         once per leaf (1 per number)."""
-        if not m.terms or not m.const.is_exact:
+        if not m.terms or not m.const.is_exact or (self.aligned and self.per_input):
             return None
         d = kwargs.get("dim", args[1] if len(args) > 1 else None)
         if not isinstance(d, int) or isinstance(d, bool):
@@ -588,7 +593,7 @@ class ConvexEvaluator(TokenEvaluator):
         if shape is None or len(shape) != 2 or shape[0] != 1 or dim not in (1, -1):
             return None
         per_token = isinstance(x, Sep) and all(r.ndim == 1 and r.is_exact for r in x.rows)
-        if self.aligned and not (per_token or isinstance(x, PScores)):
+        if self.aligned and (self.per_input or not (per_token or isinstance(x, PScores))):
             return None
         rows = pair = None
         if isinstance(x, PScores) and len(x.tokens[x.qpos]) == 1:
@@ -1347,8 +1352,22 @@ class ConvexEvaluator(TokenEvaluator):
         return out
 
 
+class PerInputEvaluator(ConvexEvaluator):
+    """ConvexEvaluator as version 1 runs a leaf with at most one varying position: every value one per input
+    (token_interval's evaluation, with the reuse above); the softmax structure is not used there."""
+
+    per_input = True
+
+
 def check_leaf(prog, ranges, label, counter):
-    """(certified, lowest margin bound as a Fraction, the other output reaching it) for one token_convex leaf."""
+    """(certified, lowest margin bound as a Fraction, the other output reaching it) for one token_convex leaf.
+    With at most one varying position, a leaf the softmax levels leave not certified is evaluated again with every
+    value per input, as version 1 and token_interval evaluate it; both bounds hold, and the larger is kept."""
     if not isinstance(prog, GeneralProgram):
         raise CheckError("token_convex is only for networks beyond linear maps")
-    return prog.run_token_leaf(ranges, label, counter, ConvexEvaluator)
+    ok, bound, other = prog.run_token_leaf(ranges, label, counter, ConvexEvaluator)
+    if not ok and sum(1 for lo, hi in ranges if int(hi) > int(lo)) <= 1:
+        ok2, bound2, other2 = prog.run_token_leaf(ranges, label, counter, PerInputEvaluator)
+        if bound2 > bound:
+            ok, bound, other = ok2, bound2, other2
+    return ok, bound, other
