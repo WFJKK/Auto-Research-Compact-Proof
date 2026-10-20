@@ -40,34 +40,40 @@ The specification, from Spec.lean:
 
 WHAT A PROOF COSTS: THE COUNTED LANGUAGE
 A verified proof gets a LENGTH only if it is SCORED: you write a checker
-`D : CostM Nat` in the counted language, where every operation on a
-number of the network is charged, prove it sound for all weights, and
+`D : Checker`, a function of an interpreter `I : Interp` whose operations
+are the only way to touch a number of the network (every one charged by
+the interpreter the service runs), prove it sound for all weights, and
 have the kernel evaluate it on the protected weights. Your submission
 then names D, the soundness theorem, the instance theorem, the
 certificate and the bill:
 
     theorem D_sound : ∀ (w : Weights ℚ) (c : Cert) (n : Nat) (cost : Cost),
-        CostM.exec D ⟨w, c⟩ = some (n, cost) → n ≤ numCorrect graph w task
-    theorem D_instance : CostM.billed D ⟨weights, cert⟩ = some (N, L) := by decide +kernel
+        CostM.exec (D Interp.counting) ⟨w, c⟩ = some (n, cost) → n ≤ numCorrect graph w task
+    theorem D_instance : CostM.billed (D Interp.counting) ⟨weights, cert⟩ = some (N, L) := by
+      decide +kernel
 
 The service builds both statements itself, so they must match exactly.
 Length = L (the bill) + E (the weights, charged once) + the number of
-certificate numbers (charged 1 each). The counted language, with its
-prices (Counted.lean):
-{COUNTED}
-The counted operations, each running a piece of the checker and charging
-what it costs, with their specification lemmas (CountedOps.lean):
+certificate numbers (charged 1 each). The interface a checker is written
+against, the counting interpreter with its prices, and the specification
+lemmas for proofs (CountedOps.lean):
 {COUNTED_OPS}
-Rules of scoring, checked mechanically: D may use only the counted
-primitives and operations, Lean's own structural functions on Nat, Bool,
-List, Array, Option, Prod, Fin and String, your own definitions built
-from these, and the protected graph and task; never the protected
-weights, the certificate as data, Q.val, CostM.mk or CostM.run (the
-service lists what is not allowed). The general layer (D, its soundness
-proof, their dependencies) may not reference the protected weights or
-certificate, may hold few literals (at most 32 + E/8 in literal weight:
-a copy of the weights cannot fit), and must replay in the kernel within
-120 s. A proof refused scoring stays verified.
+The counting interpreter's monad and primitives (Counted.lean):
+{COUNTED}
+Rules of scoring, checked mechanically: D's own code may use the
+interpreter's fields, Lean's structural functions on Nat, Bool, List,
+Array, Option, Prod, Fin and String, your own definitions built from
+these, and the protected graph and task; never Interp.counting, CostM or
+Q (the counting interpreter is the service's to run), the protected
+weights, the certificate as data, or Classical (the service lists what it
+refused). Inside D a truth value `I.B` can only choose between two
+computations (`I.ifN`, `I.ifV`, `I.ifB`, `I.ifU`), and a count `I.N` can
+only grow: nothing learned about the network reaches ordinary Lean. The
+general layer (D, its soundness proof, their dependencies) may not
+reference the protected weights or certificate; the definitions D uses
+may hold few literals (at most 32 + E/8 in literal weight: a copy of the
+weights cannot fit); and the general layer must replay in the kernel
+within 120 s. A proof refused scoring stays verified.
 
 A worked example, a scored brute-force proof (the baseline you should
 beat):
