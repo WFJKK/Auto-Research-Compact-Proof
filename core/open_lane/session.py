@@ -275,8 +275,10 @@ class Session:
                                                 "network", "statement", "axioms", "score_eligible", "execution_assurance", "scoring", "seconds")}
             out["submission"] = n
             out["remaining"] = self.remaining()
-            self._log("submit_candidate", args, {"status": receipt.get("status"), "scoring": (receipt.get("scoring") or {}).get("status"),
-                                                 "reason": (receipt.get("reason") or "")[:300]}, time.monotonic() - t0)
+            scoring = receipt.get("scoring") or {}
+            self._log("submit_candidate", args, {"status": receipt.get("status"), "scoring": scoring.get("status"),
+                                                 "reason": (receipt.get("reason") or scoring.get("reason") or "")[:300],
+                                                 "length": scoring.get("length"), "certified": receipt.get("certified_count")}, time.monotonic() - t0)
             return out
         except ToolError as exc:
             self._log("submit_candidate", args, {"error": str(exc)}, time.monotonic() - t0)
