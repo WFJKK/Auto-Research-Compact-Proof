@@ -99,3 +99,24 @@ rule_set: [single, interval, skip, contract, symmetry, approximate]
 # recipe places its proofs earns nothing; the report shows all of them.
 metric: Q
 lean_spot_check: false
+
+# The open lane (docs/OPEN_LANE.md): instead of one recipe per round, the agent
+# works with tools (lean_check, run_python, search_library, submit_candidate) and
+# submits Lean proofs about a network to the Lean project's acceptance service;
+# the receipts become the round's records. Off by default: the legacy loop above
+# is unchanged. With it on, rule_set must be written in the run config itself (it
+# limits round 0's baselines; the agent gets no rule descriptions), backend is
+# fake (replaying the scripts in fake_scripts) or claude_code (the CLI with the
+# tools as an MCP server), and prompt_template is an open-lane template.
+open_lane:
+  enabled: false
+  lean_project: null        # the CompactCheck project: scripts/accept.py and the built acceptcheck
+  work_dir: null            # the service's work folder (networks, protected modules, receipts); default <run>/open_lane_work
+  python: null              # the Python that runs the tools for the CLI; default the one running this
+  compile_calls: 60         # lean_check calls per session
+  python_calls: 40          # run_python calls per session
+  submissions: 4            # submit_candidate calls per session
+  max_turns: 200            # the CLI's agentic turns per session
+  worker_seconds: 7200      # the session's wall clock
+  stall_rounds: 3           # rounds without an accepted submission before the prompt asks for a change of approach
+  fake_scripts: []          # the fake backend's scripted sessions, in order (files or folders of *.json)

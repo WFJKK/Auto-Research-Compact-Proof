@@ -115,6 +115,14 @@ def baseline_files(folder, selection) -> list:
 
 
 def make_backend(cfg, log=print):
+    if cfg.get("open_lane", {}).get("enabled"):
+        from .open_lane.backends import ClaudeCodeToolBackend, FakeToolBackend
+
+        if cfg["backend"] == "fake":
+            return FakeToolBackend([resolve(p) for p in cfg["open_lane"]["fake_scripts"]])
+        if cfg["backend"] == "claude_code":
+            return ClaudeCodeToolBackend(cfg, log=log)
+        raise LoopError(f"the open lane has no {cfg['backend']} backend")
     if cfg["backend"] == "fake":
         return FakeBackend([resolve(p) for p in cfg["fake_responses"]])
     if cfg["backend"] == "manual":
@@ -167,7 +175,12 @@ def round_prompt(ctx: Context, k: int) -> Prompt:
     saved = ctx.run.read(k, "prompt.json")
     if saved is not None:
         return Prompt.from_json(saved)
-    p = build_prompt(ctx.cfg, ctx.folder, ctx.entries, ctx.run, k)
+    if ctx.cfg.get("open_lane", {}).get("enabled"):
+        from .open_lane.prompt import build_open_lane_prompt
+
+        p = build_open_lane_prompt(ctx.cfg, ctx.folder, ctx.entries, ctx.run, k)
+    else:
+        p = build_prompt(ctx.cfg, ctx.folder, ctx.entries, ctx.run, k)
     ctx.log(f"  prompt: about {p.stats['tokens_estimate']:,} tokens" + (f"; trimmed {', '.join(p.stats['trimmed'])}" if p.stats["trimmed"] else ""))
     return p
 
@@ -220,6 +233,11 @@ def preflight(cfg: dict, folder) -> None:
     baseline_files(folder, cfg["baselines"])  # a misspelt baseline name fails here
     if cfg["lean_spot_check"] and lean_command(folder) is None:
         raise LoopError(f"lean_spot_check is on, but {folder.name} has no Lean checker (lean_check in its config.yaml)")
+    if cfg.get("open_lane", {}).get("enabled"):
+        project = resolve(cfg["open_lane"]["lean_project"])
+        binary = project / ".lake" / "build" / "bin" / "acceptcheck"
+        if not binary.is_file():
+            raise LoopError(f"the Lean project at {project} has no built acceptcheck (lake build acceptcheck there first)")
     if cfg["backend"] in ("api", "claude_code"):
         g = git_state()
         if g["commit"] is None or g["dirty"]:
@@ -258,6 +276,8 @@ def drive(ctx: Context) -> None:
         else:
             run_round(ctx, 0, _NoResponses(), 0, 0, "baseline")
     backend = make_backend(cfg, ctx.log)
+    if hasattr(backend, "bind"):
+        backend.bind(cfg, cfg["model"], ctx.entries, run.path)
     per_round = cfg["recipes_per_round"]
     k = max(run.next_round(), 1)
     while k <= cfg["rounds_max"]:
@@ -313,7 +333,8 @@ def status_text(run: RunDir, diagnostics: bool = False) -> str:
     except Exception as exc:  # status should still print what it can
         lines.append(f"(no metrics: {exc})")
         return "\n".join(lines)
-    lines.append("frontier metrics (Python-checked):")
+    checkers = sorted({str(r.get("checked_by") or "python") for r in records if r.get("status") == "ok"}) or ["python"]
+    lines.append(f"frontier metrics (checked by {', '.join(checkers)}):")
     for setting, s in summarize(records, entries, cfg.get("budget_ratio")).items():
         lines.append(
             f"  {setting}: Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}; Q_grid median {s['Q_grid_median']:.4f}; "

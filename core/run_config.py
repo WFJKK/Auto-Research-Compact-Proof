@@ -56,7 +56,11 @@ def merge(raw: dict, source: str = "run config") -> dict:
     if missing:
         raise RunConfigError(f"{source}: missing {missing}")
     cfg = {**base, **raw}
+    if isinstance(raw.get("open_lane"), dict):
+        cfg["open_lane"] = {**base["open_lane"], **raw["open_lane"]}
     validate(cfg, source)
+    if cfg["open_lane"]["enabled"] and "rule_set" not in raw:
+        raise RunConfigError(f"{source}: with the open lane on, rule_set must be written in the run config (no implicit default)")
     return cfg
 
 
@@ -147,5 +151,41 @@ def validate(cfg: dict, source: str = "run config") -> None:
         errors.append(f"sandbox must be one of {SANDBOX_MODES}")
     if not isinstance(cfg["sandbox_image"], str) or not cfg["sandbox_image"]:
         errors.append("sandbox_image must name a container image")
+    errors += open_lane_errors(cfg)
     if errors:
         raise RunConfigError(f"{source}: " + "; ".join(errors))
+
+
+OPEN_LANE_KEYS = {"enabled", "lean_project", "work_dir", "python", "compile_calls", "python_calls", "submissions", "max_turns",
+                  "worker_seconds", "stall_rounds", "fake_scripts"}
+
+
+def open_lane_errors(cfg: dict) -> list[str]:
+    ol = cfg.get("open_lane")
+    if not isinstance(ol, dict):
+        return ["open_lane must be a mapping"]
+    unknown = sorted(set(ol) - OPEN_LANE_KEYS)
+    if unknown:
+        return [f"open_lane: unknown keys {unknown}"]
+    errors = []
+    if not isinstance(ol.get("enabled"), bool):
+        errors.append("open_lane.enabled must be true or false")
+    for key in ("compile_calls", "python_calls", "submissions", "max_turns", "stall_rounds"):
+        _number(ol, key, errors, integer=True, minimum=1)
+    _number(ol, "worker_seconds", errors, positive=True)
+    if not isinstance(ol.get("fake_scripts"), list) or not all(isinstance(p, str) for p in ol["fake_scripts"]):
+        errors.append("open_lane.fake_scripts must be a list of paths")
+    for key in ("lean_project", "work_dir", "python"):
+        if ol.get(key) is not None and not isinstance(ol[key], str):
+            errors.append(f"open_lane.{key} must be a path or null")
+    errors = [f"open_lane: {e}" if not e.startswith("open_lane") else e for e in errors]
+    if ol.get("enabled") is True and not errors:
+        project = ol.get("lean_project")
+        if not project or not (Path(project).expanduser() / "scripts" / "accept.py").is_file():
+            errors.append("open_lane.lean_project must be the Lean project (with scripts/accept.py)")
+        if cfg["backend"] not in ("fake", "claude_code"):
+            errors.append("the open lane runs with backend fake or claude_code")
+        tpl = REPO_ROOT / "core" / "agent" / "prompts" / f"{cfg['prompt_template']}.md"
+        if tpl.is_file() and "{COUNTED}" not in tpl.read_text():
+            errors.append(f"the open lane needs an open-lane prompt template (open_lane_v1), not {cfg['prompt_template']!r}")
+    return errors

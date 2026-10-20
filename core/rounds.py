@@ -307,12 +307,35 @@ def _line(rec: dict) -> str:
     return f"{head}: {(rec['error'] or '').splitlines()[-1][:120] if rec['error'] else ''}"
 
 
+def _open_line(rec: dict) -> str:
+    head = f"    {rec.get('network') or '-'} submission {rec.get('submission', '-')}: {rec['status']}"
+    if rec["status"] == "ok":
+        return f"{head}, certified {rec['certified']}/{rec['n_inputs']}, length {rec['length']:,}"
+    if rec["status"] == "verified":
+        return f"{head}, certified {rec['certified']}/{rec['n_inputs']}; {(rec.get('error') or '')[:120]}"
+    return f"{head}: {(rec.get('error') or '').splitlines()[-1][:120] if rec.get('error') else ''}"
+
+
 def run_attempt(ctx: Context, k: int, j: int, source: str, text: str) -> list[dict]:
-    """Parse one response, run and check its recipe, and write the attempt's results. Idempotent."""
+    """Parse one response, run and check its recipe, and write the attempt's results. Idempotent.
+
+    In an open-lane agent round the response is notes and the records come from the session's receipts
+    (core.open_lane.records); nothing is parsed or run."""
     rel = f"attempt_{j}"
     done = ctx.run.read(k, f"{rel}/results.json")
     if done is not None:
         return done
+    if k > 0 and ctx.cfg.get("open_lane", {}).get("enabled"):
+        from .open_lane.records import open_lane_records
+
+        try:
+            records = open_lane_records(ctx, k, j, source)
+        except RuntimeError as exc:
+            raise RoundError(str(exc)) from exc
+        for r in records:
+            ctx.log(_open_line(r))
+        ctx.run.write(k, f"{rel}/results.json", records)
+        return records
     try:
         parsed = parse_response(text)
     except ParseError as exc:

@@ -2,9 +2,10 @@
   "model": "max2_tiny",
   "networks": [
     {
-      "B": null,
-      "E": null,
+      "B": 4323,
+      "E": 80,
       "correct": "max2_tiny-v8-s0.correct.npy",
+      "cost_model": "cost-v3",
       "final_loss": 0.00010771112283691764,
       "id": "max2_tiny-v8-s0",
       "n_inputs": 64,
@@ -19,9 +20,10 @@
       "weights": "max2_tiny-v8-s0.npz"
     },
     {
-      "B": null,
-      "E": null,
+      "B": 4323,
+      "E": 80,
       "correct": "max2_tiny-v8-s1.correct.npy",
+      "cost_model": "cost-v3",
       "final_loss": 0.00017422573000658303,
       "id": "max2_tiny-v8-s1",
       "n_inputs": 64,
