@@ -46,7 +46,7 @@ from .run_config import METRIC_KEYS, load_run_config, resolve
 from .runner import Limits
 from .sandbox import SandboxError, check_probe, choose, probe, protected_paths
 from .scoring import frontier, summarize
-from .util import git_state, read_json, write_json
+from .util import REPO_ROOT, git_state, read_json, write_json
 from .versions import changed, collect
 from .zoo import networks
 
@@ -238,11 +238,36 @@ def preflight(cfg: dict, folder) -> None:
         binary = project / ".lake" / "build" / "bin" / "acceptcheck"
         if not binary.is_file():
             raise LoopError(f"the Lean project at {project} has no built acceptcheck (lake build acceptcheck there first)")
+        check_lean_lock(project)
     if cfg["backend"] in ("api", "claude_code"):
         g = git_state()
         if g["commit"] is None or g["dirty"]:
             raise LoopError(f"a run with the {cfg['backend']} backend starts only from a clean commit; commit or stash your changes first")
         make_backend(cfg)  # fails here, before the run exists, if the key is missing or the CLI is not logged in
+
+
+LEAN_LOCK = REPO_ROOT / "lean-checker.lock"
+
+
+def check_lean_lock(project: Path) -> dict:
+    """The Lean project must be at the commit lean-checker.lock names: a run's receipts mean what this pipeline
+    version expects only then. Returns the lock."""
+    lock = read_json(LEAN_LOCK)
+    import subprocess
+
+    try:
+        head = subprocess.run(["git", "-C", str(project), "rev-parse", "HEAD"], capture_output=True, text=True, timeout=60).stdout.strip()
+        dirty = subprocess.run(["git", "-C", str(project), "status", "--porcelain", "--untracked-files=no"], capture_output=True, text=True, timeout=60).stdout.strip()
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise LoopError(f"cannot read the Lean project's git state at {project}: {exc}")
+    if head != lock["commit"]:
+        raise LoopError(
+            f"the Lean project at {project} is at commit {head[:12]}, but lean-checker.lock expects {lock['commit'][:12]}: "
+            "check out that commit, or update the lock in a commit of this repository if the new checker is meant"
+        )
+    if dirty:
+        raise LoopError(f"the Lean project at {project} has uncommitted changes to tracked files; a run needs a clean checker")
+    return lock
 
 
 def start(config_path: str | Path, log=print, run_id: str | None = None) -> Context:

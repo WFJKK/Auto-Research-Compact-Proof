@@ -249,12 +249,13 @@ def execution_record(
     if result["status"] != "ok":
         rec.update(status="bad_output", error=f"the checker rejected the proof: {result['reason']}")
         return rec
-    real = entry.get("real_correct")
-    if real is not None and result["certified"] > real:
-        # A sound checker never certifies an input the network gets wrong. This is the one invariant
-        # a proof cannot fake, so a violation halts the run instead of becoming a record.
+    # A sound checker never certifies an input the network gets wrong. This is the one invariant a proof
+    # cannot fake, so a violation halts the run instead of becoming a record. The reference is the checker's
+    # own exact count when the zoo has it (core.check.exact_counts), else the float count.
+    reference = entry.get("checked_correct") if entry.get("checked_correct") is not None else entry.get("real_correct")
+    if reference is not None and result["certified"] > reference:
         raise RoundError(
-            f"{nid}: the checker certified {result['certified']} inputs but the network gets only {real} right "
+            f"{nid}: the checker certified {result['certified']} inputs but the network gets only {reference} right "
             f"(proof {path}); the checker or the zoo is unsound, so the run halts"
         )
     rec.update(

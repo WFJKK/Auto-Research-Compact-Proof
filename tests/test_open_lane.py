@@ -30,7 +30,7 @@ def base_config(tmp_path: Path, scripts: list[str], **extra) -> dict:
         "prompt_template": "open_lane_v1", "baselines": False, "rounds_max": max(1, len(scripts)), "patience": 10,
         "runs_dir": str(tmp_path / "runs"), "sandbox": "auto", "workers": 1,
         "open_lane": {"enabled": True, "lean_project": str(LEAN), "work_dir": str(tmp_path / "work"),
-                      "fake_scripts": scripts, "compile_calls": 3, "submissions": 2, "python_calls": 2, "stall_rounds": 1},
+                      "fake_scripts": scripts, "compile_calls": 3, "submissions": 3, "python_calls": 2, "stall_rounds": 1},
         **extra,
     }
 
@@ -89,6 +89,23 @@ def test_the_mcp_server_runs_as_the_cli_would_start_it(tmp_path):
     assert len(replies[1]["result"]["tools"]) == 4
 
 
+def test_the_lean_lock_is_checked(tmp_path):
+    """preflight refuses a Lean project at another commit than lean-checker.lock names."""
+    import subprocess
+
+    if not HAVE_LEAN:
+        pytest.skip("no Lean project")
+    lock = json.loads((REPO_ROOT / "lean-checker.lock").read_text())
+    head = subprocess.run(["git", "-C", str(LEAN), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+    if head == lock["commit"]:
+        assert loop.check_lean_lock(LEAN)["commit"] == head
+    else:
+        with pytest.raises(loop.LoopError, match="lean-checker.lock"):
+            loop.check_lean_lock(LEAN)
+    with pytest.raises(loop.LoopError):
+        loop.check_lean_lock(tmp_path)
+
+
 def test_budgets_persist_across_sessions(tmp_path):
     cfg = merge(base_config(tmp_path, [], open_lane={"enabled": False}))
     cfg["open_lane"].update(lean_project=str(tmp_path), work_dir=str(tmp_path / "work"), compile_calls=1)
@@ -115,15 +132,18 @@ def test_a_fake_session_submits_the_scored_example_and_the_receipt_becomes_a_rec
     ok = [r for r in records if r["status"] == "ok"]
     assert len(ok) == 1 and ok[0]["lane"] == "open" and ok[0]["certified"] == 64 and ok[0]["length"] == 4112
     assert ok[0]["checked_by"] == "lean" and ok[0]["network"] == "max2_tiny-v8-s0" and ok[0]["round"] == 1
+    assert "reference_warning" not in ok[0]
+    lemma = [r for r in records if r["status"] == "lemma"]
+    assert len(lemma) == 1 and "countP" in lemma[0]["statement"] and lemma[0]["certified"] is None
     assert [r["status"] for r in records if r["round"] == 2] == ["no_submission"]
     meta = ctx.run.read(1, "attempt_0/response_meta.json")
-    assert meta["submissions"] == 1 and meta["tools_used"] == {"lean_check": 1, "submit_candidate": 1, "run_python": 1}
+    assert meta["submissions"] == 2 and meta["tools_used"] == {"lean_check": 1, "submit_candidate": 2, "run_python": 1}
     log = [json.loads(l) for l in (ctx.run.round_path(1) / "attempt_0" / "open_lane" / "tools.jsonl").read_text().splitlines()]
-    assert [l["tool"] for l in log] == ["search_library", "run_python", "lean_check", "submit_candidate"]
+    assert [l["tool"] for l in log] == ["search_library", "run_python", "lean_check", "submit_candidate", "submit_candidate"]
     assert "M (8, 8)" in log[1]["outcome"]["output"] and log[2]["outcome"]["ok"]
-    # the prompt of round 2 shows the receipt, the accepted lemmas and the notes; round 3 would be stalled
+    # the prompt of round 2 shows the receipt, the lemma, the accepted sources and the notes
     prompt = ctx.run.read(2, "prompt.md")
-    assert "length 4,112" in prompt and "countSingles" in prompt and "column sums" in prompt
+    assert "length 4,112" in prompt and "countSingles" in prompt and "column sums" in prompt and "auxiliary lemma accepted" in prompt
     assert "{COUNTED}" not in prompt and "def qadd" in prompt and "Correct" in prompt
     summary = loop.status_text(ctx.run)
     assert "Q" in summary

@@ -18,7 +18,7 @@ response:
   budgets, the scoreboard, the receipts so far, the sources of the agent's accepted submissions from earlier
   rounds, and its latest notes. No rule descriptions.
 - The tools (`core/open_lane/session.py`): `lean_check` saves a module in the session's workspace and
-  compiles it against the protected module of a network and claim (which the service builds and caches);
+  compiles it through the service against the protected module of a network and claim;
   `run_python` runs code in the recipe sandbox with the network's weights; `search_library` searches the
   Lean project's sources and docs; `submit_candidate` hands modules to the acceptance service and returns
   the receipt. Each call is logged append-only (`tools.jsonl`); the budgets (`compile_calls`,
@@ -43,6 +43,27 @@ Layout of an open-lane attempt:
         response.md              the session's final text (CLAIM, WHY IT HELPS, NOTES)
         response_meta.json       tokens, turns, tools used, submissions
         results.json             the records
+
+## The service is the Lean project's
+
+`scripts/accept.py` of the Lean project owns target binding, proof validation, the scoring policy and the
+receipts; the pipeline is its client. `lean_check` is `accept.py compile` (a module compiled in the service's
+box against the protected module, for development; never evidence), `submit_candidate` is `accept.py submit`.
+`lean-checker.lock` at the repository root pins the Lean commit this pipeline version expects; `preflight`
+refuses a run against a Lean project at another commit or with uncommitted changes.
+
+A submission of kind `auxiliary` is a lemma with any statement: accepted with no count and no score,
+recorded with status `lemma`, and shown to the agent in later rounds with its statement.
+
+## The reference count
+
+The zoo's `real_correct` comes from the float forward pass; the Lean specification counts over the reals
+with the exact weights. `python -m core.check.exact_counts models/<name>` records the Python checker's own
+brute-force count per network (`checked_correct`; `checked_semantics` exact for linear networks, enclosure
+for attention ones) and reports any network where it differs from the float count: on every max2, tiny
+max2 and attn-max2 network the two agree. The run halts on a count above the exact reference; a Lean count
+above the float count alone is flagged in the record (`reference_warning`), since that count is an
+approximation.
 
 ## Backends
 

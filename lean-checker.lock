@@ -1,0 +1,7 @@
+{
+ "repository": "https://github.com/WFJKK/Auto-Research-Compact-Proof-in-Lean",
+ "commit": "b29018146ae958c0925c9acd809597dbf7c2491d",
+ "receipt_schema": "open-lane-receipt-v1",
+ "candidate_schema": "open-lane-candidate-v1",
+ "note": "The Lean checker this pipeline version expects. preflight compares the project's HEAD with commit; update it with a commit that changes core/open_lane or the Lean project's protocol."
+}

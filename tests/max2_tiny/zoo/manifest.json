@@ -4,6 +4,9 @@
     {
       "B": 4323,
       "E": 80,
+      "checked_correct": 64,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "exact",
       "correct": "max2_tiny-v8-s0.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00010771112283691764,
@@ -22,6 +25,9 @@
     {
       "B": 4323,
       "E": 80,
+      "checked_correct": 64,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "exact",
       "correct": "max2_tiny-v8-s1.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00017422573000658303,

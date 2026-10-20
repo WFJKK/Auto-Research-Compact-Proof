@@ -3,8 +3,13 @@
 One record per submission. Its status is `ok` when the submission was verified and scored: it then has a
 certified count and a length in cost-v3 units, and enters the frontier as a proof file's record does.
 `verified` means accepted without a length (no scoring, or scoring refused): the count is recorded, the
-frontier does not see it. The other statuses are the receipt's (rejected, unsupported, timeout, error). An
-attempt that submitted nothing gets one record of status `no_submission`, so the round is never empty.
+frontier does not see it. `lemma` is an accepted auxiliary submission (a statement, no count). The other
+statuses are the receipt's (rejected, unsupported, timeout, error). An attempt that submitted nothing gets
+one record of status `no_submission`, so the round is never empty.
+
+A count above the exact reference count of the zoo (`checked_correct` with `checked_semantics` exact, from
+`python -m core.check.exact_counts`) halts the run; above the float count alone it is flagged, since the
+float count only approximates the real-semantics count.
 """
 
 from __future__ import annotations
@@ -64,13 +69,25 @@ def open_lane_records(ctx, k: int, j: int, source: str) -> list[dict]:
                        error=receipt.get("reason") or ("the receipt names no network of this run" if not entry else "no reason given"))
             out.append(rec)
             continue
+        if receipt.get("claim_kind") == "auxiliary":
+            rec.update(status="lemma", statement=receipt.get("statement"), error=None)
+            out.append(rec)
+            continue
         certified = int(receipt["certified_count"])
+        if certified > entry["n_inputs"]:
+            raise RuntimeError(f"{nid}: the Lean service certified {certified} inputs of {entry['n_inputs']} ({receipt.get('receipt_path')}); the run halts")
+        checked, semantics = entry.get("checked_correct"), entry.get("checked_semantics")
         real = entry.get("real_correct")
-        if real is not None and certified > real:
+        if checked is not None and semantics == "exact" and certified > checked:
+            # both counts are exact over the rationals, so this is unsoundness somewhere: the run halts
             raise RuntimeError(
-                f"{nid}: the Lean service certified {certified} inputs but the network gets only {real} right "
+                f"{nid}: the Lean service certified {certified} inputs but the exact count is {checked} "
                 f"({receipt.get('receipt_path')}); the checker or the zoo is unsound, so the run halts"
             )
+        if real is not None and certified > real:
+            # the float count is an approximation of the real-semantics count (python -m core.check.exact_counts
+            # audits it); a Lean count above it is recorded and flagged, not treated as a disproof
+            rec["reference_warning"] = f"certified {certified} is above the float count {real}; the reference count is inexact"
         rec.update(certified=certified, certified_accuracy=f"{certified}/{entry['n_inputs']}",
                    certified_accuracy_float=certified / entry["n_inputs"], checked_by="lean", check_s=receipt.get("seconds"))
         scoring = receipt.get("scoring") or {}

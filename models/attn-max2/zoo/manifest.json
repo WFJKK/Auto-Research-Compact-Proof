@@ -4,6 +4,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s0.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00047206736053340137,
@@ -22,6 +25,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s1.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0002870686585083604,
@@ -40,6 +46,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s2.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00018309503502678126,
@@ -58,6 +67,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s3.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00034818321000784636,
@@ -76,6 +88,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s4.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0002443219709675759,
@@ -94,6 +109,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s5.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0003480360610410571,
@@ -112,6 +130,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s6.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00024554107221774757,
@@ -130,6 +151,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s7.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0003079588059335947,
@@ -148,6 +172,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s8.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00045418235822580755,
@@ -166,6 +193,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v128-s9.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00026281175087206066,
@@ -184,6 +214,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s0.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0001184454231406562,
@@ -202,6 +235,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s1.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 8.277181768789887e-05,
@@ -220,6 +256,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s2.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00012722917017526925,
@@ -238,6 +277,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s3.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00016310723731294274,
@@ -256,6 +298,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s4.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 7.938721682876348e-05,
@@ -274,6 +319,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s5.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00012538149894680828,
@@ -292,6 +340,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s6.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00013992161257192492,
@@ -310,6 +361,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s7.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00011315965093672276,
@@ -328,6 +382,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s8.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00020473671611398458,
@@ -346,6 +403,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-max2-v64-s9.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 8.506102312821895e-05,

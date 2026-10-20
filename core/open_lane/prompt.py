@@ -121,6 +121,8 @@ def receipts_text(records: list[dict]) -> str:
         head = f"- round {r['round']} submission {r.get('submission')}: {r.get('network')}, claimed {r.get('claimed_count')}: {r['status']}"
         if r["status"] == "ok":
             lines.append(f"{head}, certified {r['certified']}, length {r['length']:,} (bill {r['length_by_rule']['bill']:,})")
+        elif r["status"] == "lemma":
+            lines.append(f"{head} (auxiliary lemma accepted): {(r.get('statement') or '')[:MAX_REASON]}")
         elif r["status"] == "verified":
             lines.append(f"{head}, certified {r['certified']}; {(r.get('error') or '')[:MAX_REASON]}")
         else:
@@ -129,7 +131,7 @@ def receipts_text(records: list[dict]) -> str:
 
 
 def accepted_sources(run: RunDir, records: list[dict], n: int, max_chars: int) -> str:
-    accepted = [r for r in records if r.get("lane") == "open" and r["status"] in ("ok", "verified")]
+    accepted = [r for r in records if r.get("lane") == "open" and r["status"] in ("ok", "verified", "lemma")]
     accepted.sort(key=lambda r: (r["round"], r["attempt"], r.get("submission") or 0), reverse=True)
     parts, used = [], 0
     for r in accepted[:n]:
@@ -168,7 +170,7 @@ def stalled(records: list[dict], k: int, n: int) -> bool:
     if k - 1 < n:
         return False
     recent = [r for r in records if r.get("lane") == "open" and k - n <= r["round"] <= k - 1]
-    return not any(r["status"] in ("ok", "verified") for r in recent)
+    return not any(r["status"] in ("ok", "verified", "lemma") for r in recent)
 
 
 def aim(records: list[dict], entries: list[dict], cfg: dict, k: int) -> str:

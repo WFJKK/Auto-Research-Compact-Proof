@@ -11,13 +11,15 @@ A session lives in an attempt's folder:
 The tools:
 
 - lean_check(path, source, network, claimed_count, certificate): save a module in the workspace and compile
-  it against the protected module of that network and claim (built and cached by the service), returning the
-  compiler's messages. Counts against the compile budget.
+  it against the protected module of that network and claim (`accept.py compile` of the Lean project, in its
+  box), returning the compiler's messages. Counts against the compile budget.
 - run_python(code, network): run code in the recipe sandbox with that network's weights and info, returning
   what it printed. Same limits as a recipe.
 - search_library(query, max_results): search the Lean project's sources and docs (the allowed package only).
-- submit_candidate(network, claimed_count, theorem, modules, scored): hand the workspace's modules to the
-  acceptance service; returns the receipt. Counts against the submission budget.
+- submit_candidate(network, claimed_count, theorem, modules, scored, kind): hand the workspace's modules to
+  the acceptance service (`accept.py submit`); returns the receipt. Counts against the submission budget.
+
+The service is the Lean project's; this file is its client and never decides anything about a proof.
 
 Budgets persist in session.json, so a session that is started again (a resumed run) continues them rather
 than starting afresh, and its earlier submissions and their receipts stay.
@@ -41,6 +43,7 @@ MAX_TEXT = 20000  # characters of compiler output, program output or search resu
 MAX_SOURCE = 400_000  # characters of one module
 MODULE_PATH = re.compile(r"^Candidate/([A-Za-z_][A-Za-z0-9_]*/)*[A-Za-z_][A-Za-z0-9_]*\.lean$")
 SUBMIT_TIMEOUT_S = 4 * 3600
+COMPILE_TIMEOUT_S = 3600
 
 
 class ToolError(ValueError):
@@ -56,7 +59,6 @@ class Session:
         self.workspace.mkdir(parents=True, exist_ok=True)
         (self.workspace / "out").mkdir(exist_ok=True)
         self.lean_project = Path(self.state["lean_project"])
-        self._accept = None
 
     # creation ------------------------------------------------------------------------------
     @classmethod
@@ -110,41 +112,24 @@ class Session:
     def remaining(self) -> dict:
         return {t: self.state["budgets"][t] - self.state["used"][t] for t in self.state["budgets"]}
 
-    # the service's helpers ------------------------------------------------------------------
-    @property
-    def accept(self):
-        """scripts/accept.py of the Lean project, imported once."""
-        if self._accept is None:
-            scripts = self.lean_project / "scripts"
-            sys.path.insert(0, str(scripts))
-            try:
-                import accept  # noqa: F401
-            finally:
-                sys.path.pop(0)
-            accept._repo = Path(self.state["repo"])
-            self._accept = accept
-        return self._accept
+    # the service, called as a program: the pipeline is a client of it, never a second service ---------
+    def _service(self, args: list[str], timeout_s: float) -> dict:
+        cmd = [sys.executable, "-B", str(self.lean_project / "scripts" / "accept.py")] + args + \
+              ["--repo", self.state["repo"], "--work", self.state["work_dir"], "--mode", "hardened"]
+        env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
+        try:
+            r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_s, env=env)
+        except subprocess.TimeoutExpired:
+            return {"status": "timeout", "ok": False, "error": f"the service did not answer within {timeout_s:g} s"}
+        try:
+            return json.loads(r.stdout)
+        except ValueError:
+            return {"status": "error", "ok": False, "error": f"the service failed: {(r.stderr or r.stdout)[-1500:]}"}
 
     def _network(self, network: str) -> dict:
         if network not in self.state["networks"]:
             raise ToolError(f"{network!r} is not one of this run's networks: {sorted(self.state['networks'])}")
         return self.state["networks"][network]
-
-    def _protected(self, network: str, claimed_count: int, certificate) -> dict:
-        """The protected module for a network, claim and certificate, built by the service (cached)."""
-        self._network(network)
-        if isinstance(claimed_count, bool) or not isinstance(claimed_count, int) or claimed_count < 0:
-            raise ToolError("claimed_count must be a natural number")
-        accept = self.accept
-        work = Path(self.state["work_dir"])
-        try:
-            net_json = accept.export_network(Path(self.state["repo"]), self.state["model"], network, work)
-            return accept.build_protected(net_json, claimed_count, work, accept.lean_binary(), accept.lean_path(),
-                                          accept.box_mode("hardened"), certificate or None)
-        except (accept.Reject, accept.Unsupported) as exc:
-            raise ToolError(str(exc))
-        except accept.Infra as exc:
-            raise ToolError(f"the service could not build the protected module: {exc}")
 
     # tools -------------------------------------------------------------------------------------
     def lean_check(self, path: str, source: str, network: str, claimed_count: int, certificate: list | None = None) -> dict:
@@ -155,19 +140,25 @@ class Session:
                 raise ToolError("path must be Candidate/<Name>.lean (identifiers only)")
             if not isinstance(source, str) or len(source) > MAX_SOURCE:
                 raise ToolError(f"source must be a string of at most {MAX_SOURCE} characters")
+            self._network(network)
+            if isinstance(claimed_count, bool) or not isinstance(claimed_count, int) or claimed_count < 0:
+                raise ToolError("claimed_count must be a natural number")
             self._spend("lean_check")
-            prot = self._protected(network, claimed_count, certificate)
-            accept = self.accept
             src = self.workspace / path
             src.parent.mkdir(parents=True, exist_ok=True)
             src.write_text(source)
-            module = "Candidate." + path[len("Candidate/"):-len(".lean")].replace("/", ".")
-            lean, lp = accept.lean_binary(), accept.lean_path() + [prot["lean_path_dir"], str(self.workspace / "out")]
-            res = accept.compile_module(self.workspace, self.workspace, module, src, lean, lp, accept.box_mode("hardened"))
-            text = (res["stdout"] + res["stderr"]).strip()
-            out = {"ok": res["rc"] == 0 and not res["timed_out"], "timed_out": res["timed_out"], "module": module,
-                   "protected_module": prot["module"], "messages": text[-MAX_TEXT:] if text else "(no messages)",
-                   "seconds": round(res["seconds"], 1), "remaining": self.remaining()}
+            cmd = ["compile", str(self.workspace), path, "--model", self.state["model"], "--network", network, "--claimed", str(claimed_count)]
+            if certificate:
+                cpath = self.path / "certificate.json"
+                cpath.write_text(json.dumps(certificate))
+                cmd += ["--certificate", str(cpath)]
+            res = self._service(cmd, COMPILE_TIMEOUT_S)
+            if "error" in res and not res.get("messages"):
+                raise ToolError(str(res["error"]))
+            text = (res.get("messages") or "").strip()
+            out = {"ok": bool(res.get("ok")), "timed_out": bool(res.get("timed_out")), "module": res.get("module"),
+                   "protected_module": res.get("protected_module"), "messages": text[-MAX_TEXT:] if text else "(no messages)",
+                   "seconds": res.get("seconds"), "remaining": self.remaining()}
             self._log("lean_check", args, {"ok": out["ok"], "messages": out["messages"][:500]}, time.monotonic() - t0)
             return out
         except ToolError as exc:
@@ -243,11 +234,14 @@ class Session:
             self._log("search_library", args, {"error": str(exc)}, time.monotonic() - t0)
             raise
 
-    def submit_candidate(self, network: str, claimed_count: int, theorem: str, modules: list, scored: dict | None = None) -> dict:
+    def submit_candidate(self, network: str, claimed_count: int, theorem: str, modules: list, scored: dict | None = None,
+                         kind: str = "performance") -> dict:
         t0 = time.monotonic()
-        args = {"network": network, "claimed_count": claimed_count, "theorem": theorem, "modules": modules, "scored": scored}
+        args = {"network": network, "claimed_count": claimed_count, "theorem": theorem, "modules": modules, "scored": scored, "kind": kind}
         try:
             self._network(network)
+            if kind not in ("performance", "auxiliary"):
+                raise ToolError("kind must be performance (a proof of Target) or auxiliary (a lemma)")
             if not isinstance(modules, list) or not modules or not all(isinstance(m, str) and MODULE_PATH.match(m) for m in modules):
                 raise ToolError("modules must be a list of Candidate/<Name>.lean paths saved with lean_check")
             for m in modules:
@@ -263,29 +257,22 @@ class Session:
                 dst = cdir / m
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 dst.write_bytes((self.workspace / m).read_bytes())
-            manifest = {"schema": "open-lane-candidate-v1", "candidate_id": f"{self.path.parent.name}-s{n:03d}",
+            manifest = {"schema": "open-lane-candidate-v1", "candidate_id": f"{self.path.parent.name}-s{n:03d}", "kind": kind,
                         "model": self.state["model"], "network": network, "claimed_count": claimed_count,
                         "theorem": theorem, "modules": modules}
             if scored is not None:
                 manifest["scored"] = scored
             (cdir / "manifest.json").write_text(json.dumps(manifest, indent=1))
             # hardened: Landlock where it exists, else process mode, which the receipt records as weak
-            cmd = [sys.executable, "-B", str(self.lean_project / "scripts" / "accept.py"), "submit", str(cdir),
-                   "--repo", self.state["repo"], "--work", self.state["work_dir"], "--mode", "hardened"]
-            env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
-            try:
-                r = subprocess.run(cmd, capture_output=True, text=True, timeout=SUBMIT_TIMEOUT_S, env=env)
-            except subprocess.TimeoutExpired:
-                receipt = {"status": "timeout", "reason": f"the service did not answer within {SUBMIT_TIMEOUT_S} s"}
-            else:
-                try:
-                    receipt = json.loads(r.stdout)
-                except ValueError:
-                    receipt = {"status": "error", "reason": f"the service failed: {(r.stderr or r.stdout)[-1500:]}"}
+            receipt = self._service(["submit", str(cdir)], SUBMIT_TIMEOUT_S)
+            if "status" not in receipt:
+                receipt = {"status": "error", "reason": receipt.get("error", "no receipt")}
+            if receipt.get("status") == "timeout" and "reason" not in receipt:
+                receipt["reason"] = receipt.get("error")
             receipt["submission"] = n
             (cdir / "receipt.json").write_text(json.dumps(receipt, indent=1))
-            out = {k: receipt.get(k) for k in ("status", "reason", "certified_count", "domain_size", "claimed_count", "network",
-                                                "axioms", "scoring", "seconds")}
+            out = {k: receipt.get(k) for k in ("status", "reason", "claim_kind", "certified_count", "domain_size", "claimed_count",
+                                                "network", "statement", "axioms", "score_eligible", "execution_assurance", "scoring", "seconds")}
             out["submission"] = n
             out["remaining"] = self.remaining()
             self._log("submit_candidate", args, {"status": receipt.get("status"), "scoring": (receipt.get("scoring") or {}).get("status"),
@@ -346,7 +333,9 @@ class Session:
                 "network": {"type": "string"}, "claimed_count": {"type": "integer"},
                 "theorem": {"type": "string", "description": "Candidate.<...>.<name> proving Target"},
                 "modules": {"type": "array", "items": {"type": "string"}, "description": "paths saved with lean_check, imports first"},
-                "scored": {"type": "object", "description": "optional: {checker, sound, instance, certificate, claimed_bill}"}},
+                "scored": {"type": "object", "description": "optional: {checker, sound, instance, certificate, claimed_bill}"},
+                "kind": {"type": "string", "enum": ["performance", "auxiliary"],
+                         "description": "performance (default): theorem proves Target; auxiliary: theorem is a lemma with any statement, accepted with no count and no score, listed to you in later rounds"}},
                 "required": ["network", "claimed_count", "theorem", "modules"]},
         },
     }
