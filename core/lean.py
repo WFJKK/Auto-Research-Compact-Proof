@@ -4,11 +4,17 @@ A model folder opts in with `lean_check` in its config.yaml: the command that
 checks one proof file, as a list of strings in which {proof} stands for a JSON
 proof file and {weights} for the network's .npz weights. It runs in the model
 folder's lean/ folder (or the model folder), and its last line of output is a
-JSON object with "certified": how many inputs the Lean checker certifies. If
-Lean and the Python checker disagree, the run halts and says where.
+JSON object with "certified": how many inputs the Lean checker certifies, and,
+when the checker rejects the proof, "status": "rejected" and a "reason". A
+rejection is not a count of zero: it is recorded as such, and halts the run as
+a disagreement does. If Lean and the Python checker disagree, the run halts
+and says where.
 
-Every spot check is appended to the run's lean.jsonl. No model has a Lean
-checker yet, so every result is still labelled Python-checked.
+Every spot check is appended to the run's lean.jsonl. No model folder names
+a Lean checker yet, so every result is still labelled Python-checked. The
+Lean checker itself (CompactCheck, a separate repository) checks max2 and
+attention proofs; its open lane, for proofs that are not proof files, has its
+own service (scripts/accept.py there).
 """
 
 from __future__ import annotations
@@ -36,6 +42,15 @@ def lean_command(folder) -> list[str] | None:
 
 
 def run_lean(folder, network_id: str, proof_path: Path) -> int:
+    """The Lean checker's certified count; a rejected proof is a LeanError, never a count of zero."""
+    r = run_lean_full(folder, network_id, proof_path)
+    if r["status"] != "ok":
+        raise LeanError(f"the Lean checker rejected the proof: {r['reason']}")
+    return r["certified"]
+
+
+def run_lean_full(folder, network_id: str, proof_path: Path) -> dict:
+    """{"status": "ok" | "rejected", "certified": n or None, "reason": str or None}."""
     cmd = lean_command(folder)
     if cmd is None:
         raise LeanError(f"{folder.name} has no Lean checker")
@@ -49,9 +64,17 @@ def run_lean(folder, network_id: str, proof_path: Path) -> int:
     if r.returncode != 0:
         raise LeanError(f"the Lean checker failed (exit code {r.returncode}): {r.stderr[-1000:]}")
     try:
-        return int(json.loads(r.stdout.strip().splitlines()[-1])["certified"])
+        out = json.loads(r.stdout.strip().splitlines()[-1])
+        if not isinstance(out, dict):
+            raise TypeError("not an object")
+        if out.get("status") not in (None, "ok"):
+            return {"status": str(out["status"]), "certified": None, "reason": str(out.get("reason", ""))}
+        n = out["certified"]
+        if isinstance(n, bool) or not isinstance(n, int) or n < 0:
+            raise TypeError(f"certified is {n!r}")
+        return {"status": "ok", "certified": n, "reason": None}
     except (IndexError, KeyError, TypeError, ValueError) as exc:
-        raise LeanError(f"the Lean checker's output has no certified count: {r.stdout[-300:]!r}") from exc
+        raise LeanError(f"the Lean checker's output has no certified count: {r.stdout[-300:]!r} ({exc})") from exc
 
 
 def spot_check(ctx, k: int, records: list[dict], limit: int | None = SPOT_CHECKS) -> list[dict]:
@@ -62,8 +85,10 @@ def spot_check(ctx, k: int, records: list[dict], limit: int | None = SPOT_CHECKS
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "proof.json"
             path.write_bytes(gzip.decompress(gz.read_bytes()))
-            lean = run_lean(ctx.folder, rec["network"], path)
-        results.append({"record_id": rec["record_id"], "python": rec["certified"], "lean": lean, "agree": lean == rec["certified"]})
+            lean = run_lean_full(ctx.folder, rec["network"], path)
+        results.append({"record_id": rec["record_id"], "python": rec["certified"], "lean": lean["certified"],
+                        "lean_status": lean["status"], "lean_reason": lean["reason"],
+                        "agree": lean["status"] == "ok" and lean["certified"] == rec["certified"]})
     if results:
         with open(ctx.run.path / "lean.jsonl", "a") as f:
             for r in results:
@@ -73,6 +98,7 @@ def spot_check(ctx, k: int, records: list[dict], limit: int | None = SPOT_CHECKS
     if bad:
         raise LeanError(
             "Lean and the Python checker disagree, so the run halts: "
-            + "; ".join(f"{r['record_id']}: Python {r['python']}, Lean {r['lean']}" for r in bad)
+            + "; ".join(f"{r['record_id']}: Python {r['python']}, Lean "
+                        + (f"rejected ({r['lean_reason']})" if r["lean_status"] != "ok" else str(r["lean"])) for r in bad)
         )
     return results

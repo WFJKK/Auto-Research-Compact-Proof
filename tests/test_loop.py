@@ -1,5 +1,6 @@
 """The loop driver: stopping rules, killing and resuming, and the Lean spot-check hook."""
 
+import json
 import os
 import shutil
 import signal
@@ -152,6 +153,28 @@ def test_lean_spot_checks_agree_or_halt_the_run(trained_stub, tmp_path):
     ctx = loop.start(cfg, log=lambda *a: None)
     with pytest.raises(LeanError, match="disagree"):
         loop.drive(ctx)
+
+
+def test_a_lean_rejection_is_not_a_count_of_zero(trained_stub, tmp_path):
+    """A checker that rejects the proof (certified 0 with status rejected) halts the run naming the reason,
+    and a checker that certifies 0 is a plain disagreement; neither is read as a count of zero that agrees."""
+    sym = (TESTS / "stub_model" / "baselines" / "02_symmetry.md").read_text()
+    folder = tmp_path / "responses"
+    folder.mkdir()
+    (folder / "0.md").write_text(sym.replace("Stub baseline 2 of 2.", "Symmetry, written by the agent."))
+    model = tmp_path / "lean-reject"
+    shutil.copytree(trained_stub, model, ignore=shutil.ignore_patterns("__pycache__"))
+    script = tmp_path / "rejecting_lean.py"
+    script.write_text('import json\nprint(json.dumps({"certified": 0, "status": "rejected", "reason": "leaf rule x is not allowed"}))\n')
+    cfg = yaml.safe_load((model / "config.yaml").read_text())
+    cfg["lean_check"] = [sys.executable, str(script), "{proof}", "{weights}"]
+    (model / "config.yaml").write_text(yaml.safe_dump(cfg))
+    cfg = write_config(tmp_path, model, "lean-reject", lean_spot_check=True, baselines=False, fake_responses=[str(folder)], rounds_max=1)
+    ctx = loop.start(cfg, log=lambda *a: None)
+    with pytest.raises(LeanError, match="rejected \\(leaf rule x is not allowed\\)"):
+        loop.drive(ctx)
+    line = json.loads((ctx.run.path / "lean.jsonl").read_text().splitlines()[0])
+    assert line["lean_status"] == "rejected" and line["lean"] is None and line["agree"] is False
 
 
 def test_lean_spot_checks_need_a_lean_checker(trained_stub, tmp_path):
