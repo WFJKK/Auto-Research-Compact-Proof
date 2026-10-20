@@ -31,9 +31,9 @@ from ..agent.backends.claude_code import ClaudeCodeBackend, _join, _parse_output
 from ..util import REPO_ROOT
 from .session import Session, ToolError
 
-TOOL_NAMES = ("lean_check", "run_python", "search_library", "submit_candidate")
+TOOL_NAMES = ("lean_check", "run_python", "search_library", "read_file", "submit_candidate")
 SYSTEM_PROMPT = (
-    "You are working on a research task with four tools (lean_check, run_python, search_library and "
+    "You are working on a research task with five tools (lean_check, run_python, search_library, read_file and "
     "submit_candidate) and no others; you have no files of your own. Use the tools as the message says, "
     "submit what you prove, and end with the notes the message asks for, in exactly that format."
 )

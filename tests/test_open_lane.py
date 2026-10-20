@@ -48,18 +48,23 @@ def test_the_mcp_server_speaks_the_protocol(tmp_path):
         {"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "search_library", "arguments": {"query": "numCorrect"}}},
         {"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "lean_check", "arguments": {"path": "x"}}},
         {"jsonrpc": "2.0", "id": 5, "method": "nothing"},
+        {"jsonrpc": "2.0", "id": 6, "method": "tools/call", "params": {"name": "read_file", "arguments": {"path": "docs/COUNTED.md", "start": 1, "lines": 5}}},
+        {"jsonrpc": "2.0", "id": 7, "method": "tools/call", "params": {"name": "read_file", "arguments": {"path": "../etc/passwd"}}},
     ]
     out = io.StringIO()
     serve(session, io.StringIO("\n".join(json.dumps(r) for r in requests) + "\n"), out)
     replies = [json.loads(line) for line in out.getvalue().splitlines()]
-    assert [r["id"] for r in replies] == [1, 2, 3, 4, 5]
+    assert [r["id"] for r in replies] == [1, 2, 3, 4, 5, 6, 7]
+    if HAVE_LEAN:
+        assert replies[5]["result"]["isError"] is False and "1: # The counted language" in replies[5]["result"]["content"][0]["text"]
+    assert replies[6]["result"]["isError"] is True
     assert replies[0]["result"]["protocolVersion"] == "2025-06-18" and "tools" in replies[0]["result"]["capabilities"]
-    assert {t["name"] for t in replies[1]["result"]["tools"]} == {"lean_check", "run_python", "search_library", "submit_candidate"}
+    assert {t["name"] for t in replies[1]["result"]["tools"]} == {"lean_check", "run_python", "search_library", "read_file", "submit_candidate"}
     assert replies[2]["result"]["isError"] is False
     assert replies[3]["result"]["isError"] is True and "needs" in replies[3]["result"]["content"][0]["text"]
     assert "error" in replies[4]
     log = [json.loads(l) for l in (session.path / "tools.jsonl").read_text().splitlines()]
-    assert [l["tool"] for l in log] == ["search_library"]  # a malformed call is refused before it is a tool call
+    assert [l["tool"] for l in log] == ["search_library", "read_file", "read_file"]  # a malformed call is refused before it is a tool call
 
 
 def test_the_mcp_server_runs_as_the_cli_would_start_it(tmp_path):
@@ -78,7 +83,7 @@ def test_the_mcp_server_runs_as_the_cli_would_start_it(tmp_path):
     mcp = json.loads(backend.mcp_config(session, where).read_text())["mcpServers"]["cpl"]
     cmd = backend.command_line(where / "mcp.json")
     assert "--mcp-config" in cmd and "--allowedTools" in cmd and "--max-turns" in cmd and "--tools" in cmd
-    assert cmd[cmd.index("--allowedTools") + 1].split(",") == [f"mcp__cpl__{t}" for t in ("lean_check", "run_python", "search_library", "submit_candidate")]
+    assert cmd[cmd.index("--allowedTools") + 1].split(",") == [f"mcp__cpl__{t}" for t in ("lean_check", "run_python", "search_library", "read_file", "submit_candidate")]
     requests = [{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05"}},
                 {"jsonrpc": "2.0", "id": 2, "method": "tools/list"}]
     r = subprocess.run([mcp["command"]] + mcp["args"], input="\n".join(json.dumps(q) for q in requests) + "\n",
@@ -86,7 +91,7 @@ def test_the_mcp_server_runs_as_the_cli_would_start_it(tmp_path):
     assert r.returncode == 0, r.stderr
     replies = [json.loads(line) for line in r.stdout.splitlines()]
     assert replies[0]["result"]["protocolVersion"] == "2024-11-05"
-    assert len(replies[1]["result"]["tools"]) == 4
+    assert len(replies[1]["result"]["tools"]) == 5
 
 
 def test_the_lean_lock_is_checked(tmp_path):

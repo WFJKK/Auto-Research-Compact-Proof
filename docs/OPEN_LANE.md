@@ -20,8 +20,8 @@ response:
 - The tools (`core/open_lane/session.py`): `lean_check` saves a module in the session's workspace and
   compiles it through the service against the protected module of a network and claim;
   `run_python` runs code in the recipe sandbox with the network's weights; `search_library` searches the
-  Lean project's sources and docs; `submit_candidate` hands modules to the acceptance service and returns
-  the receipt. Each call is logged append-only (`tools.jsonl`); the budgets (`compile_calls`,
+  Lean project's sources and docs and `read_file` reads a stretch of one of them; `submit_candidate` hands
+  modules to the acceptance service and returns the receipt. Each call is logged append-only (`tools.jsonl`); the budgets (`compile_calls`,
   `python_calls`, `submissions`) persist in `session.json`, so a session that is started again continues
   them.
 - The records (`core/open_lane/records.py`) come from the receipts: `ok` when verified and scored (count

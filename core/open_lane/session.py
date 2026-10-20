@@ -16,6 +16,7 @@ The tools:
 - run_python(code, network): run code in the recipe sandbox with that network's weights and info, returning
   what it printed. Same limits as a recipe.
 - search_library(query, max_results): search the Lean project's sources and docs (the allowed package only).
+- read_file(path, start, lines): read a stretch of one of those files, numbered.
 - submit_candidate(network, claimed_count, theorem, modules, scored, kind): hand the workspace's modules to
   the acceptance service (`accept.py submit`); returns the receipt. Counts against the submission budget.
 
@@ -201,6 +202,32 @@ class Session:
             self._log("run_python", args, {"error": str(exc)}, time.monotonic() - t0)
             raise
 
+    READABLE = ("CompactCheck/", "docs/", "examples/", "accept/", "README.md", "lean-toolchain", "lakefile.toml")
+    MAX_READ_LINES = 400
+
+    def read_file(self, path: str, start: int = 1, lines: int = 200) -> dict:
+        """A file of the Lean project (its sources, docs, examples and allowlist), by line range."""
+        t0 = time.monotonic()
+        args = {"path": path, "start": start, "lines": lines}
+        try:
+            if not isinstance(path, str) or ".." in path or path.startswith("/") or not path.startswith(self.READABLE):
+                raise ToolError(f"path must be inside the Lean project's {', '.join(self.READABLE)}")
+            p = self.lean_project / path
+            if p.is_symlink() or not p.is_file():
+                raise ToolError(f"no file {path} in the Lean project")
+            all_lines = p.read_text().splitlines()
+            start = max(1, int(start or 1))
+            n = max(1, min(int(lines or 200), self.MAX_READ_LINES))
+            chunk = all_lines[start - 1:start - 1 + n]
+            text = "\n".join(f"{start + i}: {ln}" for i, ln in enumerate(chunk))
+            out = {"path": path, "total_lines": len(all_lines), "start": start, "end": start + len(chunk) - 1,
+                   "text": text[:MAX_TEXT], "truncated": len(chunk) < len(all_lines) - start + 1 or len(text) > MAX_TEXT}
+            self._log("read_file", args, {"lines": len(chunk)}, time.monotonic() - t0)
+            return out
+        except ToolError as exc:
+            self._log("read_file", args, {"error": str(exc)}, time.monotonic() - t0)
+            raise
+
     def search_library(self, query: str, max_results: int = 40) -> dict:
         t0 = time.monotonic()
         args = {"query": query, "max_results": max_results}
@@ -320,10 +347,19 @@ class Session:
                        "required": ["code", "network"]},
         },
         "search_library": {
-            "description": "Search the Lean project's sources (CompactCheck/*.lean) and docs with a regular expression; "
-                           "returns matching lines as file:line: text.",
+            "description": "Search the Lean project's sources (CompactCheck/*.lean) and docs with a regular expression, "
+                           "matched against each line's text (not against file names or line numbers); returns the "
+                           "matching lines as file:line: text. To read a stretch of a file, use read_file.",
             "schema": {"type": "object", "properties": {"query": {"type": "string"}, "max_results": {"type": "integer"}},
                        "required": ["query"]},
+        },
+        "read_file": {
+            "description": "Read lines of a file of the Lean project: its sources (CompactCheck/<Name>.lean), docs "
+                           "(docs/COUNTED.md, docs/OPEN_LANE.md), examples (examples/open_lane/...) and the allowlist "
+                           "(accept/allowlist.txt). Returns up to 400 numbered lines from `start`.",
+            "schema": {"type": "object", "properties": {"path": {"type": "string"}, "start": {"type": "integer"},
+                                                        "lines": {"type": "integer"}},
+                       "required": ["path"]},
         },
         "submit_candidate": {
             "description": "Submit modules from your workspace to the acceptance service as a proof that the network "

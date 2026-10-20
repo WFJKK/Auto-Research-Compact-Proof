@@ -77,8 +77,8 @@ YOUR TOOLS
 {TOOLS}
 Budgets for this session: {BUDGETS}. Use lean_check to develop; use
 run_python to study the weights (floats, numpy) before you prove
-anything; search_library to find lemma names and definitions; submit
-when a module compiles without sorry.
+anything; search_library to find lemma names and read_file to read the
+definitions around them; submit when a module compiles without sorry.
 
 SCORING
 {METRIC}
