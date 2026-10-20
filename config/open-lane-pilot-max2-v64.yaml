@@ -9,6 +9,8 @@ agent_model: claude-fable-5-1
 effort: xhigh
 prompt_template: open_lane_v1
 rule_set: [single, skip]
+# The primary objective of the pilot, the same in every condition: accuracy at fixed budgets.
+metric: Q_grid
 baselines: [brute_force]
 rounds_max: 10
 patience: 5

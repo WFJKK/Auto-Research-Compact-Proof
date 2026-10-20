@@ -138,7 +138,8 @@ def validate(cfg: dict, source: str = "run config") -> None:
     ratio = cfg.get("budget_ratio")
     if isinstance(ratio, bool) or not isinstance(ratio, (int, float)) or ratio <= 1:
         errors.append("budget_ratio must be a number above 1 (each fixed budget is the previous one divided by it)")
-    if cfg["metric"] == "Q_grid":
+    if cfg["metric"] == "Q_grid" and not (isinstance(cfg.get("open_lane"), dict) and cfg["open_lane"].get("enabled") is True):
+        # the legacy prompt tells the recipe its budget; an open-lane prompt states the grid itself
         tpl = REPO_ROOT / "core" / "agent" / "prompts" / f"{cfg['prompt_template']}.md"
         if tpl.is_file() and "{KNOB}" not in tpl.read_text():
             errors.append(f"metric Q_grid needs a prompt template with a {{KNOB}} placeholder (v2 or later), not {cfg['prompt_template']!r}")

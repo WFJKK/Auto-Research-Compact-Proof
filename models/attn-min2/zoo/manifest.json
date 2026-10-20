@@ -4,6 +4,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s0.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0004599501844495535,
@@ -22,6 +25,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s1.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00025443389313295484,
@@ -40,6 +46,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s2.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.000300463754683733,
@@ -58,6 +67,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s3.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00033067239564843476,
@@ -76,6 +88,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s4.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0002862143737729639,
@@ -94,6 +109,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s5.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0005929106846451759,
@@ -112,6 +130,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s6.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0004329322255216539,
@@ -130,6 +151,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s7.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0003590197884477675,
@@ -148,6 +172,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s8.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.0006621652282774448,
@@ -166,6 +193,9 @@
     {
       "B": 176795971,
       "E": 12352,
+      "checked_correct": 16384,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v128-s9.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00031135548488236964,
@@ -184,6 +214,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s0.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00012726671411655843,
@@ -202,6 +235,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s1.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 8.411581802647561e-05,
@@ -220,6 +256,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s2.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00012169020192231983,
@@ -238,6 +277,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s3.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00010631647455738857,
@@ -256,6 +298,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s4.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 9.085267811315134e-05,
@@ -274,6 +319,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s5.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00010586417192826048,
@@ -292,6 +340,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s6.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00011314163566567004,
@@ -310,6 +361,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s7.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00011509234900586307,
@@ -328,6 +382,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s8.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00012098827573936433,
@@ -346,6 +403,9 @@
     {
       "B": 35553475,
       "E": 8256,
+      "checked_correct": 4096,
+      "checked_cost_model": "cost-v3",
+      "checked_semantics": "enclosure",
       "correct": "attn-min2-v64-s9.correct.npy",
       "cost_model": "cost-v3",
       "final_loss": 0.00010058692714665085,

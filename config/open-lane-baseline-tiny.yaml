@@ -6,6 +6,8 @@ backend: claude_code
 agent_model: claude-fable-5-1
 effort: xhigh
 rule_set: [single, skip]
+# The primary objective of the pilot, the same in every condition: accuracy at fixed budgets.
+metric: Q_grid
 baselines: [brute_force]
 rounds_max: 6
 patience: 4

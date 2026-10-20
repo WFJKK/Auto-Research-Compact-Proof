@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from ..agent.build_prompt import CHARS_PER_TOKEN, Prompt, PromptError, fill, forbidden, load_template, metric_text
+from ..agent.build_prompt import CHARS_PER_TOKEN, Prompt, PromptError, fill, forbidden, grid_text, load_template, metric_text
 from ..archive import RunDir
 from ..model_folder import ModelFolder
 from ..scoring import summarize
@@ -97,7 +97,8 @@ def static_values(cfg: dict, folder: ModelFolder, entries: list[dict]) -> dict:
         "EXAMPLE": lean_block(_read(project, "examples/open_lane/max2_tiny_scored/Candidate/Max2TinyScored.lean")),
         "TOOLS": tools_text(),
         "BUDGETS": budgets,
-        "METRIC": metric_text(cfg, folder, entries),
+        "METRIC": metric_text(cfg, folder, entries) + (
+            f"\nThe budget grid, per size setting: {grid_text(entries, cfg['budget_ratio'])}." if cfg["metric"] == "Q_grid" else ""),
     }
 
 
