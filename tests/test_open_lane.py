@@ -164,7 +164,7 @@ def test_a_fake_session_submits_the_scored_example_and_the_receipt_becomes_a_rec
     ident = started["lean_checker"]
     assert set(ident) == set(loop.LEAN_IDENTITY_KEYS) and ident["commit"] == json.loads(loop.LEAN_LOCK.read_text())["commit"]
     digests = ok[0]["receipt"]["digests"]
-    assert all(digests[k] == ident[k] for k in ("toolchain", "lean_project", "policy"))
+    assert all(digests[k] == ident[k] for k in loop.LEAN_IDENTITY_KEYS)
     # resume refuses a service that is not the one the run started with, whatever today's lock says
     import pytest as _pytest
 
@@ -253,3 +253,43 @@ def test_the_tool_backend_reports_the_counters_the_tools_saved(tmp_path):
 
     r = b.respond(Prompt("one", "two", {}), 0, where=where)
     assert r.meta["tools_used"] == {"lean_check": 2, "submit_candidate": 1, "run_python": 3}
+
+
+def test_a_receipt_is_evidence_only_with_the_whole_identity_of_the_service_the_run_started_with():
+    """No Lean: the receipt check alone. An accepted receipt must carry all five digests of the service
+    (commit, toolchain, trusted sources, policy, the acceptcheck binary) and each must equal what the run
+    recorded; a missing field or a changed binary halts the run; a receipt rejected before its digests were
+    complete is checked on what it has."""
+    from core.open_lane.records import check_receipt_identity
+
+    ident = {"commit": "c" * 40, "toolchain": "lean:aaaa", "lean_project": "bbbb", "policy": "cccc", "acceptcheck": "dddd"}
+    accepted = {"status": "accepted", "receipt_path": "r.json", "digests": {**ident, "modules": {"Candidate.X": "ee"}}}
+    check_receipt_identity(accepted, ident)
+    for k in ident:
+        incomplete = {**accepted, "digests": {kk: v for kk, v in accepted["digests"].items() if kk != k}}
+        with pytest.raises(RuntimeError, match=k):
+            check_receipt_identity(incomplete, ident)
+    rebuilt = {**accepted, "digests": {**accepted["digests"], "acceptcheck": "ffff"}}
+    with pytest.raises(RuntimeError, match="acceptcheck"):
+        check_receipt_identity(rebuilt, ident)
+    with pytest.raises(RuntimeError, match="no Lean checker identity"):
+        check_receipt_identity(accepted, None)
+    rejected_early = {"status": "rejected", "receipt_path": "r.json", "digests": {"commit": ident["commit"], "toolchain": ident["toolchain"]}}
+    check_receipt_identity(rejected_early, ident)
+    rejected_elsewhere = {**rejected_early, "digests": {**rejected_early["digests"], "toolchain": "lean:zzzz"}}
+    with pytest.raises(RuntimeError, match="toolchain"):
+        check_receipt_identity(rejected_elsewhere, ident)
+
+
+def test_the_identity_command_must_succeed_and_report_every_field():
+    """No Lean: what the pipeline accepts from `accept.py identity` at the start of a run."""
+    full = {"commit": "c" * 40, "dirty": False, "toolchain": "lean:aaaa", "lean_project": "bbbb", "policy": "cccc", "acceptcheck": "dddd"}
+    assert loop.parse_identity(0, json.dumps(full), "", "P") == {k: full[k] for k in loop.LEAN_IDENTITY_KEYS}
+    with pytest.raises(loop.LoopError, match="exit 1"):
+        loop.parse_identity(1, json.dumps(full), "boom", "P")
+    with pytest.raises(loop.LoopError, match="did not report"):
+        loop.parse_identity(0, "not json", "", "P")
+    with pytest.raises(loop.LoopError, match="acceptcheck"):
+        loop.parse_identity(0, json.dumps({**full, "acceptcheck": None}), "", "P")
+    with pytest.raises(loop.LoopError, match="uncommitted"):
+        loop.parse_identity(0, json.dumps({**full, "dirty": True}), "", "P")

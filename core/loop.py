@@ -310,13 +310,25 @@ def lean_identity(project: Path) -> dict:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise LoopError(f"cannot ask the Lean service at {project} what it is: {exc}")
+    return parse_identity(r.returncode, r.stdout, r.stderr, project)
+
+
+def parse_identity(returncode: int, stdout: str, stderr: str, project) -> dict:
+    """The identity command's answer, accepted only when it succeeded and reported every field."""
+    if returncode != 0:
+        raise LoopError(f"the Lean service at {project} could not report its identity (exit {returncode}): {(stderr or stdout)[-800:]}")
     try:
-        ident = json.loads(r.stdout)
+        ident = json.loads(stdout)
     except ValueError:
-        raise LoopError(f"the Lean service at {project} did not report its identity: {(r.stderr or r.stdout)[-800:]}")
+        raise LoopError(f"the Lean service at {project} did not report its identity: {(stderr or stdout)[-800:]}")
+    if not isinstance(ident, dict):
+        raise LoopError(f"the Lean service at {project} reported an identity of the wrong shape")
+    missing = [k for k in LEAN_IDENTITY_KEYS if not ident.get(k)]
+    if missing:
+        raise LoopError(f"the Lean service at {project} reported an incomplete identity (no {', '.join(missing)})")
     if ident.get("dirty"):
         raise LoopError(f"the Lean project at {project} has uncommitted changes to tracked files; a run needs a clean checker")
-    return {k: ident.get(k) for k in LEAN_IDENTITY_KEYS}
+    return {k: ident[k] for k in LEAN_IDENTITY_KEYS}
 
 
 def lean_checker_changed(started: dict, now: dict) -> list[str]:

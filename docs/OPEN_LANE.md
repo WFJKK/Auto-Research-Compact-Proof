@@ -63,8 +63,10 @@ refuses a run against a Lean project at another commit or with uncommitted chang
 service's identity when it starts (`accept.py identity`: the commit, the toolchain, trusted-source and
 policy digests every receipt carries, the acceptcheck binary; `lean_checker` in `versions.json`), and
 resuming checks the current service against it and refuses if anything differs, or if the lock has moved
-since: a run keeps the checker it started with, and a new checker is a new run. Every receipt's digests
-are compared with that identity before it becomes a record; a mismatch halts the run.
+since: a run keeps the checker it started with, and a new checker is a new run. Every receipt carries the
+same five digests; an accepted receipt must have all of them, equal to the recorded identity, before it
+becomes a record, and a receipt rejected early is checked on the digests it has; a mismatch or a missing
+digest halts the run (`core.open_lane.records.check_receipt_identity`).
 
 A submission of kind `auxiliary` is a lemma with any statement: accepted with no count and no score,
 recorded with status `lemma`, and shown to the agent in later rounds with its statement.

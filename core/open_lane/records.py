@@ -25,6 +25,31 @@ def _fields() -> dict:
             "proof_sha256": None, "proof_bytes": None}
 
 
+IDENTITY_KEYS = ("commit", "toolchain", "lean_project", "policy", "acceptcheck")
+
+
+def check_receipt_identity(receipt: dict, expected: dict | None) -> None:
+    """A receipt is evidence only from the service the run started with. An accepted receipt must carry the
+    whole identity (the five digests of `accept.py identity`, the binary included) and every field must
+    match; a receipt the service rejected before it was complete is checked on the fields it has. A
+    mismatch or a missing field halts the run: the service changed under it, or the receipt is not one
+    the pipeline can vouch for."""
+    if not expected:
+        raise RuntimeError(f"{receipt.get('receipt_path')}: the run recorded no Lean checker identity to check this receipt against; the run halts")
+    digests = receipt.get("digests") or {}
+    where = receipt.get("receipt_path")
+    if receipt.get("status") == "accepted":
+        missing = [k for k in IDENTITY_KEYS if not digests.get(k)]
+        if missing:
+            raise RuntimeError(f"{where}: an accepted receipt without the service's {', '.join(missing)}; the run halts")
+    off = [k for k in IDENTITY_KEYS if digests.get(k) and digests[k] != expected.get(k)]
+    if off:
+        raise RuntimeError(
+            f"{where}: the receipt's {', '.join(off)} differ from the Lean checker this run started with; "
+            "the service changed under the run, so the run halts"
+        )
+
+
 def open_lane_records(ctx, k: int, j: int, source: str) -> list[dict]:
     """The records of attempt j of round k, from its session's receipts (none if there is no session)."""
     path = ctx.run.round_path(k) / f"attempt_{j}" / "open_lane"
@@ -63,14 +88,7 @@ def open_lane_records(ctx, k: int, j: int, source: str) -> list[dict]:
         if entry:
             rec.update(n_inputs=entry["n_inputs"], real_correct=entry.get("real_correct"), real_accuracy=entry.get("real_accuracy"),
                        E=entry.get("E"), B=entry.get("B"))
-        expected = (ctx.versions or {}).get("lean_checker") or {}
-        digests = receipt.get("digests") or {}
-        off = [k for k in ("toolchain", "lean_project", "policy") if k in digests and expected.get(k) and digests[k] != expected[k]]
-        if off:
-            raise RuntimeError(
-                f"{receipt.get('receipt_path')}: the receipt's {', '.join(off)} differ from the Lean checker this run started "
-                "with; the service changed under the run, so the run halts"
-            )
+        check_receipt_identity(receipt, (ctx.versions or {}).get("lean_checker"))
         status = receipt.get("status")
         if status != "accepted" or not entry:
             rec.update(status=status if status in ("rejected", "unsupported", "timeout", "error") else "error",
