@@ -33,7 +33,13 @@ response:
   the config: the pilot uses `[single, skip]`); the legacy one-response loop is the baseline condition,
   run separately (`config/open-lane-baseline-tiny.yaml`).
 - The stall trigger: after `stall_rounds` agent rounds without an accepted submission, the prompt asks
-  for a change of approach rather than a refinement.
+  for a change of approach rather than a refinement. Patience stops an open-lane run after `patience`
+  agent rounds without a new accepted artifact (scored, verified or a lemma, deduplicated by module
+  digest), not after rounds without a metric gain; the hard budgets (rounds, the session's calls and
+  clock) are unchanged.
+- Held-out evaluation (`core.final`) refuses an open-lane run: its proofs are Lean modules for the
+  development networks, and transferring a method to held-out networks needs the frozen-method route of
+  the next ticket.
 
 Layout of an open-lane attempt:
 
@@ -98,6 +104,6 @@ accepted, or the archive recording transparently why none was.
 Length = the bill of the checker on the protected weights + E (one per weight entry) + one per certificate
 number. The counted operations charge what cost-v3 charges the corresponding leaf (`single`: one exact
 forward pass; `interval`: the interval rule on a box). There is no `tree` charge: a scored proof's structure
-is its program, bounded by the service's literal budget instead. So the open lane's brute force on the tiny
+is its program, bounded by the service's description-size budget instead. So the open lane's brute force on the tiny
 network is 4,112 against B = 4,323 for the proof-file brute force (the difference is the tree and read
 charges), and the two lanes' lengths are comparable but not identical on the same argument.

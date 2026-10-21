@@ -12,7 +12,7 @@ and says where.
 
 Every spot check is appended to the run's lean.jsonl. No model folder names
 a Lean checker yet, so every result is still labelled Python-checked. The
-Lean checker itself (CompactCheck, a separate repository) checks max2 and
+Lean checker itself (CompactCheck, a separate repository) checks linear and
 attention proofs; its open lane, for proofs that are not proof files, has its
 own service (scripts/accept.py there).
 """

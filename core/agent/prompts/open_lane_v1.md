@@ -66,14 +66,17 @@ Array, Option, Prod, Fin and String, your own definitions built from
 these, and the protected graph and task; never Interp.counting, CostM or
 Q (the counting interpreter is the service's to run), the protected
 weights, the certificate as data, or Classical (the service lists what it
-refused). Inside D a truth value `I.B` can only choose between two
-computations (`I.ifN`, `I.ifV`, `I.ifB`, `I.ifU`), and a count `I.N` can
-only grow: nothing learned about the network reaches ordinary Lean. The
-general layer (D, its soundness proof, their dependencies) may not
-reference the protected weights or certificate; the definitions D uses
-may hold few literals (at most 32 + E/8 in literal weight: a copy of the
-weights cannot fit); and the general layer must replay in the kernel
-within 120 s. A proof refused scoring stays verified.
+refused). Inside D there is no branching on a truth value `I.B`: it can
+only become a count (`I.countB`), mask a count (`I.nmask`), choose
+between two numbers (`I.selectV`) or pass through a charged gate
+(`I.band`, `I.bor`, `I.bnot`); a count `I.N` can only grow. Weight
+shapes and the certificate's size are concrete and may be branched on.
+The general layer (D, its soundness proof, their dependencies) may not
+reference the protected weights or certificate; the description size of
+D and the definitions it uses (every node counted, a numeral 1 per 2
+bits) is at most 8192 + 4E, so a copy of the weights cannot fit a real
+network; and the general layer must replay in the kernel within 120 s. A
+proof refused scoring stays verified.
 
 A worked example, a scored brute-force proof (the baseline you should
 beat):

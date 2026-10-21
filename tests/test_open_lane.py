@@ -152,6 +152,13 @@ def test_a_fake_session_submits_the_scored_example_and_the_receipt_becomes_a_rec
     assert "{COUNTED}" not in prompt and "def qadd" in prompt and "Correct" in prompt
     summary = loop.status_text(ctx.run)
     assert "Q" in summary
+    # patience for the open lane: round 1 accepted new artifacts, round 2 none
+    assert loop.rounds_without_new_artifact(ctx.run) == 1
+    # the final evaluation refuses an open-lane run until frozen transfer exists
+    from core import final
+
+    with pytest.raises(final.FinalError, match="frozen"):
+        final.evaluate(ctx.run.path, log=lines.append)
     # resume: nothing is redone, nothing is added
     before = len(records)
     ctx2 = loop.resume(ctx.run.path, log=lines.append)

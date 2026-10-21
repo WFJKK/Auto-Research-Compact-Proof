@@ -155,6 +155,29 @@ def rounds_without_gain(run: RunDir, entries: list[dict], metric: str, budget_ra
     return since
 
 
+def rounds_without_new_artifact(run: RunDir) -> int:
+    """For the open lane: agent rounds in a row, counting back from the last, that accepted nothing new. An
+    accepted submission (scored, verified or a lemma) counts only if its modules differ from every earlier
+    accepted one (by digest), so repeating a lemma does not keep the loop alive. The hard budgets (rounds,
+    the session's calls and clock) are unchanged."""
+    records = run.read_archive()
+    done = [k for k in run.done_rounds() if k > 0]
+    seen: set = set()
+    since = 0
+    for k in done:
+        new = False
+        for r in records:
+            if r["round"] != k or r.get("lane") != "open" or r["status"] not in ("ok", "verified", "lemma"):
+                continue
+            receipt = r.get("receipt") or {}
+            digest = json.dumps((receipt.get("digests") or {}).get("modules"), sort_keys=True)
+            if digest not in seen:
+                seen.add(digest)
+                new = True
+        since = 0 if new else since + 1
+    return since
+
+
 def consecutive_refusals(run: RunDir) -> int:
     n = 0
     for k in reversed([k for k in run.done_rounds() if k > 0]):
@@ -309,9 +332,14 @@ def drive(ctx: Context) -> None:
         first = (k - 1) * per_round
         fresh = not run.round_done(k) and run.read(k, "attempt_0/response.md") is None
         if fresh:
-            stale = rounds_without_gain(run, ctx.entries, cfg["metric"], cfg.get("budget_ratio"))
+            if cfg.get("open_lane", {}).get("enabled"):
+                stale = rounds_without_new_artifact(run)
+                what = "no new accepted submission"
+            else:
+                stale = rounds_without_gain(run, ctx.entries, cfg["metric"], cfg.get("budget_ratio"))
+                what = "no gain"
             if stale >= cfg["patience"]:
-                ctx.log(f"no gain in {stale} rounds (patience {cfg['patience']}); stopping after round {k - 1}")
+                ctx.log(f"{what} in {stale} rounds (patience {cfg['patience']}); stopping after round {k - 1}")
                 break
             refused = consecutive_refusals(run)
             if refused >= cfg["max_consecutive_refusals"]:

@@ -31,7 +31,9 @@ def finished(trained_stub, tmp_path_factory):
 
 
 def test_only_final_turns_on_held_out_loading():
-    """No call in the core passes held_out=True or allow_held_out=True, except in final.py."""
+    """No call in the core passes held_out=True or allow_held_out=True, except in final.py and in
+    check/exact_counts.py, the offline zoo step that records every network's brute-force count in the
+    manifest before any run (python -m core.check.exact_counts); the loop never reaches it."""
     users = set()
     for path in CORE.rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
@@ -39,7 +41,7 @@ def test_only_final_turns_on_held_out_loading():
                 for kw in node.keywords:
                     if kw.arg in ("held_out", "allow_held_out") and isinstance(kw.value, ast.Constant) and kw.value.value is True:
                         users.add(path.relative_to(CORE).as_posix())
-    assert users == {"final.py"}
+    assert users == {"final.py", "check/exact_counts.py"}
 
 
 def test_final_evaluates_frontier_recipes_on_held_out_networks(finished):

@@ -36,6 +36,10 @@ from .zoo import networks
 METRICS = ("Q_median", "Q_worst", "Q_grid_median", "Q_grid_worst", "cost_of_finishing_median", "cost_of_finishing_worst", "shortest_full_over_B_median")
 
 
+class FinalError(RuntimeError):
+    pass
+
+
 def frontier_attempts(records: list[dict]) -> list[tuple[int, int]]:
     """The (round, attempt) pairs whose recipes hold a frontier point on some network."""
     return sorted({(p["round"], p["attempt"]) for pts in frontier(records).values() for p in pts})
@@ -60,6 +64,13 @@ def evaluate(run_path: str | Path, log=print) -> dict:
     if not run.exists():
         raise LoopError(f"no run at {run_path}")
     cfg = run.config()
+    if cfg.get("open_lane", {}).get("enabled"):
+        raise FinalError(
+            "this run used the open lane: its proofs are Lean modules written for the development networks, and "
+            "evaluating them on held-out networks needs the frozen-method transfer of the next ticket (a frozen "
+            "checker re-proved on each network without agent turns), which does not exist yet. No held-out "
+            "numbers are produced for it."
+        )
     folder = load_model_folder(resolve(cfg["model"]))
     started = read_json(run.path / "versions.json")
     bad = changed(started, folder)
@@ -153,7 +164,7 @@ def main(argv=None):
     try:
         evaluate(args.run)
         return 0
-    except (LoopError, RoundError, SandboxError, LeanError) as exc:
+    except (LoopError, RoundError, SandboxError, LeanError, FinalError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 

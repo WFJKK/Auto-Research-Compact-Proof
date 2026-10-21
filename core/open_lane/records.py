@@ -93,7 +93,8 @@ def open_lane_records(ctx, k: int, j: int, source: str) -> list[dict]:
         scoring = receipt.get("scoring") or {}
         if scoring.get("status") == "scored":
             rec.update(status="ok", length=int(scoring["length"]),
-                       length_by_rule={"bill": scoring.get("bill"), "extract": scoring.get("extract"), "read": scoring.get("read")})
+                       length_by_rule={"bill": scoring.get("bill"), "extract": scoring.get("extract"), "read": scoring.get("read")},
+                       description_size=scoring.get("description_size"))
         else:
             rec.update(status="verified", error=("not scored: " + (scoring.get("reason") or "no scored block in the manifest")))
         out.append(rec)
