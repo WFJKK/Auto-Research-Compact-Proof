@@ -63,6 +63,14 @@ def open_lane_records(ctx, k: int, j: int, source: str) -> list[dict]:
         if entry:
             rec.update(n_inputs=entry["n_inputs"], real_correct=entry.get("real_correct"), real_accuracy=entry.get("real_accuracy"),
                        E=entry.get("E"), B=entry.get("B"))
+        expected = (ctx.versions or {}).get("lean_checker") or {}
+        digests = receipt.get("digests") or {}
+        off = [k for k in ("toolchain", "lean_project", "policy") if k in digests and expected.get(k) and digests[k] != expected[k]]
+        if off:
+            raise RuntimeError(
+                f"{receipt.get('receipt_path')}: the receipt's {', '.join(off)} differ from the Lean checker this run started "
+                "with; the service changed under the run, so the run halts"
+            )
         status = receipt.get("status")
         if status != "accepted" or not entry:
             rec.update(status=status if status in ("rejected", "unsupported", "timeout", "error") else "error",

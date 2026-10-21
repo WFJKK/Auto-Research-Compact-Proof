@@ -130,6 +130,7 @@ class ClaudeCodeToolBackend(_Bound, ClaudeCodeBackend):
         tmp.replace(Path(where) / "response_raw.json")
         usage = data.get("usage") or {}
         last_stop = messages[-1].get("stop_reason") if messages else None
+        session.reload()  # the tools ran in the MCP server's process; the counters are in the saved session
         meta = {
             "backend": self.name,
             "source": data.get("session_id"),

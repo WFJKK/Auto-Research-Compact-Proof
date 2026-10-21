@@ -159,6 +159,28 @@ def test_a_fake_session_submits_the_scored_example_and_the_receipt_becomes_a_rec
 
     with pytest.raises(final.FinalError, match="frozen"):
         final.evaluate(ctx.run.path, log=lines.append)
+    # the run recorded the Lean service's identity, and every receipt carries the same digests
+    started = json.loads((ctx.run.path / "versions.json").read_text())
+    ident = started["lean_checker"]
+    assert set(ident) == set(loop.LEAN_IDENTITY_KEYS) and ident["commit"] == json.loads(loop.LEAN_LOCK.read_text())["commit"]
+    digests = ok[0]["receipt"]["digests"]
+    assert all(digests[k] == ident[k] for k in ("toolchain", "lean_project", "policy"))
+    # resume refuses a service that is not the one the run started with, whatever today's lock says
+    import pytest as _pytest
+
+    real_identity, real_lock = loop.lean_identity, loop.LEAN_LOCK
+    try:
+        loop.lean_identity = lambda project: {**ident, "policy": "0000000000000000"}
+        with _pytest.raises(loop.LoopError, match="policy"):
+            loop.resume(ctx.run.path, log=lines.append)
+        loop.lean_identity = real_identity
+        moved = tmp_path / "moved.lock"
+        moved.write_text(json.dumps({**json.loads(real_lock.read_text()), "commit": "f" * 40}))
+        loop.LEAN_LOCK = moved
+        with _pytest.raises(loop.LoopError, match="moved"):
+            loop.resume(ctx.run.path, log=lines.append)
+    finally:
+        loop.lean_identity, loop.LEAN_LOCK = real_identity, real_lock
     # resume: nothing is redone, nothing is added
     before = len(records)
     ctx2 = loop.resume(ctx.run.path, log=lines.append)
@@ -201,3 +223,33 @@ def test_patience_counts_claims_not_files(tmp_path):
         run.mark_done(k)
         assert loop.rounds_without_new_artifact(run) == expected[k], k
     assert loop.claim_identity(rounds[5][2]) is None
+
+
+def test_the_tool_backend_reports_the_counters_the_tools_saved(tmp_path):
+    """The tools run in the MCP server's process and save their counters to the session; the backend's
+    metadata must come from that saved state, not from the session it loaded before the CLI ran. A fake
+    CLI that bumps the saved counters (as the server would) and answers; no Lean, no model."""
+    from core.open_lane.backends import ClaudeCodeToolBackend
+    from tests.test_claude_code import result_json
+
+    cfg = merge(base_config(tmp_path, [], backend="claude_code", agent_model="m"))
+    where = tmp_path / "runs" / "r" / "round_001" / "attempt_0"
+    where.mkdir(parents=True)
+
+    def cli(cmd, prompt_text, env, cwd, timeout_s):
+        state_path = where / "open_lane" / "session.json"
+        state = json.loads(state_path.read_text())
+        state["used"] = {"lean_check": 2, "submit_candidate": 1, "run_python": 3}
+        state_path.write_text(json.dumps(state))
+
+        class Done:
+            stdout, stderr, returncode = result_json("CLAIM: nothing"), "", 0
+
+        return Done()
+
+    b = ClaudeCodeToolBackend(cfg, log=lambda *a: None, runner=cli, sleep=lambda s: None, environ={"PATH": "/usr/bin"})
+    b.bind(cfg, "max2_tiny", [{"id": "max2_tiny-v8-s0", "setting": "v8", "n_inputs": 64}], where.parent.parent)
+    from core.agent.build_prompt import Prompt
+
+    r = b.respond(Prompt("one", "two", {}), 0, where=where)
+    assert r.meta["tools_used"] == {"lean_check": 2, "submit_candidate": 1, "run_python": 3}

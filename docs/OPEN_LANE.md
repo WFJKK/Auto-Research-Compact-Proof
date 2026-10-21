@@ -59,7 +59,12 @@ Layout of an open-lane attempt:
 receipts; the pipeline is its client. `lean_check` is `accept.py compile` (a module compiled in the service's
 box against the protected module, for development; never evidence), `submit_candidate` is `accept.py submit`.
 `lean-checker.lock` at the repository root pins the Lean commit this pipeline version expects; `preflight`
-refuses a run against a Lean project at another commit or with uncommitted changes.
+refuses a run against a Lean project at another commit or with uncommitted changes. A run records the
+service's identity when it starts (`accept.py identity`: the commit, the toolchain, trusted-source and
+policy digests every receipt carries, the acceptcheck binary; `lean_checker` in `versions.json`), and
+resuming checks the current service against it and refuses if anything differs, or if the lock has moved
+since: a run keeps the checker it started with, and a new checker is a new run. Every receipt's digests
+are compared with that identity before it becomes a record; a mismatch halts the run.
 
 A submission of kind `auxiliary` is a lemma with any statement: accepted with no count and no score,
 recorded with status `lemma`, and shown to the agent in later rounds with its statement.

@@ -101,6 +101,10 @@ class Session:
         tmp.replace(state_path)
         return cls(path)
 
+    def reload(self) -> None:
+        """Re-read the saved state: the tools run in the MCP server's process, which saves its counters here."""
+        self.state = json.loads(self.state_path.read_text())
+
     def _save(self) -> None:
         tmp = self.path / "session.json.tmp"
         tmp.write_text(json.dumps(self.state, indent=1))

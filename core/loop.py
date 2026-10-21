@@ -257,6 +257,8 @@ def open_context(run: RunDir, cfg: dict, log=print) -> Context:
             f"{', '.join(bad)} changed since run {run.run_id} started; results would not be comparable. "
             "Start a new run instead."
         )
+    if cfg.get("open_lane", {}).get("enabled"):
+        check_lean_checker(cfg, started, run.run_id)
     entries = select_networks(folder, cfg)
     sb, report = prepare_sandbox(cfg, folder, run, entries, log)
     with open(run.path / "sandbox.jsonl", "a") as f:
@@ -293,6 +295,54 @@ def preflight(cfg: dict, folder) -> None:
 
 
 LEAN_LOCK = REPO_ROOT / "lean-checker.lock"
+LEAN_IDENTITY_KEYS = ("commit", "toolchain", "lean_project", "policy", "acceptcheck")
+
+
+def lean_identity(project: Path) -> dict:
+    """What the Lean service is, as it reports itself (`accept.py identity`): the project's commit, the
+    digests every receipt carries (toolchain, trusted sources, policy with its environment hooks) and the
+    acceptcheck binary. A run records it when it starts and checks it when it resumes and on every
+    receipt, so one frontier never mixes two services."""
+    import subprocess
+
+    cmd = [sys.executable, "-B", str(project / "scripts" / "accept.py"), "identity"]
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        raise LoopError(f"cannot ask the Lean service at {project} what it is: {exc}")
+    try:
+        ident = json.loads(r.stdout)
+    except ValueError:
+        raise LoopError(f"the Lean service at {project} did not report its identity: {(r.stderr or r.stdout)[-800:]}")
+    if ident.get("dirty"):
+        raise LoopError(f"the Lean project at {project} has uncommitted changes to tracked files; a run needs a clean checker")
+    return {k: ident.get(k) for k in LEAN_IDENTITY_KEYS}
+
+
+def lean_checker_changed(started: dict, now: dict) -> list[str]:
+    """The parts of the Lean service's identity that differ from what the run recorded."""
+    return [k for k in LEAN_IDENTITY_KEYS if started.get(k) != now.get(k)]
+
+
+def check_lean_checker(cfg: dict, started: dict, run_id: str) -> None:
+    """On resume: the Lean service must be the one the run started with, whatever today's lock says. A run
+    keeps its checker; a new checker is a new run."""
+    recorded = started.get("lean_checker")
+    if not recorded:
+        raise LoopError(f"run {run_id} recorded no Lean checker identity (it started before that was recorded); start a new run")
+    project = resolve(cfg["open_lane"]["lean_project"])
+    lock = read_json(LEAN_LOCK)
+    if lock["commit"] != recorded.get("commit"):
+        raise LoopError(
+            f"lean-checker.lock moved since run {run_id} started ({recorded.get('commit', '')[:12]} to {lock['commit'][:12]}); "
+            "a run keeps the checker it started with, so this pipeline version cannot resume it: start a new run"
+        )
+    bad = lean_checker_changed(recorded, lean_identity(project))
+    if bad:
+        raise LoopError(
+            f"the Lean checker's {', '.join(bad)} changed since run {run_id} started; its receipts would mean "
+            "something else. Check out the commit the run started with and rebuild, or start a new run"
+        )
 
 
 def check_lean_lock(project: Path) -> dict:
@@ -324,6 +374,8 @@ def start(config_path: str | Path, log=print, run_id: str | None = None) -> Cont
     run.create(cfg)
     config_sha = (run.path / "config.sha256").read_text().strip()
     versions = collect(folder, cfg, config_sha)
+    if cfg.get("open_lane", {}).get("enabled"):
+        versions["lean_checker"] = lean_identity(resolve(cfg["open_lane"]["lean_project"]))
     write_json(run.path / "versions.json", {**versions, "git": git_state(), "created": now()})
     log(f"run {cfg['run_id']} at {run.path}")
     return open_context(run, run.config(), log)
