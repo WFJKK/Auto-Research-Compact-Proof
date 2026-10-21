@@ -41,6 +41,15 @@ from ..sandbox import Sandbox
 from ..util import REPO_ROOT
 
 MAX_TEXT = 20000  # characters of compiler output, program output or search results returned to the agent
+
+
+def excerpt(text: str, limit: int = MAX_TEXT) -> str:
+    """Compiler output cut to the limit: the first errors and the last lines (one later error, a `decide`
+    that cannot reduce, can be thousands of lines, and the first error is the one to fix)."""
+    if len(text) <= limit:
+        return text
+    head, tail = limit * 3 // 4, limit // 4
+    return text[:head] + "\n[...]\n" + text[-tail:]
 MAX_SOURCE = 400_000  # characters of one module
 MODULE_PATH = re.compile(r"^Candidate/([A-Za-z_][A-Za-z0-9_]*/)*[A-Za-z_][A-Za-z0-9_]*\.lean$")
 SUBMIT_TIMEOUT_S = 4 * 3600
@@ -158,7 +167,7 @@ class Session:
                 raise ToolError(str(res["error"]))
             text = (res.get("messages") or "").strip()
             out = {"ok": bool(res.get("ok")), "timed_out": bool(res.get("timed_out")), "module": res.get("module"),
-                   "protected_module": res.get("protected_module"), "messages": text[-MAX_TEXT:] if text else "(no messages)",
+                   "protected_module": res.get("protected_module"), "messages": excerpt(text) if text else "(no messages)",
                    "seconds": res.get("seconds"), "remaining": self.remaining()}
             self._log("lean_check", args, {"ok": out["ok"], "messages": out["messages"][:500]}, time.monotonic() - t0)
             return out

@@ -155,25 +155,48 @@ def rounds_without_gain(run: RunDir, entries: list[dict], metric: str, budget_ra
     return since
 
 
+def claim_identity(record: dict) -> tuple | None:
+    """What an accepted open-lane record established, as the service saw it: a scored proof is its network,
+    count and length; a verified proof its network and count; a lemma its network and statement. Not the
+    files (a changed comment is not progress) and not the theorem's name (a name is the author's): the
+    same claim proved twice is one artifact, a new count, length or statement is a new one; a verified
+    proof of a count that already has a scored or verified proof is not new either."""
+    status = record.get("status")
+    if status == "ok":
+        return ("ok", record.get("network"), record.get("certified"), record.get("length"))
+    if status == "verified":
+        return ("verified", record.get("network"), record.get("certified"))
+    if status == "lemma":
+        statement = " ".join(str(record.get("statement") or "").split())
+        return ("lemma", record.get("network"), statement)
+    return None
+
+
 def rounds_without_new_artifact(run: RunDir) -> int:
     """For the open lane: agent rounds in a row, counting back from the last, that accepted nothing new. An
-    accepted submission (scored, verified or a lemma) counts only if its modules differ from every earlier
-    accepted one (by digest), so repeating a lemma does not keep the loop alive. The hard budgets (rounds,
-    the session's calls and clock) are unchanged."""
+    accepted submission (scored, verified or a lemma) counts only if its claim (claim_identity) differs
+    from every earlier accepted one, so resubmitting a lemma, or a proof with a comment changed, does not
+    keep the loop alive, while a new statement, count or length does. The hard budgets (rounds, the
+    session's calls and clock) are unchanged."""
     records = run.read_archive()
     done = [k for k in run.done_rounds() if k > 0]
-    seen: set = set()
+    seen: set = set()  # identities
+    counts: set = set()  # (network, count) with a scored or verified proof: a verified proof of it is not new
     since = 0
     for k in done:
         new = False
         for r in records:
-            if r["round"] != k or r.get("lane") != "open" or r["status"] not in ("ok", "verified", "lemma"):
+            if r["round"] != k or r.get("lane") != "open":
                 continue
-            receipt = r.get("receipt") or {}
-            digest = json.dumps((receipt.get("digests") or {}).get("modules"), sort_keys=True)
-            if digest not in seen:
-                seen.add(digest)
-                new = True
+            identity = claim_identity(r)
+            if identity is None or identity in seen:
+                continue
+            if identity[0] == "verified" and (identity[1], identity[2]) in counts:
+                continue
+            seen.add(identity)
+            if identity[0] in ("ok", "verified"):
+                counts.add((identity[1], identity[2]))
+            new = True
         since = 0 if new else since + 1
     return since
 

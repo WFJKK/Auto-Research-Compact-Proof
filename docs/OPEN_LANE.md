@@ -34,9 +34,12 @@ response:
   run separately (`config/open-lane-baseline-tiny.yaml`).
 - The stall trigger: after `stall_rounds` agent rounds without an accepted submission, the prompt asks
   for a change of approach rather than a refinement. Patience stops an open-lane run after `patience`
-  agent rounds without a new accepted artifact (scored, verified or a lemma, deduplicated by module
-  digest), not after rounds without a metric gain; the hard budgets (rounds, the session's calls and
-  clock) are unchanged.
+  agent rounds without a new accepted artifact, not after rounds without a metric gain; an artifact is
+  new by its claim (`core.loop.claim_identity`: a scored proof's network, count and length; a verified
+  proof's network and count, when no proof of that count exists; a lemma's network and statement), never
+  by its files or its theorem's name, so a resubmission with a comment changed is not progress and a
+  second theorem from an unchanged file is. The hard budgets (rounds, the session's calls and clock) are
+  unchanged.
 - Held-out evaluation (`core.final`) refuses an open-lane run: its proofs are Lean modules for the
   development networks, and transferring a method to held-out networks needs the frozen-method route of
   the next ticket.

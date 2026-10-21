@@ -67,16 +67,19 @@ these, and the protected graph and task; never Interp.counting, CostM or
 Q (the counting interpreter is the service's to run), the protected
 weights, the certificate as data, or Classical (the service lists what it
 refused). Inside D there is no branching on a truth value `I.B`: it can
-only become a count (`I.countB`), mask a count (`I.nmask`), choose
-between two numbers (`I.selectV`) or pass through a charged gate
-(`I.band`, `I.bor`, `I.bnot`); a count `I.N` can only grow. Weight
-shapes and the certificate's size are concrete and may be branched on.
-The general layer (D, its soundness proof, their dependencies) may not
-reference the protected weights or certificate; the description size of
-D and the definitions it uses (every node counted, a numeral 1 per 2
-bits) is at most 8192 + 4E, so a copy of the weights cannot fit a real
-network; and the general layer must replay in the kernel within 120 s. A
-proof refused scoring stays verified.
+only become a count (`I.countB`: 1 if true; `I.nscale k`: a concrete k
+if true), choose between two numbers (`I.selectV`, charged) or pass
+through a charged gate (`I.band`, `I.bor`, `I.bnot`). A count `I.N` is
+only ever a sum of such terms and concrete numbers (`I.nadd`, `I.nofNat`,
+`I.nsucc`, `I.nzero`): no operation takes a count together with a truth
+value, so a product of two truth values costs a gate. Weight shapes and
+the certificate's size are concrete and may be branched on. The general
+layer (D, its soundness proof, their dependencies) may not reference the
+protected weights or certificate; the description size of D and the
+definitions it uses (every node counted, a numeral 1 per bit, a string
+8 per byte) is at most 8192 + 4E, so a copy of the weights cannot fit a
+real network; and the general layer must replay in the kernel within
+120 s. A proof refused scoring stays verified.
 
 A worked example, a scored brute-force proof (the baseline you should
 beat):

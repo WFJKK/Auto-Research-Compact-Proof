@@ -164,3 +164,40 @@ def test_a_fake_session_submits_the_scored_example_and_the_receipt_becomes_a_rec
     ctx2 = loop.resume(ctx.run.path, log=lines.append)
     loop.drive(ctx2)
     assert len(ctx2.run.read_archive()) == before
+
+
+def test_patience_counts_claims_not_files(tmp_path):
+    """Progress detection for the open lane, with no Lean: a run folder with synthetic archive records.
+    Round 1 accepts a scored proof and a lemma; round 2 resubmits both from files with a changed comment
+    (new digests, same claims): not progress; round 3 proves a second theorem already present in the same
+    unchanged file (same digests, new statement): progress; round 4 improves the length: progress; round 5
+    repeats round 4's claim under another theorem name, adds a verified-only proof of a count that has a
+    scored one, and a rejection: not progress."""
+    from core.archive import RunDir
+
+    run = RunDir(tmp_path / "runs", "patience-test")
+    run.create({"run_id": "patience-test"})
+    base = {"run_id": "patience-test", "lane": "open", "network": "n1", "attempt": 0}
+
+    def rec(k, i, **f):
+        return {**base, "round": k, "record_id": f"patience-test/r{k:03d}/a0/n1/open{i:03d}",
+                "receipt": {"digests": {"modules": f.pop("digest")}}, **f}
+
+    rounds = {
+        1: [rec(1, 0, status="ok", certified=23, length=642, theorem="A.performance", digest="d1"),
+            rec(1, 1, status="lemma", statement="∀ x, p x", theorem="A.lemma1", digest="d1")],
+        2: [rec(2, 0, status="ok", certified=23, length=642, theorem="A.performance", digest="d2"),
+            rec(2, 1, status="lemma", statement="∀ x,  p x", theorem="A.lemma1", digest="d2")],
+        3: [rec(3, 0, status="lemma", statement="∀ x, q x", theorem="A.lemma2", digest="d2")],
+        4: [rec(4, 0, status="ok", certified=23, length=600, theorem="A.performance", digest="d4")],
+        5: [rec(5, 0, status="ok", certified=23, length=600, theorem="A.performance2", digest="d5"),
+            rec(5, 1, status="verified", certified=23, theorem="A.performance3", digest="d5"),
+            rec(5, 2, status="rejected", theorem="A.performance4", digest="d6")],
+    }
+    expected = {1: 0, 2: 1, 3: 0, 4: 0, 5: 1}
+    for k in range(1, 6):
+        run.round_path(k).mkdir(parents=True)
+        run.append_archive(rounds[k])
+        run.mark_done(k)
+        assert loop.rounds_without_new_artifact(run) == expected[k], k
+    assert loop.claim_identity(rounds[5][2]) is None
