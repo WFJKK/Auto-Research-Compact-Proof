@@ -230,7 +230,17 @@ def test_the_tool_backend_reports_the_counters_the_tools_saved(tmp_path):
     metadata must come from that saved state, not from the session it loaded before the CLI ran. A fake
     CLI that bumps the saved counters (as the server would) and answers; no Lean, no model."""
     from core.open_lane.backends import ClaudeCodeToolBackend
-    from tests.test_claude_code import result_json
+
+    def result_json(text):
+        """What the CLI prints with --output-format stream-json --verbose: one JSON object per line."""
+        events = [
+            {"type": "system", "subtype": "init", "session_id": "sess_1"},
+            {"type": "assistant", "session_id": "sess_1",
+             "message": {"role": "assistant", "content": [{"type": "text", "text": text}], "stop_reason": "end_turn"}},
+            {"type": "result", "subtype": "success", "is_error": False, "result": text, "session_id": "sess_1",
+             "total_cost_usd": 0.1, "num_turns": 1, "usage": {"input_tokens": 10, "output_tokens": 5}},
+        ]
+        return "\n".join(json.dumps(e) for e in events) + "\n"
 
     cfg = merge(base_config(tmp_path, [], backend="claude_code", agent_model="m"))
     where = tmp_path / "runs" / "r" / "round_001" / "attempt_0"
