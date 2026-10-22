@@ -1,0 +1,19 @@
+{
+ "schema": "open-lane-candidate-v1",
+ "candidate_id": "attempt_0-s000",
+ "kind": "performance",
+ "model": "tests/max2_tiny",
+ "network": "max2_tiny-v8-s0",
+ "claimed_count": 6,
+ "theorem": "Candidate.Six.performance",
+ "modules": [
+  "Candidate/Six.lean"
+ ],
+ "scored": {
+  "checker": "Candidate.Six.D",
+  "sound": "Candidate.Six.D_sound",
+  "instance": "Candidate.Six.D_instance",
+  "certificate": [],
+  "claimed_bill": 189
+ }
+}

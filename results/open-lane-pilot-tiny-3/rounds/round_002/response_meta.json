@@ -1,0 +1,36 @@
+{
+  "api_equivalent_usd": 16.265274750000003,
+  "assistant_messages": 5,
+  "backend": "claude_code_tools",
+  "cache_creation_input_tokens": 284165,
+  "cache_read_input_tokens": 1791499,
+  "cost_usd": 0.0,
+  "failed_tries": [],
+  "input_tokens": 450,
+  "model": "claude-fable-5-1",
+  "num_turns": 38,
+  "output_tokens": 202592,
+  "request": {
+    "command": [
+      "claude",
+      "-p",
+      "--tools",
+      "",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--no-session-persistence",
+      "--setting-sources",
+      ""
+    ]
+  },
+  "seconds": 2334.8,
+  "source": "7764dff9-833a-4736-8f48-75ef7d077c50",
+  "stop_reason": "end_turn",
+  "submissions": 2,
+  "tools_used": {
+    "lean_check": 9,
+    "run_python": 4,
+    "submit_candidate": 2
+  }
+}

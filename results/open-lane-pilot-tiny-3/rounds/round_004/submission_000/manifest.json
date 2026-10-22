@@ -1,0 +1,19 @@
+{
+ "schema": "open-lane-candidate-v1",
+ "candidate_id": "attempt_0-s000",
+ "kind": "performance",
+ "model": "tests/max2_tiny",
+ "network": "max2_tiny-v8-s0",
+ "claimed_count": 64,
+ "theorem": "Candidate.Full64.performance",
+ "modules": [
+  "Candidate/Full64.lean"
+ ],
+ "scored": {
+  "checker": "Candidate.Full64.D",
+  "sound": "Candidate.Full64.D_sound",
+  "instance": "Candidate.Full64.D_instance",
+  "certificate": [],
+  "claimed_bill": 639
+ }
+}

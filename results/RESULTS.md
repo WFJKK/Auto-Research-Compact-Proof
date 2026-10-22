@@ -11,3 +11,4 @@ One line per run. Raw run data stays outside the repository. Write-ups that disc
 | [attn-min2-q-api-tokens](frontiers-2026-10-19/README.md) | models/attn-min2 | 02642356cc (not on GitHub) | api | v64 Q 0.3316 (worst 0.3316); v128 Q 0.2687 (worst 0.2679) |
 | [attn-max4-q-api-tokens](frontiers-2026-10-19/README.md) | models/attn-max4 | 02642356cc (not on GitHub) | api | v16 Q 0.4811 (worst 0.4702); v24 Q 0.4813 (worst 0.4774) |
 | [attn-min4-q-api-tokens](frontiers-2026-10-19/README.md) | models/attn-min4 | 02642356cc (not on GitHub) | api | v16 Q 0.4762 (worst 0.4528); v24 Q 0.4951 (worst 0.4841) |
+| [open-lane-pilot-tiny-3](open-lane-pilot-tiny-3/report.md) | tests/max2_tiny | 6608098b97 (a local merge of f929cfa, on the Mac) | claude_code | v8 Q 0.5101 (worst 0.5101); Q_grid 0.5375; full proof B/6.0 |

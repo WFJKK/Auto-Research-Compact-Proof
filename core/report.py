@@ -151,6 +151,7 @@ def build_report(run_path: str | Path, reference_path: str | Path | None = None)
             raise LoopError(f"no reference run at {rp}")
         reference = [r for r in ref_run.read_archive() if r["round"] == 0]
     cfg = run.config()
+    open_lane = bool((cfg.get("open_lane") or {}).get("enabled"))
     folder = load_model_folder(resolve(cfg["model"]))
     entries = select_networks(folder, cfg)
     records = run.read_archive()
@@ -186,7 +187,9 @@ def build_report(run_path: str | Path, reference_path: str | Path | None = None)
         f"- Cost model {versions.get('cost_model')}, rule set {versions.get('rule_set')}, prompt template {cfg['prompt_template']}, sandbox {', '.join(modes) or 'unknown'}",
         f"- Agent use: {tokens_in:,} input and {tokens_out:,} output tokens, about ${cost:.2f} billed"
         + (f" (about ${equivalent:.2f} at API prices, covered by a subscription)" if equivalent and not cost else ""),
-        "- Every number is Python-checked: this model has no Lean checker yet."
+        "- Open lane: every agent result is a Lean proof accepted by the acceptance service (kernel-checked count, and bill for scored ones); round 0's baselines are Python-checked."
+        if open_lane
+        else "- Every number is Python-checked: this model has no Lean checker yet."
         if lean_command(folder) is None
         else f"- Numbers are Python-checked; Lean spot checks on frontier entries are in lean.jsonl ({lean_lines(run)} so far).",
         "",
@@ -221,17 +224,31 @@ def build_report(run_path: str | Path, reference_path: str | Path | None = None)
         lines += ["## Progress", "", "![progress](progress.png)", ""]
 
     keys = sorted({(p["round"], p["attempt"]) for pts in frontier(records).values() for p in pts})
-    lines += ["## Recipes that hold the frontier", ""]
     fr = frontier(records)
-    for key in keys:
-        held = sorted({nid for nid, pts in fr.items() for p in pts if (p["round"], p["attempt"]) == key})
-        parsed = run.read(key[0], f"attempt_{key[1]}/parsed.json") or {}
-        lines += [
-            f"**{label(run, key, cfg['recipes_per_round'])}** (on {len(held)} of {len(entries)} networks)",
-            "",
-            f"> {parsed.get('claim', '').strip()}",
-            "",
-        ]
+    if open_lane:
+        lines += ["## Proofs that hold the frontier", ""]
+        for key in keys:
+            on = [(nid, p) for nid, pts in fr.items() for p in pts if (p["round"], p["attempt"]) == key]
+            for nid, p in sorted(on, key=lambda x: (x[0], x[1]["length"])):
+                rec = next((r for r in records if r["round"] == key[0] and r["attempt"] == key[1] and r.get("network") == nid
+                            and r.get("length") == p["length"] and r.get("certified") == p["certified"]), {})
+                lines.append(f"- round {key[0]}: `{rec.get('theorem')}` on {nid}: certified {p['certified']}/{p['n_inputs']}, length {p['length']:,}"
+                             + (f", description size {rec['description_size']:,}" if rec.get("description_size") else ""))
+            notes = (run.read(key[0], f"attempt_{key[1]}/parsed.json") or {}).get("claim", "").strip()
+            if notes:
+                lines += ["", f"> {notes}"]
+            lines.append("")
+    else:
+        lines += ["## Recipes that hold the frontier", ""]
+        for key in keys:
+            held = sorted({nid for nid, pts in fr.items() for p in pts if (p["round"], p["attempt"]) == key})
+            parsed = run.read(key[0], f"attempt_{key[1]}/parsed.json") or {}
+            lines += [
+                f"**{label(run, key, cfg['recipes_per_round'])}** (on {len(held)} of {len(entries)} networks)",
+                "",
+                f"> {parsed.get('claim', '').strip()}",
+                "",
+            ]
     if statuses:
         lines += ["## Agent attempts by status", "", ", ".join(f"{k} {v}" for k, v in sorted(statuses.items())), ""]
 
@@ -247,6 +264,9 @@ def build_report(run_path: str | Path, reference_path: str | Path | None = None)
                 d, h = s["development"][m], s["held_out"][m]
                 lines.append(f"| {m} | {d if d is None else round(d, 4)} | {h if h is None else round(h, 4)} |")
             lines.append("")
+    elif open_lane:
+        lines += ["## Held-out networks", "", "Not evaluated: an open-lane run's proofs are Lean modules for the development networks; "
+                  "a method is evaluated on held-out networks only through frozen transfer (docs/OPEN_LANE.md).", ""]
     else:
         lines += ["## Held-out networks", "", "Not evaluated yet: run `python -m core.final --run <this run>`.", ""]
     (out / "report.md").write_text("\n".join(lines))

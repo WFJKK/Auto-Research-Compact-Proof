@@ -1,0 +1,22 @@
+{
+  "agent_model": "claude-fable-5-1",
+  "checker": "18f137d8d10160778ab5d03f568b32067e1f897c64f34cc7dcfffada654228f5",
+  "config": "f7ddab6e6a91622c0f8b041dba98963c8f8503509c1a722e9b232732b146cbfe",
+  "cost_model": "cost-v3",
+  "created": "2026-10-22T09:59:13+00:00",
+  "git": {
+    "commit": "6608098b973ea787c68307ac3780f6c60af3e703",
+    "dirty": false
+  },
+  "lean_checker": {
+    "acceptcheck": "366b75d832df2856",
+    "commit": "c11b8e40f3c8d9b78ff144de8c1edb66dc3e75bb",
+    "lean_project": "d36f4fb12b0bb567",
+    "policy": "cde74948a64643d3",
+    "toolchain": "lean:d1d9c26a539f54fe"
+  },
+  "model_folder": "7e7e94564887249c76c9f9196139bd7ffc73a975712b4bce751dad8eaddc56f1",
+  "prompt_template": "open_lane_v1",
+  "rule_set": "45712f4478a0bd0c",
+  "sandbox": "fca643a9aae8da0d7ef384d33265c304256e017e7f32474267d481c2158cc4cf"
+}

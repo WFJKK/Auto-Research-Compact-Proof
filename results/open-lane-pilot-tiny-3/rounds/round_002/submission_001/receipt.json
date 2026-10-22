@@ -1,0 +1,93 @@
+{
+ "schema": "open-lane-receipt-v1",
+ "candidate_id": "attempt_0-s001",
+ "status": "accepted",
+ "reason": null,
+ "claim_kind": "performance",
+ "certified_count": 32,
+ "domain_size": 64,
+ "claimed_count": 32,
+ "network": "max2_tiny-v8-s0",
+ "theorem": "Candidate.Col32.performance",
+ "statement": null,
+ "axioms": [
+  "propext",
+  "Classical.choice",
+  "Quot.sound"
+ ],
+ "isolation": "process (weak: no Landlock here)",
+ "steps": [
+  {
+   "step": "protected",
+   "module": "Protected.N_max2_tiny_v8_s0_c32",
+   "cached": true
+  },
+  {
+   "step": "compile",
+   "module": "Candidate.Col32",
+   "rc": 0,
+   "seconds": 2.6,
+   "timed_out": false
+  },
+  {
+   "step": "kernel",
+   "rc": 0,
+   "seconds": 1.3,
+   "timed_out": false
+  },
+  {
+   "step": "closure",
+   "rc": 0,
+   "seconds": 0.7,
+   "timed_out": false
+  },
+  {
+   "step": "score",
+   "rc": 0,
+   "seconds": 1.3,
+   "timed_out": false
+  }
+ ],
+ "digests": {
+  "commit": "c11b8e40f3c8d9b78ff144de8c1edb66dc3e75bb",
+  "toolchain": "lean:d1d9c26a539f54fe",
+  "lean_project": "d36f4fb12b0bb567",
+  "policy": "cde74948a64643d3",
+  "acceptcheck": "366b75d832df2856",
+  "modules": {
+   "Candidate.Col32": "8c00a80c0ff97e65c236bbfc39df0cd624ddb78e3880c0796a34223ccd7877db"
+  },
+  "network_file": "af7beeae9cfa75951c881d4ec320d6384648984033f33209eb2bcfcb05557346"
+ },
+ "score_eligible": true,
+ "execution_assurance": "kernel_checked_instance",
+ "cost_model": "cost-v3",
+ "scoring": {
+  "status": "scored",
+  "reason": null,
+  "assurance": "kernel_checked_instance",
+  "cost_model": "cost-v3",
+  "bill": 453,
+  "extract": 80,
+  "read": 0,
+  "length": 533,
+  "description_size": 5541,
+  "size_budget": 8512,
+  "general_kernel_ms": 186,
+  "general_kernel_budget_ms": 120000,
+  "rest_kernel_ms": 261,
+  "axioms": [
+   "propext",
+   "Classical.choice",
+   "Quot.sound"
+  ],
+  "closure_visited": 115,
+  "general_constants": 174,
+  "checker_constants": 46
+ },
+ "seconds": 6.8,
+ "time": "2026-10-22T12:37:11+0100",
+ "replayed_constants": 338,
+ "receipt_path": "/Users/kames/auto-research-compact-proof-runs/open-lane-pilot-tiny-3/open_lane_work/receipts/attempt_0-s001-1792669031.json",
+ "submission": 1
+}
