@@ -28,7 +28,7 @@ from ..check import cost
 from ..check.rules import describe
 from ..diagnostics import at_label, knob_lines, render_attempt, rule_order, share
 from ..model_folder import ModelFolder
-from ..scoring import budget_grid, default_budget_ratio, q_grid, q_score, summarize
+from ..scoring import budget_grid, default_budget_ratio, q_exact, q_grid, q_score, summarize
 from ..zoo import read_manifest
 
 TEMPLATES = Path(__file__).with_name("prompts")
@@ -139,6 +139,16 @@ def metric_text(cfg: dict, folder: ModelFolder, entries: list[dict]) -> str:
             "within the smallest budget would score 1. More accuracy within a budget raises it; a proof that is "
             "shorter than its budget but no more accurate does not."
         )
+    elif cfg["metric"] == "Q_exact":
+        head = (
+            "Your score is Q_exact, per size setting the mean over its networks (the worst network is reported too). "
+            "For one network, a(b) is the best certified accuracy among the checked proofs (yours and earlier ones) of "
+            "length at most b; Q_exact is the average of a(b) over budgets b drawn log-uniformly between "
+            "max(E, B/1000) and B, computed exactly from the proofs' lengths, between 0 and 1. Brute force alone "
+            "scores 0. Shorter proofs of the same accuracy raise it, and so does more accuracy at the same length: "
+            "any shorter proof counts, not only one that crosses a budget. Cost of finishing breaks ties and is "
+            "reported separately."
+        )
     elif cfg["metric"] == "cost_of_finishing":
         head = (
             "Your score is the cost of finishing, per size setting the median over its networks (the worst network "
@@ -220,7 +230,8 @@ def attempt_score(rs: list[dict], entries: list[dict], metric: str = "Q", budget
             if r["certified"] > best:
                 frontier.append({"length": r["length"], "certified": r["certified"], "n_inputs": r["n_inputs"]})
                 best = r["certified"]
-        score = q_grid(frontier, e["E"], e["B"], budget_ratio) if metric == "Q_grid" else q_score(frontier, e["E"], e["B"])
+        score = (q_grid(frontier, e["E"], e["B"], budget_ratio) if metric == "Q_grid"
+                 else q_exact(frontier, e["E"], e["B"]) if metric == "Q_exact" else q_score(frontier, e["E"], e["B"]))
         by_setting.setdefault(e["setting"], []).append(score)
     return statistics.mean(statistics.median(v) for v in by_setting.values()) if by_setting else 0.0
 
@@ -237,6 +248,8 @@ def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_r
             score = f"cost of finishing median {s['cost_of_finishing_median']:.2f}, worst {s['cost_of_finishing_worst']:.2f}"
         elif metric == "Q_grid":
             score = f"Q_grid median {s['Q_grid_median']:.4f}, worst {s['Q_grid_worst']:.4f}"
+        elif metric == "Q_exact":
+            score = f"Q_exact mean {s['Q_exact_mean']:.4f}, worst {s['Q_exact_worst']:.4f}; cost of finishing median {s['cost_of_finishing_median']:.2f}"
         else:
             score = f"Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}"
         lines.append(f"{setting} ({len(nets)} networks; real accuracy median {100 * real:.3f}%): {score}")

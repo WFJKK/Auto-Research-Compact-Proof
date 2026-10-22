@@ -106,10 +106,11 @@ def static_values(cfg: dict, folder: ModelFolder, entries: list[dict]) -> dict:
 def scoreboard(records: list[dict], entries: list[dict], budget_ratio) -> str:
     lines = []
     for setting, s in summarize(records, entries, budget_ratio).items():
-        lines.append(f"{setting}: Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}; cost of finishing median {s['cost_of_finishing_median']:.2f}")
+        lines.append(f"{setting}: Q_exact mean {s['Q_exact_mean']:.4f}, worst {s['Q_exact_worst']:.4f}; Q median {s['Q_median']:.4f}; "
+                     f"cost of finishing median {s['cost_of_finishing_median']:.2f}")
         for nid, m in s["networks"].items():
             full = f"{m['shortest_full']:,} (B/{m['B'] / m['shortest_full']:.1f})" if m["shortest_full"] else "none"
-            lines.append(f"  {nid}: Q {m['Q']:.4f}; best certified accuracy {100 * m['best_accuracy']:.3f}% of "
+            lines.append(f"  {nid}: Q_exact {m['Q_exact']:.4f}, Q {m['Q']:.4f}; best certified accuracy {100 * m['best_accuracy']:.3f}% of "
                          f"{100 * (m['real_accuracy'] or 0):.3f}%; shortest full-accuracy proof {full}; {m['points']} frontier proofs")
     return "\n".join(lines) if lines else "nothing checked yet"
 

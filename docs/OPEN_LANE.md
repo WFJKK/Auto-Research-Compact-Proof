@@ -73,6 +73,18 @@ digest halts the run (`core.open_lane.records.check_receipt_identity`).
 A submission of kind `auxiliary` is a lemma with any statement: accepted with no count and no score,
 recorded with status `lemma`, and shown to the agent in later rounds with its statement.
 
+## Scoring and the next evaluation
+
+The primary objective is Q_exact (`core.scoring.q_exact`): the log-area of the verified frontier over
+[max(E, B/1000), B], the expected certified accuracy at a budget drawn log-uniformly from that range,
+computed from the proofs' actual lengths; `metric: Q_exact` in a run config. The frontier is the record and
+cost of finishing the tie-breaker, computed with the single rule's exact charge per uncovered input (from
+the run's brute-force baseline record) rather than an average. Q_grid stays available; it cannot see an
+improvement between two of its budgets (pilot 2's full proof from 1,031 to 719). Q_exact is clean when the
+evaluator chooses where proofs are requested; when the agent chooses its own points it inherits Q's
+placement effect, which is why the next evaluation requests a frozen method's proofs on a fixed schedule
+(docs/decisions/frozen-transfer.md).
+
 ## The reference count
 
 The zoo's `real_correct` comes from the float forward pass; the Lean specification counts over the reals

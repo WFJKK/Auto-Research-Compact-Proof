@@ -159,3 +159,38 @@ def test_the_knob_baseline_stays_within_a_fixed_budget():
         certified.append(r["certified"])
     assert certified[0] == e["real_correct"] and certified == sorted(certified, reverse=True)
     assert certified[5] > 0 and certified[-1] == 0  # B/64 still buys part of the largest group; near E nothing fits
+
+
+def test_q_exact_is_the_clipped_log_area_of_the_verified_frontier():
+    """Q_exact on pilot 2's recorded archive (results/open-lane-pilot-tiny-3): the reviewer's numbers of 22
+    October, 0.4734 with the full proof at 1,031 (after round 3) and 0.5101 after round 4's 719, which
+    Q_grid (0.5375 both times) cannot see. On the tiny network max(E, B/1000) = E, so Q_exact equals Q;
+    on a v64 network B/1000 is above E and the range is narrower."""
+    from core.scoring import cost_of_finishing, fallback_cost_per_input, frontier, q_exact, q_grid, q_score
+
+    archive = Path(__file__).resolve().parent.parent / "results" / "open-lane-pilot-tiny-3" / "archive.jsonl"
+    records = [json.loads(l) for l in archive.read_text().splitlines() if l.strip()]
+    E, B, n = 80, 4323, 64
+    for upto, expected in ((3, 0.4734), (4, 0.5101)):
+        pts = frontier([r for r in records if 0 < r["round"] <= upto])["max2_tiny-v8-s0"]
+        assert round(q_exact(pts, E, B), 4) == expected
+        assert round(q_exact(pts, E, B), 4) == round(q_score(pts, E, B), 4)
+        assert round(q_grid(pts, E, B, 2.0), 4) == 0.5375
+    # a wider range on a real network: the same two points, E = 1088, B = 2696387, L0 = B / 1000
+    pts = [{"length": 300_000, "certified": 4000, "n_inputs": 4096}, {"length": 600_000, "certified": 4096, "n_inputs": 4096}]
+    q = q_exact(pts, 1088, 2_696_387)
+    import math
+    L0 = 2_696_387 / 1000
+    expected = (4000 / 4096 * math.log(600_000 / 300_000) + math.log(2_696_387 / 600_000)) / math.log(2_696_387 / L0)
+    assert abs(q - expected) < 1e-12
+    assert q_exact(pts, 1088, 2_696_387) > q_score(pts, 1088, 2_696_387)  # Q's range starts at E, below B/1000, so it counts more empty decades
+    # cost of finishing uses the single rule's exact charge per input when the brute-force baseline record is there
+    entry = {"id": "max2_tiny-v8-s0", "n_inputs": n, "B": B, "E": E, "real_correct": 64}
+    unit, how = fallback_cost_per_input(entry, records)
+    assert unit == 63 and how.startswith("exact")
+    pts = frontier([r for r in records if r["round"] > 0])["max2_tiny-v8-s0"]
+    assert cost_of_finishing(pts, 64, B, unit) == B / 719
+    partial = [{"length": 536, "certified": 38, "n_inputs": 64}]
+    assert cost_of_finishing(partial, 64, B, unit) == B / (536 + 26 * 63)
+    assert cost_of_finishing(partial, 64, B) == B / (536 + 26 * B / 64)  # the estimate, without the baseline record
+    assert fallback_cost_per_input(entry, [])[1].startswith("estimate")

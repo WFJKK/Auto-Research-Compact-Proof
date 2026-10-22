@@ -43,6 +43,18 @@ from ..util import REPO_ROOT
 MAX_TEXT = 20000  # characters of compiler output, program output or search results returned to the agent
 
 
+def error_lines(text: str, limit: int = 20) -> list[str]:
+    """The compiler's error lines (the message head only, cut to a line), for the tool log: the log keeps
+    the first 500 characters of a compile's output, which in pilot 2 were warnings that hid the errors."""
+    out = []
+    for line in text.splitlines():
+        if ": error" in line or line.startswith("error"):
+            out.append(line[:300])
+            if len(out) >= limit:
+                break
+    return out
+
+
 def excerpt(text: str, limit: int = MAX_TEXT) -> str:
     """Compiler output cut to the limit: the first errors and the last lines (one later error, a `decide`
     that cannot reduce, can be thousands of lines, and the first error is the one to fix)."""
@@ -173,7 +185,7 @@ class Session:
             out = {"ok": bool(res.get("ok")), "timed_out": bool(res.get("timed_out")), "module": res.get("module"),
                    "protected_module": res.get("protected_module"), "messages": excerpt(text) if text else "(no messages)",
                    "seconds": res.get("seconds"), "remaining": self.remaining()}
-            self._log("lean_check", args, {"ok": out["ok"], "messages": out["messages"][:500]}, time.monotonic() - t0)
+            self._log("lean_check", args, {"ok": out["ok"], "messages": out["messages"][:500], "errors": error_lines(out["messages"])}, time.monotonic() - t0)
             return out
         except ToolError as exc:
             self._log("lean_check", args, {"error": str(exc)}, time.monotonic() - t0)

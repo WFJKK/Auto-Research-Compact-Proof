@@ -66,7 +66,10 @@ Array, Option, Prod, Fin and String, your own definitions built from
 these, and the protected graph and task; never Interp.counting, CostM or
 Q (the counting interpreter is the service's to run), the protected
 weights, the certificate as data, or Classical (the service lists what it
-refused). Inside D there is no branching on a truth value `I.B`: it can
+refused). `I.weightShape` and `I.weightSize` (a tensor's shape and data
+length) are free structural reads: a tensor is well formed when its size
+is the product of its shape, and a checker may branch on that concrete
+comparison. Inside D there is no branching on a truth value `I.B`: it can
 only become a count (`I.countB`: 1 if true; `I.nscale k`: a concrete k
 if true), choose between two numbers (`I.selectV`, charged) or pass
 through a charged gate (`I.band`, `I.bor`, `I.bnot`). A count `I.N` is

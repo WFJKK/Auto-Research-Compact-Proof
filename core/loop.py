@@ -477,7 +477,7 @@ def status_text(run: RunDir, diagnostics: bool = False) -> str:
     lines.append(f"frontier metrics (checked by {', '.join(checkers)}):")
     for setting, s in summarize(records, entries, cfg.get("budget_ratio")).items():
         lines.append(
-            f"  {setting}: Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}; Q_grid median {s['Q_grid_median']:.4f}; "
+            f"  {setting}: Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}; Q_grid median {s['Q_grid_median']:.4f}; Q_exact mean {s['Q_exact_mean']:.4f}; "
             f"cost of finishing median {s['cost_of_finishing_median']:.2f}"
         )
         for nid, m in s["networks"].items():
