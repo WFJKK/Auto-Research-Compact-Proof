@@ -215,11 +215,16 @@ class Session:
             self._log("run_python", args, {"error": str(exc)}, time.monotonic() - t0)
             raise
 
-    READABLE = ("CompactCheck/", "docs/", "examples/", "accept/", "README.md", "lean-toolchain", "lakefile.toml")
+    # the examples the prompt already shows (the verified and the scored brute force) and nothing else under
+    # examples/: the other examples are earlier proofs of the pilot's own networks (the agent's pilot proof,
+    # its hand port, review fixtures), and a pilot that could read them would show copying, not research
+    READABLE = ("CompactCheck/", "docs/", "examples/open_lane/max2_tiny_brute/", "examples/open_lane/max2_tiny_scored/",
+                "accept/", "README.md", "lean-toolchain", "lakefile.toml")
     MAX_READ_LINES = 400
 
     def read_file(self, path: str, start: int = 1, lines: int = 200) -> dict:
-        """A file of the Lean project (its sources, docs, examples and allowlist), by line range."""
+        """A file of the Lean project (its sources, docs, the two examples of the prompt and the allowlist),
+        by line range."""
         t0 = time.monotonic()
         args = {"path": path, "start": start, "lines": lines}
         try:
@@ -368,8 +373,9 @@ class Session:
         },
         "read_file": {
             "description": "Read lines of a file of the Lean project: its sources (CompactCheck/<Name>.lean), docs "
-                           "(docs/COUNTED.md, docs/OPEN_LANE.md), examples (examples/open_lane/...) and the allowlist "
-                           "(accept/allowlist.txt). Returns up to 400 numbered lines from `start`.",
+                           "(docs/COUNTED.md, docs/OPEN_LANE.md), the two examples of your prompt "
+                           "(examples/open_lane/max2_tiny_brute/..., examples/open_lane/max2_tiny_scored/...) and the "
+                           "allowlist (accept/allowlist.txt); no other example. Returns up to 400 numbered lines from `start`.",
             "schema": {"type": "object", "properties": {"path": {"type": "string"}, "start": {"type": "integer"},
                                                         "lines": {"type": "integer"}},
                        "required": ["path"]},

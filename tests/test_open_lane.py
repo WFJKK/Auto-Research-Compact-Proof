@@ -303,3 +303,31 @@ def test_the_identity_command_must_succeed_and_report_every_field():
         loop.parse_identity(0, json.dumps({**full, "acceptcheck": None}), "", "P")
     with pytest.raises(loop.LoopError, match="uncommitted"):
         loop.parse_identity(0, json.dumps({**full, "dirty": True}), "", "P")
+
+
+def test_read_file_reaches_the_sources_and_the_prompts_examples_only(tmp_path):
+    """No Lean: a fake project folder. The agent may read the Lean sources, the docs and the two examples
+    its prompt shows, not the other examples (earlier proofs of the same networks: reading one would be
+    copying, not research), and nothing outside the project."""
+    project = tmp_path / "lean"
+    for rel in ("CompactCheck/Spec.lean", "docs/COUNTED.md", "examples/open_lane/max2_tiny_scored/Candidate/X.lean",
+                "examples/open_lane/max2_tiny_brute/Candidate/X.lean", "examples/open_lane/max2_tiny_cols23_v3/Candidate/X.lean",
+                "examples/open_lane/max2_tiny_cols23_v3/manifest.json", "examples/open_lane/max2_tiny_agent_cols23/README.md",
+                "scripts/accept.py", "accept/allowlist.txt"):
+        (project / rel).parent.mkdir(parents=True, exist_ok=True)
+        (project / rel).write_text("line one\nline two\n")
+    (tmp_path / "secret.txt").write_text("no")
+    cfg = merge(base_config(tmp_path, []))
+    cfg["open_lane"]["lean_project"] = str(project)
+    session = Session.create(tmp_path / "attempt" / "open_lane", cfg, "max2_tiny",
+                             [{"id": "max2_tiny-v8-s0", "setting": "v8", "n_inputs": 64}], tmp_path / "run")
+    for ok in ("CompactCheck/Spec.lean", "docs/COUNTED.md", "examples/open_lane/max2_tiny_scored/Candidate/X.lean",
+               "examples/open_lane/max2_tiny_brute/Candidate/X.lean", "accept/allowlist.txt"):
+        assert session.read_file(ok)["total_lines"] == 2, ok
+    from core.open_lane.session import ToolError
+
+    for refused in ("examples/open_lane/max2_tiny_cols23_v3/Candidate/X.lean", "examples/open_lane/max2_tiny_cols23_v3/manifest.json",
+                    "examples/open_lane/max2_tiny_agent_cols23/README.md", "examples/open_lane/", "scripts/accept.py",
+                    "../secret.txt", "/etc/passwd", "examples/open_lane/max2_tiny_scored/../max2_tiny_cols23_v3/Candidate/X.lean"):
+        with pytest.raises(ToolError):
+            session.read_file(refused)
