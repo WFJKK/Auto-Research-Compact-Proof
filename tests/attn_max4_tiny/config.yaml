@@ -2,7 +2,7 @@
 # Lean's kernel to run forward passes one theorem at a time: 4 positions, 4 tokens, width 4, head size 4
 # (so the attention scale 1/sqrt(4) is exactly 1/2), 256 inputs. A forward pass costs 287 under cost-v3 and
 # about 2.3 s as a kernel-decided fact, so brute force as 256 facts takes about 10 minutes to compile; 5 tokens
-# (625 inputs) also trains to full accuracy but doubles that. Trained by core.train; a tiny attention model
+# (625 inputs) also trains to full accuracy, with 2.44 times as many inputs. Trained by core.train; a tiny attention model
 # for open-lane pilots.
 size_settings:
   v4d4:

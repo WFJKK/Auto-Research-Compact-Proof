@@ -405,3 +405,41 @@ def test_the_open_lane_config_names_its_example_and_sources_in_the_lean_project(
         cfg["open_lane"].update(lean_project=str(project), **bad)
         with pytest.raises(RunConfigError, match=match):
             merge(cfg)
+
+
+@pytest.mark.parametrize("metric", ["Q", "Q_grid", "Q_exact", "cost_of_finishing"])
+def test_the_open_lane_prompt_builds_for_every_metric(tmp_path, metric):
+    """Review of 23 October: the open-lane aim had no entry for Q_exact, so the first prompt of a Q_exact run
+    raised KeyError. The whole prompt, both parts, for each metric the run config accepts, from a fake Lean
+    project and an archive with round 0's brute-force record."""
+    from core.archive import RunDir
+    from core.model_folder import load_model_folder
+    from core.open_lane.prompt import build_open_lane_prompt
+    from core.run_config import METRICS
+
+    assert metric in METRICS
+    files = {"scripts/accept.py": "", "CompactCheck/Spec.lean": "-- spec", "CompactCheck/Counted.lean": "-- counted",
+             "CompactCheck/CountedOps.lean": "-- ops", "CompactCheck/CountedGeneral.lean": "-- general",
+             "CompactCheck/CountedGeneralSound.lean": "-- sound",
+             "examples/open_lane/attn_max2_tiny_scored/Candidate/AttnTinyScored.lean": "-- example"}
+    project = fake_project(tmp_path, files)
+    cfg = merge(base_config(tmp_path, [], model="tests/attn_max2_tiny", prompt_template="open_lane_v2", metric=metric))
+    cfg["open_lane"].update(lean_project=str(project),
+                            example="examples/open_lane/attn_max2_tiny_scored/Candidate/AttnTinyScored.lean",
+                            extra_sources=["CompactCheck/CountedGeneral.lean", "CompactCheck/CountedGeneralSound.lean"])
+    folder = load_model_folder(REPO_ROOT / "tests" / "attn_max2_tiny")
+    from core.zoo import networks
+
+    entries = [e for e in networks(folder) if e["split"] == "dev"]
+    run = RunDir(tmp_path / "runs", "prompt-" + metric)
+    run.create(cfg)
+    e = entries[0]
+    run.append_archive([{"run_id": run.run_id, "round": 0, "attempt": 0, "record_id": "r0", "network": e["id"],
+                         "setting": e["setting"], "status": "ok", "certified": e["n_inputs"], "n_inputs": e["n_inputs"],
+                         "length": e["B"], "length_by_rule": {"single": 64 * 191, "tree": e["B"] - 64 * 191 - e["E"],
+                                                              "extract": e["E"]}, "knob": 1.0}])
+    p = build_open_lane_prompt(cfg, folder, entries, run, 1)
+    assert "Raise the score. It stands at: " + metric in p.part2
+    assert (" mean " in p.part2.split("Raise the score", 1)[1]) == (metric == "Q_exact")
+    assert "-- general" in p.part1 and "{" + "EXTRA_SOURCES}" not in p.part1
+

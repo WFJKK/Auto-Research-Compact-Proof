@@ -153,8 +153,9 @@ def metric_text(cfg: dict, folder: ModelFolder, entries: list[dict]) -> str:
         head = (
             "Your score is the cost of finishing, per size setting the median over its networks (the worst network "
             "is reported too). For one network, take a proof's length plus, for every input it classifies correctly "
-            "but leaves uncertified, the brute-force cost of one input (B divided by the number of inputs); the score "
-            "is B divided by the smallest such total over your proofs. Higher is better; brute force scores 1."
+            "but leaves uncertified, what certifying that input alone costs (the single rule's charge, read from "
+            "round 0's brute-force proof; B divided by the number of inputs when there is none); the score is B "
+            "divided by the smallest such total over your proofs. Higher is better; brute force scores 1."
         )
     else:
         head = (
@@ -287,7 +288,7 @@ def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_r
     return "\n".join(lines)
 
 
-METRIC_NAMES = {"Q": "Q", "Q_grid": "Q_grid", "cost_of_finishing": "cost of finishing"}
+METRIC_NAMES = {"Q": "Q", "Q_grid": "Q_grid", "Q_exact": "Q_exact", "cost_of_finishing": "cost of finishing"}
 AIM_TEXT = (
     "Raise your score, {name}. It stands at: {scores}.\n"
     "Before writing the recipe, consider several approaches that could raise it: a\n"
@@ -299,16 +300,22 @@ AIM_TEXT = (
 )
 
 
+def metric_scores(summary: dict, metric: str) -> str:
+    """Per size setting, the metric as the run scores it (the median over networks, or for Q_exact the mean:
+    run_config.METRIC_KEYS) and its worst network."""
+    from ..run_config import METRIC_KEYS
+
+    centre = METRIC_KEYS[metric]
+    label = "mean" if centre.endswith("_mean") else "median"
+    fmt = "{:.2f}" if metric == "cost_of_finishing" else "{:.4f}"
+    return "; ".join(f"{setting} {label} {fmt.format(s[centre])}, worst {fmt.format(s[metric + '_worst'])}"
+                     for setting, s in summary.items())
+
+
 def aim_text(records: list[dict], entries: list[dict], metric: str, budget_ratio: float | None = None) -> str:
     """The explicit aim (template v3): the score as it stands, per size setting, and the ask to raise it."""
     summary = summarize(records, entries, budget_ratio)
-    key = {"Q": "Q", "Q_grid": "Q_grid", "cost_of_finishing": "cost_of_finishing"}[metric]
-    fmt = "{:.2f}" if metric == "cost_of_finishing" else "{:.4f}"
-    scores = "; ".join(
-        f"{setting} median {fmt.format(s[key + '_median'])}, worst {fmt.format(s[key + '_worst'])}"
-        for setting, s in summary.items()
-    )
-    return AIM_TEXT.format(name=METRIC_NAMES[metric], scores=scores)
+    return AIM_TEXT.format(name=METRIC_NAMES[metric], scores=metric_scores(summary, metric))
 
 
 def grid_lines(records: list[dict], nets: list[dict], run: RunDir, per_round: int, budget_ratio: float | None) -> list[str]:

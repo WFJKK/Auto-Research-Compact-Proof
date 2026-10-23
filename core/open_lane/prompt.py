@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from ..agent.build_prompt import CHARS_PER_TOKEN, Prompt, PromptError, fill, forbidden, grid_text, load_template, metric_text
+from ..agent.build_prompt import CHARS_PER_TOKEN, Prompt, PromptError, fill, forbidden, grid_text, load_template, metric_scores, metric_text
 from ..archive import RunDir
 from ..model_folder import ModelFolder
 from ..scoring import summarize
@@ -207,10 +207,7 @@ def stalled(records: list[dict], k: int, n: int) -> bool:
 
 def aim(records: list[dict], entries: list[dict], cfg: dict, k: int) -> str:
     summary = summarize(records, entries, cfg.get("budget_ratio"))
-    key = {"Q": "Q", "Q_grid": "Q_grid", "cost_of_finishing": "cost_of_finishing"}[cfg["metric"]]
-    fmt = "{:.2f}" if cfg["metric"] == "cost_of_finishing" else "{:.4f}"
-    scores = "; ".join(f"{s} median {fmt.format(v[key + '_median'])}, worst {fmt.format(v[key + '_worst'])}" for s, v in summary.items())
-    text = AIM_TEXT.format(scores=scores)
+    text = AIM_TEXT.format(scores=f"{cfg['metric']}: " + metric_scores(summary, cfg["metric"]))
     if stalled(records, k, cfg["open_lane"]["stall_rounds"]):
         text += "\n" + STALL_TEXT.format(n=cfg["open_lane"]["stall_rounds"])
     return text
