@@ -137,6 +137,12 @@ the attention brute force, whose instance is proved from one kernel-decided fact
 four-position ones, so a checker that falls back to the single rule on all 256 inputs of max4 takes about
 10 minutes to compile; the four-position configs give the session three hours.
 
+Next to the attention max4 and min4 pilots, linear ones on the same task and size
+(`config/open-lane-pilot-{max4,min4}-tiny.yaml`, models `tests/max4_tiny` and `tests/min4_tiny`: the max2
+model's architecture at 4 positions, 4 tokens, width 4, 256 inputs, both seeds at full accuracy; a single
+leaf costs 51, E is 48). Their worked example is the linear scored brute force. All the tiny pilots run up
+to 7 rounds.
+
 The receipts record the isolation the service had: Landlock on Linux, `process (weak)` on a Mac, where
 Docker is not used by the service. The pilot's gate (the ticket): one agent-produced open-lane candidate
 accepted, or the archive recording transparently why none was.
