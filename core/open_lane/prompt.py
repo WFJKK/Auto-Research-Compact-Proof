@@ -99,8 +99,9 @@ KNOWLEDGE_TEXT = {
         "again). CostM.gtokenIntervals_correct: one verdict per box, and every input of a box answered true is "
         "answered correctly; certifiedCount_le_numCorrect bounds the count of the inputs of the boxes answered "
         "true when no two boxes share an input (pairwiseApart) and each lies in the space (fits). An instance "
-        "splits into one decided fact per box (TokenLeafFacts, CostM.gtokenIntervals_run_of_facts; "
-        "compactcheck gtokens prints each box's facts). Worked example: "
+        "splits into one decided fact per box (TokenLeafFacts, CostM.gtokenIntervals_run_of_facts); a box's "
+        "fact is what `#eval (dweights weights).bind fun dw => gtokenLeaf graph dw task box` prints in a "
+        "lean_check module. Worked example: "
         "examples/open_lane/attn_max2_tiny_tokens (TokensCost.lean has the operation and its price); state the "
         "checker's run for any environment, as its D_run does, or the kernel may evaluate every box at once."
     ),
