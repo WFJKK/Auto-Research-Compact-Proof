@@ -158,7 +158,7 @@ def validate(cfg: dict, source: str = "run config") -> None:
 
 
 OPEN_LANE_KEYS = {"enabled", "lean_project", "work_dir", "python", "compile_calls", "python_calls", "submissions", "max_turns",
-                  "worker_seconds", "stall_rounds", "fake_scripts"}
+                  "worker_seconds", "stall_rounds", "fake_scripts", "example", "extra_sources"}
 
 
 def open_lane_errors(cfg: dict) -> list[str]:
@@ -179,11 +179,19 @@ def open_lane_errors(cfg: dict) -> list[str]:
     for key in ("lean_project", "work_dir", "python"):
         if ol.get(key) is not None and not isinstance(ol[key], str):
             errors.append(f"open_lane.{key} must be a path or null")
+    if not isinstance(ol.get("example"), str) or not ol["example"]:
+        errors.append("open_lane.example must be a path in the Lean project")
+    if not isinstance(ol.get("extra_sources"), list) or not all(isinstance(p, str) for p in ol["extra_sources"]):
+        errors.append("open_lane.extra_sources must be a list of paths in the Lean project")
     errors = [f"open_lane: {e}" if not e.startswith("open_lane") else e for e in errors]
     if ol.get("enabled") is True and not errors:
         project = ol.get("lean_project")
         if not project or not (Path(project).expanduser() / "scripts" / "accept.py").is_file():
             errors.append("open_lane.lean_project must be the Lean project (with scripts/accept.py)")
+        else:
+            for rel in [ol["example"], *ol["extra_sources"]]:
+                if not (Path(project).expanduser() / rel).is_file():
+                    errors.append(f"the Lean project has no {rel} (open_lane.example, open_lane.extra_sources)")
         if cfg["backend"] not in ("fake", "claude_code"):
             errors.append("the open lane runs with backend fake or claude_code")
         tpl = REPO_ROOT / "core" / "agent" / "prompts" / f"{cfg['prompt_template']}.md"

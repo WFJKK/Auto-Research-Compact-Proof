@@ -331,3 +331,77 @@ def test_read_file_reaches_the_sources_and_the_prompts_examples_only(tmp_path):
                     "../secret.txt", "/etc/passwd", "examples/open_lane/max2_tiny_scored/../max2_tiny_cols23_v3/Candidate/X.lean"):
         with pytest.raises(ToolError):
             session.read_file(refused)
+
+
+def fake_project(tmp_path: Path, files: dict) -> Path:
+    project = tmp_path / "lean"
+    for rel, text in files.items():
+        (project / rel).parent.mkdir(parents=True, exist_ok=True)
+        (project / rel).write_text(text)
+    return project
+
+
+def test_read_file_reaches_the_runs_worked_example_and_no_other(tmp_path):
+    """A run on attention networks shows another worked example (open_lane.example); read_file reaches its
+    folder too, and still no other example."""
+    attn = "examples/open_lane/attn_max2_tiny_scored/Candidate/AttnTinyScored.lean"
+    project = fake_project(tmp_path, {attn: "a\nb\n", "examples/open_lane/attn_max2_tiny_scored/manifest.json": "{}\n",
+                                      "examples/open_lane/pilot2_max2_tiny/Candidate/X.lean": "x\n"})
+    cfg = merge(base_config(tmp_path, []))
+    cfg["open_lane"].update(lean_project=str(project), example=attn)
+    session = Session.create(tmp_path / "attempt" / "open_lane", cfg, "attn_max2_tiny",
+                             [{"id": "attn_max2_tiny-v8d4-s1", "setting": "v8d4", "n_inputs": 64}], tmp_path / "run")
+    assert session.read_file(attn)["total_lines"] == 2
+    assert session.read_file("examples/open_lane/attn_max2_tiny_scored/manifest.json")["total_lines"] == 1
+    from core.open_lane.session import ToolError
+
+    with pytest.raises(ToolError):
+        session.read_file("examples/open_lane/pilot2_max2_tiny/Candidate/X.lean")
+
+
+def test_the_prompt_shows_the_configured_example_shortened_and_the_further_sources(tmp_path):
+    """open_lane.example and open_lane.extra_sources choose what part 1 shows; a run of facts that differ only
+    in their numbers (an instance split into one decided fact per input) is shortened to its first two and
+    its last, with a count; template v2 has a place for the further sources."""
+    from core.agent.build_prompt import load_template, placeholders
+    from core.model_folder import load_model_folder
+    from core.open_lane.prompt import elide_repeats, static_values
+
+    facts = "\n\n".join(f"theorem in_{a}_{b} : run1 [{a}, {b}] = some (true, 191) := by\n  decide +kernel"
+                        for a in range(3) for b in range(3))
+    example = "import X\n\ndef D := 1\n\n" + facts + "\n\ntheorem D_instance : True := trivial\n"
+    short = elide_repeats(example)
+    assert "theorem in_0_0" in short and "theorem in_0_1" in short and "theorem in_2_2" in short
+    assert "theorem in_1_1" not in short and "-- ... 6 more of the same form, one per input ..." in short
+    assert "theorem D_instance" in short and elide_repeats("a\n\nb\n\nc") == "a\n\nb\n\nc"
+    files = {"scripts/accept.py": "", "CompactCheck/Spec.lean": "-- spec", "CompactCheck/Counted.lean": "-- counted",
+             "CompactCheck/CountedOps.lean": "-- ops", "CompactCheck/CountedGeneral.lean": "-- general single rule",
+             "examples/open_lane/attn/Candidate/A.lean": example}
+    project = fake_project(tmp_path, files)
+    cfg = merge(base_config(tmp_path, [], model="tests/attn_max2_tiny", prompt_template="open_lane_v2"))
+    cfg["open_lane"].update(lean_project=str(project), example="examples/open_lane/attn/Candidate/A.lean",
+                            extra_sources=["CompactCheck/CountedGeneral.lean"])
+    folder = load_model_folder(REPO_ROOT / "tests" / "attn_max2_tiny")
+    entries = [{"id": "attn_max2_tiny-v8d4-s1", "setting": "v8d4", "n_inputs": 64, "E": 136, "B": 12571, "real_correct": 64}]
+    values = static_values(cfg, folder, entries)
+    assert "more of the same form" in values["EXAMPLE"] and "theorem in_1_1" not in values["EXAMPLE"]
+    assert values["EXTRA_SOURCES"].startswith("From CompactCheck/CountedGeneral.lean:") and "general single rule" in values["EXTRA_SOURCES"]
+    part1, _ = load_template("open_lane_v2")
+    assert "{EXTRA_SOURCES}" in part1 and placeholders(part1) <= set(values)
+    assert "CostM.gsingle_run_of" in part1
+
+
+def test_the_open_lane_config_names_its_example_and_sources_in_the_lean_project(tmp_path):
+    from core.run_config import RunConfigError
+
+    project = fake_project(tmp_path, {"scripts/accept.py": "", "examples/open_lane/max2_tiny_scored/Candidate/Max2TinyScored.lean": "x"})
+    good = base_config(tmp_path, [])
+    good["open_lane"]["lean_project"] = str(project)
+    assert merge(good)["open_lane"]["extra_sources"] == []
+    for bad, match in (({"example": "examples/none.lean"}, "has no examples/none.lean"),
+                       ({"extra_sources": ["CompactCheck/None.lean"]}, "has no CompactCheck/None.lean"),
+                       ({"extra_sources": "CompactCheck/X.lean"}, "extra_sources must be a list")):
+        cfg = base_config(tmp_path, [])
+        cfg["open_lane"].update(lean_project=str(project), **bad)
+        with pytest.raises(RunConfigError, match=match):
+            merge(cfg)

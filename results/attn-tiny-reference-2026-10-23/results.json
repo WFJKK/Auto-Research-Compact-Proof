@@ -1,0 +1,534 @@
+{
+ "attn_max2_tiny-v8d4-s1": {
+  "model": "tests/attn_max2_tiny",
+  "setting": "v8d4",
+  "n_inputs": 64,
+  "E": 136,
+  "B": 12571,
+  "real_correct": 64,
+  "brute_force": {
+   "legacy_length": 12571,
+   "legacy_by_rule": {
+    "extract": 136,
+    "read": 138,
+    "single": 12224,
+    "tree": 73
+   },
+   "certified": 64,
+   "single_per_input": 191.0,
+   "open_lane_length": 12360
+  },
+  "peeling": {
+   "points": [
+    {
+     "knob": 0.05,
+     "length": 1664,
+     "certified": 8,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 1099,
+      "token_convex": 262,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.1,
+     "length": 1664,
+     "certified": 8,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 1099,
+      "token_convex": 262,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.2,
+     "length": 2165,
+     "certified": 15,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 1354,
+      "token_convex": 508,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.35,
+     "length": 3083,
+     "certified": 26,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 1828,
+      "token_convex": 952,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.5,
+     "length": 3923,
+     "certified": 33,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 2254,
+      "token_convex": 1366,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.75,
+     "length": 5768,
+     "certified": 48,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 2711,
+      "token_convex": 2754,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 1.0,
+     "length": 7384,
+     "certified": 64,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 2823,
+      "token_convex": 4258,
+      "tree": 65
+     }
+    }
+   ],
+   "full_length": 7384,
+   "full_certified": 64,
+   "boxes": 36,
+   "Q": 0.24957762459220215,
+   "Q_exact": 0.24957762459220215,
+   "Q_grid": 0.19270833333333334,
+   "cost_of_finishing": 1.7024647887323943,
+   "shortest_full": 7384,
+   "seconds": 0.3
+  },
+  "cubic": {
+   "length": 12436,
+   "certified": 64,
+   "Q": 0.0023853084086233474,
+   "Q_exact": 0.0023853084086233474,
+   "Q_grid": 0.0,
+   "cost_of_finishing": 1.0108555805725314,
+   "shortest_full": 12436
+  }
+ },
+ "attn_min2_tiny-v8d4-s1": {
+  "model": "tests/attn_min2_tiny",
+  "setting": "v8d4",
+  "n_inputs": 64,
+  "E": 136,
+  "B": 12571,
+  "real_correct": 64,
+  "brute_force": {
+   "legacy_length": 12571,
+   "legacy_by_rule": {
+    "extract": 136,
+    "read": 138,
+    "single": 12224,
+    "tree": 73
+   },
+   "certified": 64,
+   "single_per_input": 191.0,
+   "open_lane_length": 12360
+  },
+  "peeling": {
+   "points": [
+    {
+     "knob": 0.05,
+     "length": 1664,
+     "certified": 8,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 1099,
+      "token_convex": 262,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.1,
+     "length": 1664,
+     "certified": 8,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 1099,
+      "token_convex": 262,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.2,
+     "length": 2165,
+     "certified": 15,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 1354,
+      "token_convex": 508,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.35,
+     "length": 3083,
+     "certified": 26,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 1828,
+      "token_convex": 952,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.5,
+     "length": 3767,
+     "certified": 33,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 2254,
+      "token_convex": 1210,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 0.75,
+     "length": 5369,
+     "certified": 48,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 2540,
+      "token_convex": 2526,
+      "tree": 65
+     }
+    },
+    {
+     "knob": 1.0,
+     "length": 7156,
+     "certified": 64,
+     "n_inputs": 64,
+     "length_by_rule": {
+      "extract": 136,
+      "read": 102,
+      "tables": 2823,
+      "token_convex": 4030,
+      "tree": 65
+     }
+    }
+   ],
+   "full_length": 7156,
+   "full_certified": 64,
+   "boxes": 36,
+   "Q": 0.25600205673576487,
+   "Q_exact": 0.25600205673576487,
+   "Q_grid": 0.19270833333333334,
+   "cost_of_finishing": 1.7567076579094467,
+   "shortest_full": 7156,
+   "seconds": 0.3
+  },
+  "cubic": {
+   "length": 12436,
+   "certified": 64,
+   "Q": 0.0023853084086233474,
+   "Q_exact": 0.0023853084086233474,
+   "Q_grid": 0.0,
+   "cost_of_finishing": 1.0108555805725314,
+   "shortest_full": 12436
+  }
+ },
+ "attn_max4_tiny-v4d4-s0": {
+  "model": "tests/attn_max4_tiny",
+  "setting": "v4d4",
+  "n_inputs": 256,
+  "E": 112,
+  "B": 74523,
+  "real_correct": 256,
+  "brute_force": {
+   "legacy_length": 74523,
+   "legacy_by_rule": {
+    "extract": 112,
+    "read": 598,
+    "single": 73472,
+    "tree": 341
+   },
+   "certified": 256,
+   "single_per_input": 287.0,
+   "open_lane_length": 73584
+  },
+  "peeling": {
+   "points": [
+    {
+     "knob": 0.05,
+     "length": 1824,
+     "certified": 64,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1235,
+      "token_convex": 372,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.1,
+     "length": 1824,
+     "certified": 64,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1235,
+      "token_convex": 372,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.2,
+     "length": 1824,
+     "certified": 64,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1235,
+      "token_convex": 372,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.35,
+     "length": 2387,
+     "certified": 91,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1474,
+      "token_convex": 696,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.5,
+     "length": 3938,
+     "certified": 139,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1919,
+      "token_convex": 1802,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.75,
+     "length": 5326,
+     "certified": 193,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1973,
+      "token_convex": 3136,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 1.0,
+     "length": 7288,
+     "certified": 256,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1991,
+      "token_convex": 5080,
+      "tree": 41
+     }
+    }
+   ],
+   "full_length": 7288,
+   "full_certified": 256,
+   "boxes": 22,
+   "Q": 0.45697041745117506,
+   "Q_exact": 0.45697041745117506,
+   "Q_grid": 0.4214409722222222,
+   "cost_of_finishing": 10.225439077936334,
+   "shortest_full": 7288,
+   "seconds": 0.2
+  },
+  "cubic": {
+   "length": 5486,
+   "certified": 256,
+   "Q": 0.4013480361514446,
+   "Q_exact": 0.4013480361514446,
+   "Q_grid": 0.3333333333333333,
+   "cost_of_finishing": 13.584214363835217,
+   "shortest_full": 5486
+  }
+ },
+ "attn_min4_tiny-v4d4-s0": {
+  "model": "tests/attn_min4_tiny",
+  "setting": "v4d4",
+  "n_inputs": 256,
+  "E": 112,
+  "B": 74523,
+  "real_correct": 256,
+  "brute_force": {
+   "legacy_length": 74523,
+   "legacy_by_rule": {
+    "extract": 112,
+    "read": 598,
+    "single": 73472,
+    "tree": 341
+   },
+   "certified": 256,
+   "single_per_input": 287.0,
+   "open_lane_length": 73584
+  },
+  "peeling": {
+   "points": [
+    {
+     "knob": 0.05,
+     "length": 1824,
+     "certified": 64,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1235,
+      "token_convex": 372,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.1,
+     "length": 1824,
+     "certified": 64,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1235,
+      "token_convex": 372,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.2,
+     "length": 1824,
+     "certified": 64,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1235,
+      "token_convex": 372,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.35,
+     "length": 2387,
+     "certified": 91,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1474,
+      "token_convex": 696,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.5,
+     "length": 3816,
+     "certified": 139,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 1931,
+      "token_convex": 1668,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 0.75,
+     "length": 5054,
+     "certified": 193,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 2009,
+      "token_convex": 2828,
+      "tree": 41
+     }
+    },
+    {
+     "knob": 1.0,
+     "length": 7596,
+     "certified": 256,
+     "n_inputs": 256,
+     "length_by_rule": {
+      "extract": 112,
+      "read": 64,
+      "tables": 2045,
+      "token_convex": 5334,
+      "tree": 41
+     }
+    }
+   ],
+   "full_length": 7596,
+   "full_certified": 256,
+   "boxes": 22,
+   "Q": 0.45801215044746857,
+   "Q_exact": 0.45801215044746857,
+   "Q_grid": 0.4214409722222222,
+   "cost_of_finishing": 9.8108214849921,
+   "shortest_full": 7596,
+   "seconds": 0.2
+  },
+  "cubic": {
+   "length": 5486,
+   "certified": 256,
+   "Q": 0.4013480361514446,
+   "Q_exact": 0.4013480361514446,
+   "Q_grid": 0.3333333333333333,
+   "cost_of_finishing": 13.584214363835217,
+   "shortest_full": 5486
+  }
+ }
+}

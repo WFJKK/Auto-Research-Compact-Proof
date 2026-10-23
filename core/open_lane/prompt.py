@@ -2,10 +2,11 @@
 the receipts so far, the agent's accepted lemmas from earlier rounds and its latest notes. No rule
 descriptions: the agent is told what a proof is and what it costs, not which argument shapes to use.
 
-Template: core/agent/prompts/open_lane_v1.md. Part 1 is the same every round; part 2 is rebuilt from the
-archive. The Lean sources shown (Spec.lean, Counted.lean, CountedOps.lean, the scored example) are read
-from the Lean project the run config names, so the prompt always matches the service that will check
-the proof.
+Templates: core/agent/prompts/open_lane_v1.md (the pilot's) and open_lane_v2.md (adds the further sources
+and the split instance). Part 1 is the same every round; part 2 is rebuilt from the archive. The Lean
+sources shown (Spec.lean, Counted.lean, CountedOps.lean, the scored example of `open_lane.example`, the
+files of `open_lane.extra_sources`) are read from the Lean project the run config names, so the prompt
+always matches the service that will check the proof.
 """
 
 from __future__ import annotations
@@ -48,6 +49,34 @@ def _read(project: Path, rel: str) -> str:
 
 def lean_block(text: str) -> str:
     return "```lean\n" + text.rstrip() + "\n```"
+
+
+def elide_repeats(text: str, keep_first: int = 2, keep_last: int = 1, least: int = 5) -> str:
+    """Shorten a run of blank-line-separated paragraphs that differ only in their numbers (an instance split
+    into one decided fact per input): the first and last few stay, with a comment saying how many are left
+    out. The example's file itself is unchanged; this is only what the prompt shows."""
+    paras = text.split("\n\n")
+    shape = [re.sub(r"\d+", "#", q.strip()) for q in paras]
+    out, i = [], 0
+    while i < len(paras):
+        j = i
+        while j + 1 < len(paras) and shape[j + 1] == shape[i] and shape[i]:
+            j += 1
+        n = j - i + 1
+        if n >= least:
+            out += paras[i : i + keep_first]
+            out.append(f"-- ... {n - keep_first - keep_last} more of the same form, one per input ...")
+            out += paras[j - keep_last + 1 : j + 1]
+        else:
+            out += paras[i : j + 1]
+        i = j + 1
+    return "\n\n".join(out)
+
+
+def extra_sources_text(project: Path, rels: list[str]) -> str:
+    if not rels:
+        return ""
+    return "\n".join(f"From {rel}:\n{lean_block(_read(project, rel))}" for rel in rels)
 
 
 def protected_interface() -> str:
@@ -94,7 +123,8 @@ def static_values(cfg: dict, folder: ModelFolder, entries: list[dict]) -> dict:
         "SPEC": lean_block(_read(project, "CompactCheck/Spec.lean")),
         "COUNTED": lean_block(_read(project, "CompactCheck/Counted.lean")),
         "COUNTED_OPS": lean_block(_read(project, "CompactCheck/CountedOps.lean")),
-        "EXAMPLE": lean_block(_read(project, "examples/open_lane/max2_tiny_scored/Candidate/Max2TinyScored.lean")),
+        "EXAMPLE": lean_block(elide_repeats(_read(project, ol["example"]))),
+        "EXTRA_SOURCES": extra_sources_text(project, ol["extra_sources"]),
         "TOOLS": tools_text(),
         "BUDGETS": budgets,
         "METRIC": metric_text(cfg, folder, entries) + (

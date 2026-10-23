@@ -12,17 +12,20 @@ there). This document is the pipeline side: how a run uses it.
 With `open_lane.enabled: true` in the run config, an agent round is a session with tools instead of one
 response:
 
-- The prompt (`core/agent/prompts/open_lane_v1.md`, built by `core/open_lane/prompt.py`) gives the
-  specification (Spec.lean), the protected module's interface, the counted language with its prices
-  (Counted.lean, CountedOps.lean), a scored brute-force proof as the worked example, the tools and their
-  budgets, the scoreboard, the receipts so far, the sources of the agent's accepted submissions from earlier
-  rounds, and its latest notes. No rule descriptions.
+- The prompt (`core/agent/prompts/open_lane_v1.md`, or `open_lane_v2.md`, built by `core/open_lane/prompt.py`)
+  gives the specification (Spec.lean), the protected module's interface, the counted language with its prices
+  (Counted.lean, CountedOps.lean), a scored brute-force proof as the worked example (`open_lane.example`), the
+  tools and their budgets, the scoreboard, the receipts so far, the sources of the agent's accepted submissions
+  from earlier rounds, and its latest notes. No rule descriptions. Template v2 adds further Lean sources
+  (`open_lane.extra_sources`) and says how to split an instance proof; a run of facts in the example that
+  differ only in their numbers is shortened to its first two and its last.
 - The tools (`core/open_lane/session.py`): `lean_check` saves a module in the session's workspace and
   compiles it through the service against the protected module of a network and claim;
   `run_python` runs code in the recipe sandbox with the network's weights; `search_library` searches the
-  Lean project's sources and docs and `read_file` reads a stretch of one of them, or of the two examples the
-  prompt shows (never another example: the rest are earlier proofs of the pilot's own networks, and reading
-  one would be copying, not research); `submit_candidate` hands
+  Lean project's sources and docs and `read_file` reads a stretch of one of them, or of the examples the
+  prompt shows (the two brute-force examples and the run's worked example; never another example: the rest
+  are earlier proofs of the pilots' own networks, and reading one would be copying, not research);
+  `submit_candidate` hands
   modules to the acceptance service and returns the receipt. Each call is logged append-only (`tools.jsonl`); the budgets (`compile_calls`,
   `python_calls`, `submissions`) persist in `session.json`, so a session that is started again continues
   them.
@@ -119,6 +122,15 @@ On the machine with the Claude Code login and the Lean project:
    `python -m core.loop resume --run <runs_dir>/open-lane-pilot-tiny`.
 4. Then `config/open-lane-pilot-max2-v64.yaml` (one network), and the baseline condition.
 
+The tiny attention pilots (`config/open-lane-pilot-attn-{max2,min2,max4,min4}-tiny.yaml`, models in
+`tests/attn_*_tiny`) need the Lean project at the commit of `lean-checker.lock` (the general single rule,
+`I.gsingle`) and one more target, `lake build CompactCheck.CountedGeneralSound`. Their worked example is
+the attention brute force, whose instance is proved from one kernel-decided fact per input: one
+`decide +kernel` over all forward passes does not fit in memory (the Lean project's docs/COUNTED.md,
+"Attention networks"). A fact takes about 1.8 s on the two-position networks and 2.3 s on the
+four-position ones, so a checker that falls back to the single rule on all 256 inputs of max4 takes about
+10 minutes to compile; the four-position configs give the session three hours.
+
 The receipts record the isolation the service had: Landlock on Linux, `process (weak)` on a Mac, where
 Docker is not used by the service. The pilot's gate (the ticket): one agent-produced open-lane candidate
 accepted, or the archive recording transparently why none was.
@@ -127,7 +139,8 @@ accepted, or the archive recording transparently why none was.
 
 Length = the bill of the checker on the protected weights + E (one per weight entry) + one per certificate
 number. The counted operations charge what cost-v3 charges the corresponding leaf (`single`: one exact
-forward pass; `interval`: the interval rule on a box). There is no `tree` charge: a scored proof's structure
+forward pass; `interval`: the interval rule on a box; `gsingle`: one forward pass of a network with
+attention, at cost-v3's prices for its operations). There is no `tree` charge: a scored proof's structure
 is its program, bounded by the service's description-size budget instead. So the open lane's brute force on the tiny
 network is 4,112 against B = 4,323 for the proof-file brute force (the difference is the tree and read
 charges), and the two lanes' lengths are comparable but not identical on the same argument.

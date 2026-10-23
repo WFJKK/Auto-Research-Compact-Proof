@@ -2,6 +2,16 @@
 
 A note on reading the open-lane pilot's numbers. Run `open-lane-pilot-tiny-3`, tiny max2 network (8 tokens, 64 inputs, 80 weights), budgets 135, 270, 540, 1,080, 2,161.
 
+## Correction (23 October 2026): round 4 is a real algorithmic gain
+
+This note was written after round 3 and reads every gain as accounting. That holds for rounds 1 to 3 (the Q_grid jump), not for round 4. Its full proof (Full64, length 719) rests on a new sufficient test. With `mx_c` the largest off-diagonal entry of column c of M, `top_c` the column's largest entry and `dm_c = M[c,c] - mx_c` its diagonal margin, the pair (a, m) with a < m is certified by
+
+    top_a - M[m,a] < dm_m
+
+Sound for every weight (proved in the agent's general layer): for each wrong output j, the margin (M[m,a] - M[j,a]) + (M[m,m] - M[j,m]) is at least (M[m,a] - top_a) + dm_m. It decouples the two columns, so once each column's summaries are known a pair costs 2 operations instead of a comparison against every wrong output; pairs it cannot certify fall back to a refined test (6 operations) or the exact one (16).
+
+The matched comparison is the same cubic method written as a counted checker (1,152), not the proof file (1,227): Full64 is 38% shorter (Q 0.510 against 0.332 matched and 0.347 for the proof file; cost of finishing 6.01 against 3.75 and 3.52). Offline estimates put the gain at 2.4 to 2.7 times at v64 and 3.3 to 3.6 times at v128 against the matched method: it grows with the vocabulary, but it is not shown to lower the exponent. Whether the frozen method transfers is what the frozen-transfer evaluation tests.
+
 ## The numbers
 
 | proof | 135 | 270 | 540 | 1080 | 2161 | Q_grid | full proof |

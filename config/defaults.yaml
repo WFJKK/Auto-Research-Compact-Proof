@@ -120,3 +120,9 @@ open_lane:
   worker_seconds: 7200      # the session's wall clock
   stall_rounds: 3           # rounds without an accepted submission before the prompt asks for a change of approach
   fake_scripts: []          # the fake backend's scripted sessions, in order (files or folders of *.json)
+  # The worked example in the prompt and any further Lean sources it shows, as paths in the Lean project.
+  # Networks beyond linear maps (attention) need the general single rule's sources and its example:
+  #   example: examples/open_lane/attn_max2_tiny_scored/Candidate/AttnTinyScored.lean
+  #   extra_sources: [CompactCheck/CountedGeneral.lean, CompactCheck/CountedGeneralSound.lean]
+  example: examples/open_lane/max2_tiny_scored/Candidate/Max2TinyScored.lean
+  extra_sources: []

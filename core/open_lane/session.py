@@ -34,7 +34,7 @@ import re
 import subprocess
 import sys
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from ..runner import Limits, run_recipe
 from ..sandbox import Sandbox
@@ -72,6 +72,26 @@ class ToolError(ValueError):
     """A tool refused the call: the message goes back to the agent."""
 
 
+# What read_file may read: the sources, the docs, the allowlist, and the examples the prompt shows (the
+# verified and the scored brute force, and the run's worked example, open_lane.example) and nothing else under
+# examples/: the other examples are earlier proofs of the pilots' own networks (the agent's pilot proofs, a
+# hand port, review fixtures), and a pilot that could read them would show copying, not research.
+READABLE = ("CompactCheck/", "docs/", "examples/open_lane/max2_tiny_brute/", "examples/open_lane/max2_tiny_scored/",
+            "accept/", "README.md", "lean-toolchain", "lakefile.toml")
+
+
+def readable_paths(example: str | None) -> list[str]:
+    """READABLE and the folder of the run's worked example (a candidate folder: the parent of Candidate/)."""
+    out = list(READABLE)
+    if example:
+        p = PurePosixPath(example)
+        folder = p.parent.parent if p.parent.name == "Candidate" else p.parent
+        prefix = str(folder) + "/"
+        if prefix.startswith("examples/") and ".." not in folder.parts and not prefix.startswith(tuple(out)):
+            out.append(prefix)
+    return out
+
+
 class Session:
     def __init__(self, path: Path):
         self.path = Path(path)
@@ -106,6 +126,7 @@ class Session:
                        "max_proof_mb": cfg["max_proof_mb"], "threads_per_recipe": cfg["threads_per_recipe"]},
             "sandbox": cfg["sandbox"],
             "sandbox_dir": cfg["sandbox_dir"],
+            "readable": readable_paths(ol.get("example")),
             "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         }
         tmp = path / "session.json.tmp"
@@ -227,21 +248,18 @@ class Session:
             self._log("run_python", args, {"error": str(exc)}, time.monotonic() - t0)
             raise
 
-    # the examples the prompt already shows (the verified and the scored brute force) and nothing else under
-    # examples/: the other examples are earlier proofs of the pilot's own networks (the agent's pilot proof,
-    # its hand port, review fixtures), and a pilot that could read them would show copying, not research
-    READABLE = ("CompactCheck/", "docs/", "examples/open_lane/max2_tiny_brute/", "examples/open_lane/max2_tiny_scored/",
-                "accept/", "README.md", "lean-toolchain", "lakefile.toml")
+    READABLE = READABLE
     MAX_READ_LINES = 400
 
     def read_file(self, path: str, start: int = 1, lines: int = 200) -> dict:
-        """A file of the Lean project (its sources, docs, the two examples of the prompt and the allowlist),
+        """A file of the Lean project (its sources, docs, the examples of the prompt and the allowlist),
         by line range."""
         t0 = time.monotonic()
         args = {"path": path, "start": start, "lines": lines}
+        readable = tuple(self.state.get("readable") or self.READABLE)
         try:
-            if not isinstance(path, str) or ".." in path or path.startswith("/") or not path.startswith(self.READABLE):
-                raise ToolError(f"path must be inside the Lean project's {', '.join(self.READABLE)}")
+            if not isinstance(path, str) or ".." in path or path.startswith("/") or not path.startswith(readable):
+                raise ToolError(f"path must be inside the Lean project's {', '.join(readable)}")
             p = self.lean_project / path
             if p.is_symlink() or not p.is_file():
                 raise ToolError(f"no file {path} in the Lean project")
@@ -385,9 +403,9 @@ class Session:
         },
         "read_file": {
             "description": "Read lines of a file of the Lean project: its sources (CompactCheck/<Name>.lean), docs "
-                           "(docs/COUNTED.md, docs/OPEN_LANE.md), the two examples of your prompt "
-                           "(examples/open_lane/max2_tiny_brute/..., examples/open_lane/max2_tiny_scored/...) and the "
-                           "allowlist (accept/allowlist.txt); no other example. Returns up to 400 numbered lines from `start`.",
+                           "(docs/COUNTED.md, docs/OPEN_LANE.md), the examples of your prompt (the worked example's "
+                           "folder, and examples/open_lane/max2_tiny_brute/..., examples/open_lane/max2_tiny_scored/...) and "
+                           "the allowlist (accept/allowlist.txt); no other example. Returns up to 400 numbered lines from `start`.",
             "schema": {"type": "object", "properties": {"path": {"type": "string"}, "start": {"type": "integer"},
                                                         "lines": {"type": "integer"}},
                        "required": ["path"]},
