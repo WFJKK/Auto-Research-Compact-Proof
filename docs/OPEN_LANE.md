@@ -124,7 +124,13 @@ On the machine with the Claude Code login and the Lean project:
 
 The tiny attention pilots (`config/open-lane-pilot-attn-{max2,min2,max4,min4}-tiny.yaml`, models in
 `tests/attn_*_tiny`) need the Lean project at the commit of `lean-checker.lock` (the general single rule,
-`I.gsingle`) and one more target, `lake build CompactCheck.CountedGeneralSound`. Their worked example is
+`I.gsingle`) and one more target, `lake build CompactCheck.CountedGeneralSound`. Each comes in two
+experimental conditions that differ only in `open_lane.knowledge`: the configs above are the
+minimal-knowledge condition (the base counted language), and the `-maximum` configs add the legacy lane's
+rules for groups of inputs on attention networks as operations (so far the interval rule, `I.ginterval`).
+The service checks a checker against the condition's allowlist, records the condition in every receipt and
+in its policy digest, and a run checks every receipt against the identity it recorded, so one frontier never
+mixes the conditions; the prompt tells the agent which condition it is in. Their worked example is
 the attention brute force, whose instance is proved from one kernel-decided fact per input: one
 `decide +kernel` over all forward passes does not fit in memory (the Lean project's docs/COUNTED.md,
 "Attention networks"). A fact takes about 1.8 s on the two-position networks and 2.3 s on the

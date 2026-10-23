@@ -91,6 +91,7 @@ definitions it uses (every node counted, a numeral 1 per bit, a string
 8 per byte) is at most 8192 + 4E, so a copy of the weights cannot fit a
 real network; and the general layer must replay in the kernel within
 120 s. A proof refused scoring stays verified.
+{KNOWLEDGE}
 
 A worked example, a scored brute-force proof (the baseline you should
 beat):

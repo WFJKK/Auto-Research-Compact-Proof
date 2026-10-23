@@ -298,14 +298,14 @@ LEAN_LOCK = REPO_ROOT / "lean-checker.lock"
 LEAN_IDENTITY_KEYS = ("commit", "toolchain", "lean_project", "policy", "acceptcheck")
 
 
-def lean_identity(project: Path) -> dict:
+def lean_identity(project: Path, knowledge: str = "minimal") -> dict:
     """What the Lean service is, as it reports itself (`accept.py identity`): the project's commit, the
     digests every receipt carries (toolchain, trusted sources, policy with its environment hooks) and the
     acceptcheck binary. A run records it when it starts and checks it when it resumes and on every
     receipt, so one frontier never mixes two services."""
     import subprocess
 
-    cmd = [sys.executable, "-B", str(project / "scripts" / "accept.py"), "identity"]
+    cmd = [sys.executable, "-B", str(project / "scripts" / "accept.py"), "identity", "--knowledge", knowledge]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
     except (OSError, subprocess.TimeoutExpired) as exc:
@@ -349,7 +349,7 @@ def check_lean_checker(cfg: dict, started: dict, run_id: str) -> None:
             f"lean-checker.lock moved since run {run_id} started ({recorded.get('commit', '')[:12]} to {lock['commit'][:12]}); "
             "a run keeps the checker it started with, so this pipeline version cannot resume it: start a new run"
         )
-    bad = lean_checker_changed(recorded, lean_identity(project))
+    bad = lean_checker_changed(recorded, lean_identity(project, knowledge=cfg["open_lane"]["knowledge"]))
     if bad:
         raise LoopError(
             f"the Lean checker's {', '.join(bad)} changed since run {run_id} started; its receipts would mean "
@@ -387,7 +387,7 @@ def start(config_path: str | Path, log=print, run_id: str | None = None) -> Cont
     config_sha = (run.path / "config.sha256").read_text().strip()
     versions = collect(folder, cfg, config_sha)
     if cfg.get("open_lane", {}).get("enabled"):
-        versions["lean_checker"] = lean_identity(resolve(cfg["open_lane"]["lean_project"]))
+        versions["lean_checker"] = lean_identity(resolve(cfg["open_lane"]["lean_project"]), knowledge=cfg["open_lane"]["knowledge"])
     write_json(run.path / "versions.json", {**versions, "git": git_state(), "created": now()})
     log(f"run {cfg['run_id']} at {run.path}")
     return open_context(run, run.config(), log)

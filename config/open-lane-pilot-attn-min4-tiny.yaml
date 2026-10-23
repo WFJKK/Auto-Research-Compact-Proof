@@ -24,6 +24,7 @@ open_lane:
   lean_project: ~/Desktop/VerifiedMechanisms/LeanFormalisations/CompactCheck
   example: examples/open_lane/attn_max2_tiny_scored/Candidate/AttnTinyScored.lean
   extra_sources: [CompactCheck/CountedGeneral.lean, CompactCheck/CountedGeneralSound.lean]
+  knowledge: minimal
   compile_calls: 40
   python_calls: 30
   submissions: 3

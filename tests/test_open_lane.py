@@ -170,7 +170,7 @@ def test_a_fake_session_submits_the_scored_example_and_the_receipt_becomes_a_rec
 
     real_identity, real_lock = loop.lean_identity, loop.LEAN_LOCK
     try:
-        loop.lean_identity = lambda project: {**ident, "policy": "0000000000000000"}
+        loop.lean_identity = lambda project, **kw: {**ident, "policy": "0000000000000000"}
         with _pytest.raises(loop.LoopError, match="policy"):
             loop.resume(ctx.run.path, log=lines.append)
         loop.lean_identity = real_identity
@@ -443,3 +443,33 @@ def test_the_open_lane_prompt_builds_for_every_metric(tmp_path, metric):
     assert (" mean " in p.part2.split("Raise the score", 1)[1]) == (metric == "Q_exact")
     assert "-- general" in p.part1 and "{" + "EXTRA_SOURCES}" not in p.part1
 
+
+
+def test_the_knowledge_condition_reaches_every_service_call_and_the_prompt(tmp_path):
+    """open_lane.knowledge chooses the experimental condition (minimal: the base counted language; maximum: plus
+    the legacy lane's rules for groups of inputs as operations). The session passes it to every call of the
+    service, which checks a checker against that condition's allowlist; the prompt says which condition the
+    run is; the config refuses anything else."""
+    from core.open_lane.prompt import static_values
+    from core.model_folder import load_model_folder
+    from core.run_config import RunConfigError
+
+    files = {"scripts/accept.py": "import json, sys\nprint(json.dumps({'ok': True, 'messages': ' '.join(sys.argv[1:])}))\n",
+             "CompactCheck/Spec.lean": "-- spec", "CompactCheck/Counted.lean": "-- counted", "CompactCheck/CountedOps.lean": "-- ops",
+             "examples/open_lane/max2_tiny_scored/Candidate/Max2TinyScored.lean": "-- example"}
+    project = fake_project(tmp_path, files)
+    folder = load_model_folder(REPO_ROOT / "tests" / "max2_tiny")
+    entries = [{"id": "max2_tiny-v8-s0", "setting": "v8", "n_inputs": 64, "E": 80, "B": 4323, "real_correct": 64}]
+    for knowledge in ("minimal", "maximum"):
+        cfg = merge(base_config(tmp_path, [], prompt_template="open_lane_v2"))
+        cfg["open_lane"].update(lean_project=str(project), knowledge=knowledge)
+        session = Session.create(tmp_path / knowledge / "open_lane", cfg, "tests/max2_tiny",
+                                 [{"id": "max2_tiny-v8-s0", "setting": "v8", "n_inputs": 64}], tmp_path / "run")
+        out = session.lean_check("Candidate/X.lean", "-- x", "max2_tiny-v8-s0", 64)
+        assert f"--knowledge {knowledge}" in out["messages"], out
+        text = static_values(cfg, folder, entries)["KNOWLEDGE"]
+        assert f"{knowledge}-knowledge condition" in text and "ginterval" in text
+    cfg = base_config(tmp_path, [])
+    cfg["open_lane"].update(lean_project=str(project), knowledge="everything")
+    with pytest.raises(RunConfigError, match="knowledge must be one of"):
+        merge(cfg)

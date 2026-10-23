@@ -126,3 +126,8 @@ open_lane:
   #   extra_sources: [CompactCheck/CountedGeneral.lean, CompactCheck/CountedGeneralSound.lean]
   example: examples/open_lane/max2_tiny_scored/Candidate/Max2TinyScored.lean
   extra_sources: []
+  # The knowledge condition (the Lean project's docs/COUNTED.md, "Knowledge conditions"): minimal is the base
+  # counted language; maximum adds the legacy lane's rules for groups of inputs on networks beyond linear maps
+  # as operations (the interval rule, I.ginterval, so far). The service checks a checker against the
+  # condition's allowlist and records the condition in every receipt and in its policy digest.
+  knowledge: minimal

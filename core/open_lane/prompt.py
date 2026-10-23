@@ -73,6 +73,26 @@ def elide_repeats(text: str, keep_first: int = 2, keep_last: int = 1, least: int
     return "\n\n".join(out)
 
 
+KNOWLEDGE_TEXT = {
+    "minimal": (
+        "This run is the minimal-knowledge condition: a checker may use every field of Interp except ginterval, "
+        "which belongs to another experimental condition (a checker that reaches it, by name or otherwise, is "
+        "refused scoring)."
+    ),
+    "maximum": (
+        "This run is the maximum-knowledge condition: a checker may use every field of Interp, including "
+        "ginterval, the legacy lane's interval rule for networks beyond linear maps, supplied as an operation. "
+        "I.ginterval graph task box bounds the network over a box of inputs (per position, the tokens lo..hi) "
+        "with interval arithmetic and answers true when the label, constant on the box, has a lower bound above "
+        "every other output's upper bound; a box whose label is not constant answers false and costs nothing. "
+        "It charges what cost-v3 charges an interval leaf: the lookup from the box, per position d for one token "
+        "and 2 d (hi - lo + 1) otherwise (d the matrix's columns); every other operation twice the single rule's "
+        "price; the final comparison. CostM.ginterval_correct: a true answer means every input of the box is "
+        "answered correctly; CostM.ginterval_run_of splits an instance as gsingle_run_of does."
+    ),
+}
+
+
 def extra_sources_text(project: Path, rels: list[str]) -> str:
     if not rels:
         return ""
@@ -125,6 +145,7 @@ def static_values(cfg: dict, folder: ModelFolder, entries: list[dict]) -> dict:
         "COUNTED_OPS": lean_block(_read(project, "CompactCheck/CountedOps.lean")),
         "EXAMPLE": lean_block(elide_repeats(_read(project, ol["example"]))),
         "EXTRA_SOURCES": extra_sources_text(project, ol["extra_sources"]),
+        "KNOWLEDGE": KNOWLEDGE_TEXT[ol.get("knowledge", "minimal")],
         "TOOLS": tools_text(),
         "BUDGETS": budgets,
         "METRIC": metric_text(cfg, folder, entries) + (

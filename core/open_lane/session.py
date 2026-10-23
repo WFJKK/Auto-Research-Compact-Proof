@@ -127,6 +127,7 @@ class Session:
             "sandbox": cfg["sandbox"],
             "sandbox_dir": cfg["sandbox_dir"],
             "readable": readable_paths(ol.get("example")),
+            "knowledge": ol.get("knowledge", "minimal"),
             "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         }
         tmp = path / "session.json.tmp"
@@ -162,7 +163,8 @@ class Session:
     # the service, called as a program: the pipeline is a client of it, never a second service ---------
     def _service(self, args: list[str], timeout_s: float) -> dict:
         cmd = [sys.executable, "-B", str(self.lean_project / "scripts" / "accept.py")] + args + \
-              ["--repo", self.state["repo"], "--work", self.state["work_dir"], "--mode", "hardened"]
+              ["--repo", self.state["repo"], "--work", self.state["work_dir"], "--mode", "hardened",
+               "--knowledge", self.state.get("knowledge", "minimal")]
         env = {k: v for k, v in os.environ.items() if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
         try:
             r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout_s, env=env)

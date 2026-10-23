@@ -158,7 +158,8 @@ def validate(cfg: dict, source: str = "run config") -> None:
 
 
 OPEN_LANE_KEYS = {"enabled", "lean_project", "work_dir", "python", "compile_calls", "python_calls", "submissions", "max_turns",
-                  "worker_seconds", "stall_rounds", "fake_scripts", "example", "extra_sources"}
+                  "worker_seconds", "stall_rounds", "fake_scripts", "example", "extra_sources", "knowledge"}
+KNOWLEDGE_CONDITIONS = ("minimal", "maximum")
 
 
 def open_lane_errors(cfg: dict) -> list[str]:
@@ -183,6 +184,8 @@ def open_lane_errors(cfg: dict) -> list[str]:
         errors.append("open_lane.example must be a path in the Lean project")
     if not isinstance(ol.get("extra_sources"), list) or not all(isinstance(p, str) for p in ol["extra_sources"]):
         errors.append("open_lane.extra_sources must be a list of paths in the Lean project")
+    if ol.get("knowledge") not in KNOWLEDGE_CONDITIONS:
+        errors.append(f"open_lane.knowledge must be one of {', '.join(KNOWLEDGE_CONDITIONS)}")
     errors = [f"open_lane: {e}" if not e.startswith("open_lane") else e for e in errors]
     if ol.get("enabled") is True and not errors:
         project = ol.get("lean_project")
