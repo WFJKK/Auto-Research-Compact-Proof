@@ -1,7 +1,9 @@
 # The maximum-knowledge condition of open-lane-pilot-attn-min4-tiny.yaml: the same run with the legacy lane's
-# interval rule for attention networks as an operation (I.ginterval). Everything else is identical, so the
-# two runs differ only in what the agent is given. Edit open_lane.lean_project as there and build the same
-# targets: lake build CompactCheck.Soundness CompactCheck.CountedOps CompactCheck.CountedGeneralSound compactcheck acceptcheck
+# rules for groups of inputs on attention networks as operations (I.ginterval and I.gtokenIntervals). The worked
+# example is a demonstration of gtokenIntervals on three boxes of the max4 network of the same architecture, not
+# a proof of this run's network (docs/OPEN_LANE.md). Everything else is identical, so the two runs differ only in
+# what the agent is given. Edit open_lane.lean_project as there and build the same targets:
+# lake build CompactCheck.Soundness CompactCheck.CountedOps CompactCheck.CountedGeneralSound compactcheck acceptcheck
 run_id: open-lane-pilot-attn-min4-tiny-maximum
 model: tests/attn_min4_tiny
 backend: claude_code
@@ -21,7 +23,7 @@ sandbox: auto   # hardened once Docker or Landlock is available; the receipts re
 open_lane:
   enabled: true
   lean_project: ~/Desktop/VerifiedMechanisms/LeanFormalisations/CompactCheck
-  example: examples/open_lane/attn_max2_tiny_scored/Candidate/AttnTinyScored.lean
+  example: examples/open_lane/attn_max4_tiny_tokens_demo/Candidate/AttnMax4TokensDemo.lean
   extra_sources: [CompactCheck/CountedGeneral.lean, CompactCheck/CountedGeneralSound.lean]
   knowledge: maximum
   compile_calls: 40

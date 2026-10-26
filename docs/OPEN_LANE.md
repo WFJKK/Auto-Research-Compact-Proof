@@ -135,7 +135,11 @@ The tiny attention pilots (`config/open-lane-pilot-attn-{max2,min2,max4,min4}-ti
 `I.gsingle`) and one more target, `lake build CompactCheck.CountedGeneralSound`. Each comes in two
 experimental conditions that differ only in `open_lane.knowledge`: the configs above are the
 minimal-knowledge condition (the base counted language), and the `-maximum` configs add the legacy lane's
-rules for groups of inputs on attention networks as operations (so far the interval rule, `I.ginterval`).
+rules for groups of inputs on attention networks as operations (the interval rule `I.ginterval` and the
+token_interval rule `I.gtokenIntervals`, a list of boxes per call). A maximum run's worked example is a
+demonstration of `gtokenIntervals` on three boxes of the other task's network of the same architecture
+(`examples/open_lane/attn_*_tiny_tokens_demo` in the Lean project): a complete proof of the run's own
+network would be a proof handed over, and under Q_above resubmitting it would score.
 The service checks a checker against the condition's allowlist, records the condition in every receipt and
 in its policy digest, and a run checks every receipt against the identity it recorded, so one frontier never
 mixes the conditions; the prompt tells the agent which condition it is in. Their worked example is
@@ -154,6 +158,8 @@ to 7 rounds.
 The receipts record the isolation the service had: Landlock on Linux, `process (weak)` on a Mac, where
 Docker is not used by the service. The pilot's gate (the ticket): one agent-produced open-lane candidate
 accepted, or the archive recording transparently why none was.
+
+For runs that must survive a laptop going offline, docs/SERVER.md sets up a small Linux server.
 
 ## What a scored proof costs
 

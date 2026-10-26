@@ -80,11 +80,9 @@ READABLE = ("CompactCheck/", "docs/", "examples/open_lane/max2_tiny_brute/", "ex
             "accept/", "README.md", "lean-toolchain", "lakefile.toml")
 
 
-def readable_paths(example: str | None, knowledge: str = "minimal") -> list[str]:
-    """READABLE, the folder of the run's worked example (a candidate folder: the parent of Candidate/), and what
-    the knowledge condition adds (prompt.KNOWLEDGE_READABLE)."""
-    from .prompt import KNOWLEDGE_READABLE
-    out = list(READABLE) + [p for p in KNOWLEDGE_READABLE.get(knowledge, []) if p not in READABLE]
+def readable_paths(example: str | None) -> list[str]:
+    """READABLE and the folder of the run's worked example (a candidate folder: the parent of Candidate/)."""
+    out = list(READABLE)
     if example:
         p = PurePosixPath(example)
         folder = p.parent.parent if p.parent.name == "Candidate" else p.parent
@@ -128,7 +126,7 @@ class Session:
                        "max_proof_mb": cfg["max_proof_mb"], "threads_per_recipe": cfg["threads_per_recipe"]},
             "sandbox": cfg["sandbox"],
             "sandbox_dir": cfg["sandbox_dir"],
-            "readable": readable_paths(ol.get("example"), ol.get("knowledge", "minimal")),
+            "readable": readable_paths(ol.get("example")),
             "knowledge": ol.get("knowledge", "minimal"),
             "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         }

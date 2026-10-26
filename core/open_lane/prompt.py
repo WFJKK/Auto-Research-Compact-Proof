@@ -101,14 +101,11 @@ KNOWLEDGE_TEXT = {
         "true when no two boxes share an input (pairwiseApart) and each lies in the space (fits). An instance "
         "splits into one decided fact per box (TokenLeafFacts, CostM.gtokenIntervals_run_of_facts); a box's "
         "fact is what `#eval (dweights weights).bind fun dw => gtokenLeaf graph dw task box` prints in a "
-        "lean_check module. Worked example: "
-        "examples/open_lane/attn_max2_tiny_tokens (TokensCost.lean has the operation and its price); state the "
-        "checker's run for any environment, as its D_run does, or the kernel may evaluate every box at once."
+        "lean_check module. The worked example below calls it on three boxes of another network of the same "
+        "architecture (TokensCost.lean has the operation and its price); state the checker's run for any "
+        "environment, as the example's D_run does, or the kernel may evaluate every box at once."
     ),
 }
-
-#: Read access beyond READABLE that a condition brings: the maximum condition's worked example of its operations.
-KNOWLEDGE_READABLE = {"minimal": [], "maximum": ["examples/open_lane/attn_max2_tiny_tokens/"]}
 
 
 def extra_sources_text(project: Path, rels: list[str]) -> str:

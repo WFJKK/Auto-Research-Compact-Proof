@@ -526,8 +526,6 @@ def test_the_knowledge_condition_reaches_every_service_call_and_the_prompt(tmp_p
         assert f"--knowledge {knowledge}" in out["messages"], out
         text = static_values(cfg, folder, entries)["KNOWLEDGE"]
         assert f"{knowledge}-knowledge condition" in text and "ginterval" in text and "gtokenIntervals" in text
-        tokens_example = "examples/open_lane/attn_max2_tiny_tokens/"
-        assert (tokens_example in session.state["readable"]) == (knowledge == "maximum")
     cfg = base_config(tmp_path, [])
     cfg["open_lane"].update(lean_project=str(project), knowledge="everything")
     with pytest.raises(RunConfigError, match="knowledge must be one of"):
