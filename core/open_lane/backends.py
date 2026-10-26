@@ -27,7 +27,7 @@ from pathlib import Path
 
 from ..agent.backends import BackendError, Response
 from ..agent.backends.api import StopRun
-from ..agent.backends.claude_code import ClaudeCodeBackend, _join, _parse_output
+from ..agent.backends.claude_code import ClaudeCodeBackend, _join, _parse_output, model_events, models_used, refused, swapped
 from ..util import REPO_ROOT
 from .session import Session, ToolError
 
@@ -88,6 +88,7 @@ class ClaudeCodeToolBackend(_Bound, ClaudeCodeBackend):
         failures = []
         tries = int(self.retries["tries"])
         timeout = float(self.cfg["open_lane"]["worker_seconds"])
+        events, declined = [], None
         for attempt in range(tries):
             with tempfile.TemporaryDirectory(prefix="cpl-claude-code-") as cwd:
                 try:
@@ -101,7 +102,16 @@ class ClaudeCodeToolBackend(_Bound, ClaudeCodeBackend):
             if r is not None:
                 out = (r.stdout or "").strip()
                 data, messages = _parse_output(out)
+                events = model_events(out)
+                swap = swapped(events, data, self.cfg["agent_model"])
+                if swap:
+                    raise StopRun(f"{swap}; the run stops rather than record another model's work as {self.cfg['agent_model']}'s")
                 text = _join(messages) if messages else (data or {}).get("result")
+                declined = refused(events)
+                if declined is not None:  # what the session submitted before it stands; the loop counts refusals
+                    data, text = data if isinstance(data, dict) else {}, _join(messages) if messages else ""
+                    self.log(f"  Claude Code: the model declined to go on ({declined or 'no category given'})")
+                    break
                 if r.returncode == 0 and isinstance(data, dict) and not data.get("is_error") and text is not None:
                     break
                 message = ""
@@ -135,7 +145,12 @@ class ClaudeCodeToolBackend(_Bound, ClaudeCodeBackend):
             "backend": self.name,
             "source": data.get("session_id"),
             "model": self.cfg["agent_model"],
-            "stop_reason": last_stop or data.get("stop_reason") or ("end_turn" if not data.get("is_error") else "error"),
+            "stop_reason": "refusal" if declined is not None else
+                           (last_stop or data.get("stop_reason") or ("end_turn" if not data.get("is_error") else "error")),
+            "stop_details": {"category": declined} if declined is not None else None,
+            "models_used": models_used(data),
+            "safety_stops": data.get("safety_stops"),
+            "model_events": events,
             "input_tokens": int(usage.get("input_tokens") or 0),
             "output_tokens": int(usage.get("output_tokens") or 0),
             "cache_creation_input_tokens": int(usage.get("cache_creation_input_tokens") or 0),

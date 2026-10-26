@@ -530,3 +530,33 @@ def test_the_knowledge_condition_reaches_every_service_call_and_the_prompt(tmp_p
     cfg["open_lane"].update(lean_project=str(project), knowledge="everything")
     with pytest.raises(RunConfigError, match="knowledge must be one of"):
         merge(cfg)
+
+
+def test_the_tool_backend_never_records_another_models_session(tmp_path):
+    """No Lean, no model: a fake CLI whose session was answered by another model must stop the run."""
+    from core.agent.backends.api import StopRun
+    from core.agent.build_prompt import Prompt
+    from core.open_lane.backends import ClaudeCodeToolBackend
+
+    cfg = merge(base_config(tmp_path, [], backend="claude_code", agent_model="m"))
+    where = tmp_path / "runs" / "r" / "round_001" / "attempt_0"
+    where.mkdir(parents=True)
+    seen = []
+
+    def cli(cmd, prompt_text, env, cwd, timeout_s):
+        seen.append(env)
+        events = [{"type": "system", "subtype": "model_fallback", "original_model": "m", "fallback_model": "other"},
+                  {"type": "assistant", "session_id": "s",
+                   "message": {"role": "assistant", "content": [{"type": "text", "text": "x"}], "stop_reason": "end_turn"}},
+                  {"type": "result", "subtype": "success", "is_error": False, "result": "x", "session_id": "s", "usage": {}}]
+
+        class Done:
+            stdout, stderr, returncode = "\n".join(json.dumps(e) for e in events) + "\n", "", 0
+
+        return Done()
+
+    b = ClaudeCodeToolBackend(cfg, log=lambda *a: None, runner=cli, sleep=lambda s: None, environ={"PATH": "/usr/bin"})
+    b.bind(cfg, "max2_tiny", [{"id": "max2_tiny-v8-s0", "setting": "v8", "n_inputs": 64}], where.parent.parent)
+    with pytest.raises(StopRun, match="other instead of m"):
+        b.respond(Prompt("one", "two", {}), 0, where=where)
+    assert seen[0]["CLAUDE_CODE_NO_MODEL_FALLBACK"] == "1"

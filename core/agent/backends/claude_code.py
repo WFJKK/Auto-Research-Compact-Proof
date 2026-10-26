@@ -19,7 +19,12 @@ concatenated exactly), and the result event gives the tokens used. The CLI's own
 cost_usd stays 0 because nothing is billed per call.
 
 The CLI's environment has ANTHROPIC_API_KEY and the pipeline's key variable
-removed, so it cannot fall back to billing an API key. Usage-limit and
+removed, so it cannot fall back to billing an API key, and has
+CLAUDE_CODE_NO_MODEL_FALLBACK set, so it cannot answer with another model when
+the requested one declines. An answer that still shows another model (a swap
+event, or another model's output in modelUsage) stops the run; a refusal is
+recorded as one (stop_reason refusal), and the loop counts refusals. Each
+round's meta records the output tokens of every model that answered. Usage-limit and
 overload errors are retried with growing waits (a subscription's window can
 take a while to reset); a login problem stops the run, which `resume`
 continues later.
@@ -48,6 +53,12 @@ SYSTEM_PROMPT = (
     "completely, in exactly the format it asks for, and nothing else."
 )
 KEY_VARIABLES = ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")
+# Unless this is set, the CLI answers with another model when the requested one declines (its "refusal
+# fallback") or is unavailable, and says so only in its events and the result's modelUsage: the records
+# would credit the run's model with another model's work. A run checks every answer for a swap anyway.
+NO_MODEL_FALLBACK = {"CLAUDE_CODE_NO_MODEL_FALLBACK": "1"}
+SWAP_EVENTS = ("model_fallback", "model_refusal_fallback", "model_consent_fallback")
+REFUSAL_EVENT = "model_refusal_no_fallback"
 LIMIT_WORDS = ("usage limit", "rate limit", "rate_limit", "overloaded", "too many requests", "capacity", "529", "429")
 LOGIN_WORDS = ("not logged in", "login", "authenticat", "unauthorized", "invalid api key", "401", "403")
 STDERR_TAIL = 2000
@@ -85,6 +96,56 @@ def _parse_output(out: str) -> tuple[dict | None, list[dict]]:
         elif ev.get("type") == "result":
             result = ev
     return result, messages
+
+
+def model_events(out: str) -> list[dict]:
+    """The CLI's events about the model itself, in order: a swap to another model, or a refusal."""
+    events = []
+    for line in out.splitlines():
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            ev = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(ev, dict):
+            continue
+        if ev.get("type") == "system" and ev.get("subtype") in (*SWAP_EVENTS, REFUSAL_EVENT):
+            keep = ("subtype", "original_model", "fallback_model", "api_refusal_category", "api_refusal_explanation", "scope")
+            events.append({k: ev[k] for k in keep if k in ev})
+        elif ev.get("type") == "assistant" and isinstance(ev.get("message"), dict) and ev["message"].get("stop_reason") == "refusal":
+            events.append({"subtype": "refusal"})
+    return events
+
+
+def models_used(data) -> dict:
+    """Output tokens per model, from the result's modelUsage (empty when the CLI gave none)."""
+    usage = data.get("modelUsage") if isinstance(data, dict) else None
+    if not isinstance(usage, dict):
+        return {}
+    return {m: int((u or {}).get("outputTokens") or 0) for m, u in usage.items() if isinstance(u, dict) or u is None}
+
+
+def swapped(events: list[dict], data, model: str) -> str | None:
+    """Why the answer is not (only) the run's model's, or None."""
+    for e in events:
+        if e["subtype"] in SWAP_EVENTS:
+            return f"Claude Code answered with {e.get('fallback_model')} instead of {e.get('original_model') or model} ({e['subtype']})"
+    usage = data.get("modelUsage") if isinstance(data, dict) else None
+    others = sorted(m for m, u in (usage or {}).items() if isinstance(u, dict) and (u.get("outputTokens") or 0) > 0
+                    and model not in (m, u.get("canonicalModel")))
+    if others:
+        return f"Claude Code's answer has output from {', '.join(others)}, not only {model}"
+    return None
+
+
+def refused(events: list[dict]) -> str | None:
+    """The refusal category ('' when none came with it) if the model declined, else None."""
+    hits = [e for e in events if e["subtype"] in (REFUSAL_EVENT, "refusal")]
+    if not hits:
+        return None
+    return next((str(e["api_refusal_category"]) for e in hits if e.get("api_refusal_category")), "")
 
 
 MAX_RESUME_OVERLAP = 4096
@@ -160,7 +221,8 @@ class ClaudeCodeBackend:
         self.command = cfg["claude_code_command"]
         env = dict(os.environ if environ is None else environ)
         for var in KEY_VARIABLES + (cfg["api_key_env"],):
-            env.pop(var, None)  # the subscription login, never an API key
+            env.pop(var, None)  # the CLI's own login, never a key from the environment
+        env.update(NO_MODEL_FALLBACK)
         self.env = env
         if runner is None:
             if shutil.which(self.command) is None:
@@ -209,6 +271,7 @@ class ClaudeCodeBackend:
         t0 = time.monotonic()
         failures = []
         tries = int(self.retries["tries"])
+        events, declined = [], None
         for attempt in range(tries):
             with tempfile.TemporaryDirectory(prefix="cpl-claude-code-") as cwd:
                 try:
@@ -221,7 +284,16 @@ class ClaudeCodeBackend:
             if r is not None:
                 out = (r.stdout or "").strip()
                 data, messages = _parse_output(out)
+                events = model_events(out)
+                swap = swapped(events, data, self.cfg["agent_model"])
+                if swap:
+                    raise StopRun(f"{swap}; the run stops rather than record another model's answer as {self.cfg['agent_model']}'s")
                 text = _join(messages) if messages else (data or {}).get("result")
+                declined = refused(events)
+                if declined is not None:  # the loop counts refusals (max_consecutive_refusals); asking again is its call
+                    data, text = data if isinstance(data, dict) else {}, _join(messages) if messages else ""
+                    self.log(f"  Claude Code: the model declined this round ({declined or 'no category given'})")
+                    break
                 if r.returncode == 0 and isinstance(data, dict) and not data.get("is_error") and text is not None:
                     break
                 message = ""
@@ -249,7 +321,12 @@ class ClaudeCodeBackend:
             "backend": self.name,
             "source": data.get("session_id"),
             "model": self.cfg["agent_model"],
-            "stop_reason": last_stop or data.get("stop_reason") or ("end_turn" if not data.get("is_error") else "error"),
+            "stop_reason": "refusal" if declined is not None else
+                           (last_stop or data.get("stop_reason") or ("end_turn" if not data.get("is_error") else "error")),
+            "stop_details": {"category": declined} if declined is not None else None,
+            "models_used": models_used(data),  # output tokens per model that answered, from the CLI's modelUsage
+            "safety_stops": data.get("safety_stops"),
+            "model_events": events,
             "input_tokens": int(usage.get("input_tokens") or 0),
             "output_tokens": int(usage.get("output_tokens") or 0),
             "cache_creation_input_tokens": int(usage.get("cache_creation_input_tokens") or 0),

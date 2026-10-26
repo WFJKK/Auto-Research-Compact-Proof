@@ -234,3 +234,42 @@ def test_a_stream_cut_off_mid_line_is_joined_exactly():
     code_line = next(l for l in text.splitlines() if l.startswith("    "))
     at = text.index(code_line) + 2
     assert _join([{"stop_reason": None, "text": text[:at]}, {"stop_reason": None, "text": text[at:]}]) == text
+
+
+def test_the_cli_may_not_answer_with_another_model():
+    b, cli, _, _ = backend([Completed(result_json())])
+    b.respond(PROMPT, 0)
+    assert cli.calls[0]["env"]["CLAUDE_CODE_NO_MODEL_FALLBACK"] == "1"
+
+
+def test_an_answer_from_another_model_stops_the_run():
+    swap = {"type": "system", "subtype": "model_refusal_fallback", "original_model": "claude-fable-5-1",
+            "fallback_model": "claude-opus-4-8", "api_refusal_category": "frontier_llm", "scope": "session"}
+    b, cli, sleeps, _ = backend([Completed(stream(swap, assistant_event(RESPONSE_TEXT), result_event()))])
+    with pytest.raises(StopRun, match="claude-opus-4-8 instead of claude-fable-5-1"):
+        b.respond(PROMPT, 0)
+    assert len(cli.calls) == 1 and sleeps == []
+    # no event, but another model's output in modelUsage: what the CLI printed for a swap on 26 October 2026
+    usage = {"claude-fable-5-1": {"outputTokens": 0, "canonicalModel": "claude-fable-5-1"},
+             "claude-opus-4-8": {"outputTokens": 4, "canonicalModel": "claude-opus-4-8"}}
+    b, _, _, _ = backend([Completed(result_json(modelUsage=usage, safety_stops=2))])
+    with pytest.raises(StopRun, match="output from claude-opus-4-8"):
+        b.respond(PROMPT, 0)
+
+
+def test_a_refusal_is_recorded_as_one_and_not_retried(tmp_path):
+    declined = {"type": "assistant", "session_id": "sess_123", "message": {"role": "assistant", "content": [], "stop_reason": "refusal"}}
+    event = {"type": "system", "subtype": "model_refusal_no_fallback", "original_model": "claude-fable-5-1",
+             "api_refusal_category": "cyber", "api_refusal_explanation": "declined"}
+    b, cli, sleeps, logs = backend([Completed(stream(declined, event, result_event("", is_error=True, safety_stops=1)))])
+    r = b.respond(PROMPT, 0, tmp_path)
+    assert len(cli.calls) == 1 and sleeps == []  # the loop counts refusals; the backend does not ask again
+    assert r.text == "" and r.meta["stop_reason"] == "refusal" and r.meta["stop_details"] == {"category": "cyber"}
+    assert r.meta["safety_stops"] == 1 and any("declined" in line for line in logs)
+
+
+def test_the_models_that_answered_are_recorded():
+    usage = {"claude-fable-5-1": {"outputTokens": 20000, "canonicalModel": "claude-fable-5-1"}}
+    b, _, _, _ = backend([Completed(result_json(modelUsage=usage, safety_stops=0))])
+    m = b.respond(PROMPT, 0).meta
+    assert m["models_used"] == {"claude-fable-5-1": 20000} and m["safety_stops"] == 0 and m["model_events"] == []
