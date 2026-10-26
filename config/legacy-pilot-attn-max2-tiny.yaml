@@ -5,7 +5,7 @@
 # checked by the Lean checker as well (lean_spot_check; the model folder's lean_check command runs
 # scripts/lean_check_proof.py against the Lean project at COMPACT_PROOF_LEAN or the pilots' default path):
 # the counts are Lean-verified, the lengths are the Python checker's accounting (cost-v3), which Lean's
-# counted operations reproduce leaf by leaf. Scored by Q_above, as the open-lane pilots; up to 7 rounds.
+# counted operations reproduce leaf by leaf. Scored by Q_above, as the open-lane pilots; up to 5 rounds.
 run_id: legacy-pilot-attn-max2-tiny
 model: tests/attn_max2_tiny
 backend: claude_code
@@ -14,7 +14,7 @@ effort: xhigh
 metric: Q_above
 rule_set: [single, interval, token_interval, skip]
 baselines: [brute_force]
-rounds_max: 7
+rounds_max: 5
 patience: 4
 api_retries: {tries: 12, first_wait_s: 60, max_wait_s: 1800, timeout_s: 3600}
 sandbox: auto   # hardened once Docker or Landlock is available; the records say which isolation the recipes had
