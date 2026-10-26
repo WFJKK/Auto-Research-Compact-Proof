@@ -172,16 +172,21 @@ def claim_identity(record: dict) -> tuple | None:
     return None
 
 
-def rounds_without_new_artifact(run: RunDir) -> int:
+def rounds_without_new_artifact(run: RunDir, entries: list[dict] | None = None, metric: str | None = None,
+                                budget_ratio: float | None = None) -> int:
     """For the open lane: agent rounds in a row, counting back from the last, that accepted nothing new. An
     accepted submission (scored, verified or a lemma) counts only if its claim (claim_identity) differs
     from every earlier accepted one, so resubmitting a lemma, or a proof with a comment changed, does not
-    keep the loop alive, while a new statement, count or length does. The hard budgets (rounds, the
-    session's calls and clock) are unchanged."""
+    keep the loop alive, while a new statement, count or length does. Under the metric Q_above a scored
+    proof counts only if it raised the metric in its size setting (a new count and length at or below the
+    brute-force line, or worse than an earlier proof, is not progress); lemmas and verified proofs count as
+    before. The hard budgets (rounds, the session's calls and clock) are unchanged."""
     records = run.read_archive()
     done = [k for k in run.done_rounds() if k > 0]
     seen: set = set()  # identities
     counts: set = set()  # (network, count) with a scored or verified proof: a verified proof of it is not new
+    by_gain = metric == "Q_above" and entries is not None
+    best = metric_by_setting([r for r in records if r["round"] == 0], entries, metric, budget_ratio) if by_gain else {}
     since = 0
     for k in done:
         new = False
@@ -196,7 +201,14 @@ def rounds_without_new_artifact(run: RunDir) -> int:
             seen.add(identity)
             if identity[0] in ("ok", "verified"):
                 counts.add((identity[1], identity[2]))
+            if identity[0] == "ok" and by_gain:
+                continue  # judged by the metric below
             new = True
+        if by_gain:
+            now_ = metric_by_setting([r for r in records if r["round"] <= k], entries, metric, budget_ratio)
+            if any(now_[s] > best.get(s, 0.0) + 1e-12 for s in now_):
+                new = True
+            best = {s: max(best.get(s, 0.0), v) for s, v in now_.items()}
         since = 0 if new else since + 1
     return since
 
@@ -420,8 +432,8 @@ def drive(ctx: Context) -> None:
         fresh = not run.round_done(k) and run.read(k, "attempt_0/response.md") is None
         if fresh:
             if cfg.get("open_lane", {}).get("enabled"):
-                stale = rounds_without_new_artifact(run)
-                what = "no new accepted submission"
+                stale = rounds_without_new_artifact(run, ctx.entries, cfg["metric"], cfg.get("budget_ratio"))
+                what = "no new accepted submission" + (" and no gain in Q_above" if cfg["metric"] == "Q_above" else "")
             else:
                 stale = rounds_without_gain(run, ctx.entries, cfg["metric"], cfg.get("budget_ratio"))
                 what = "no gain"
@@ -478,13 +490,14 @@ def status_text(run: RunDir, diagnostics: bool = False) -> str:
     for setting, s in summarize(records, entries, cfg.get("budget_ratio")).items():
         lines.append(
             f"  {setting}: Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}; Q_grid median {s['Q_grid_median']:.4f}; Q_exact mean {s['Q_exact_mean']:.4f}; "
-            f"cost of finishing median {s['cost_of_finishing_median']:.2f}"
+            f"Q_above mean {s['Q_above_mean']:.4f}; cost of finishing median {s['cost_of_finishing_median']:.2f}"
         )
         for nid, m in s["networks"].items():
             full = f"{m['shortest_full']:,} (B/{m['B'] / m['shortest_full']:.1f})" if m["shortest_full"] else "none"
             real = f"{m['real_accuracy']:.5f}" if m["real_accuracy"] is not None else "?"
             lines.append(
-                f"    {nid}: Q {m['Q']:.4f}, best certified accuracy {m['best_accuracy']:.5f} of {real}, "
+                f"    {nid}: Q {m['Q']:.4f}, Q_above {m['Q_above']:.4f} ({m['points_above_line']} of {m['points']} frontier proofs above "
+                f"the brute-force line), best certified accuracy {m['best_accuracy']:.5f} of {real}, "
                 f"shortest full-accuracy proof {full}"
             )
     return "\n".join(lines)

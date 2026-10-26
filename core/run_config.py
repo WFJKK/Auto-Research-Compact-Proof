@@ -16,8 +16,9 @@ from .util import REPO_ROOT, read_yaml
 DEFAULTS_PATH = REPO_ROOT / "config" / "defaults.yaml"
 REQUIRED = ("run_id", "model")
 BACKENDS = ("fake", "manual", "api", "claude_code")
-METRICS = ("Q", "Q_grid", "Q_exact", "cost_of_finishing")
-METRIC_KEYS = {"Q": "Q_median", "Q_grid": "Q_grid_median", "Q_exact": "Q_exact_mean", "cost_of_finishing": "cost_of_finishing_median"}
+METRICS = ("Q", "Q_grid", "Q_exact", "Q_above", "cost_of_finishing")
+METRIC_KEYS = {"Q": "Q_median", "Q_grid": "Q_grid_median", "Q_exact": "Q_exact_mean", "Q_above": "Q_above_mean",
+               "cost_of_finishing": "cost_of_finishing_median"}
 SANDBOX_MODES = ("auto", "hardened", "container", "landlock", "process")
 THINKING_TYPES = ("adaptive", "enabled", "disabled")
 EFFORTS = ("low", "medium", "high", "xhigh", "max")

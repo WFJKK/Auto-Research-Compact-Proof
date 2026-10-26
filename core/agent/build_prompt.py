@@ -28,7 +28,7 @@ from ..check import cost
 from ..check.rules import describe
 from ..diagnostics import at_label, knob_lines, render_attempt, rule_order, share
 from ..model_folder import ModelFolder
-from ..scoring import budget_grid, default_budget_ratio, q_exact, q_grid, q_score, summarize
+from ..scoring import brute_force_line, budget_grid, default_budget_ratio, q_above, q_exact, q_grid, q_score, summarize
 from ..zoo import read_manifest
 
 TEMPLATES = Path(__file__).with_name("prompts")
@@ -149,6 +149,20 @@ def metric_text(cfg: dict, folder: ModelFolder, entries: list[dict]) -> str:
             "any shorter proof counts, not only one that crosses a budget. Cost of finishing breaks ties and is "
             "reported separately."
         )
+    elif cfg["metric"] == "Q_above":
+        head = (
+            "Your score is Q_above, per size setting the mean over its networks (the worst network is reported too). "
+            "For one network, a(L) is the best certified accuracy among the checked proofs (yours and earlier ones) of "
+            "length at most L, and b(L) is what brute force certifies at length L: checking k inputs one by one costs "
+            "c per input plus E (c is the single rule's charge, read from round 0's brute-force proof), so "
+            "b(L) = min(coverage, floor((L - E) / c)) / n, with coverage the inputs brute force certifies. Q_above is "
+            "the area of max(a(L) - b(L), 0) over log L between max(E, B/1000) and B, divided by the area of the room "
+            "above the line there, between 0 and 1. A proof earns credit only where it certifies more inputs than "
+            "brute force of the same length: brute force on any subset of the inputs scores exactly 0, a proof at or "
+            "below the line scores 0 and costs nothing, and a proof certifying every correct input at the smallest "
+            "length would score 1. Shorter proofs of the same accuracy raise it, and so does more accuracy at the same "
+            "length, in both cases only above the line. Cost of finishing breaks ties and is reported separately."
+        )
     elif cfg["metric"] == "cost_of_finishing":
         head = (
             "Your score is the cost of finishing, per size setting the median over its networks (the worst network "
@@ -232,7 +246,9 @@ def attempt_score(rs: list[dict], entries: list[dict], metric: str = "Q", budget
                 frontier.append({"length": r["length"], "certified": r["certified"], "n_inputs": r["n_inputs"]})
                 best = r["certified"]
         score = (q_grid(frontier, e["E"], e["B"], budget_ratio) if metric == "Q_grid"
-                 else q_exact(frontier, e["E"], e["B"]) if metric == "Q_exact" else q_score(frontier, e["E"], e["B"]))
+                 else q_exact(frontier, e["E"], e["B"]) if metric == "Q_exact"
+                 else q_above(frontier, e, brute_force_line(e, rs)) if metric == "Q_above"
+                 else q_score(frontier, e["E"], e["B"]))
         by_setting.setdefault(e["setting"], []).append(score)
     return statistics.mean(statistics.median(v) for v in by_setting.values()) if by_setting else 0.0
 
@@ -251,6 +267,8 @@ def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_r
             score = f"Q_grid median {s['Q_grid_median']:.4f}, worst {s['Q_grid_worst']:.4f}"
         elif metric == "Q_exact":
             score = f"Q_exact mean {s['Q_exact_mean']:.4f}, worst {s['Q_exact_worst']:.4f}; cost of finishing median {s['cost_of_finishing_median']:.2f}"
+        elif metric == "Q_above":
+            score = f"Q_above mean {s['Q_above_mean']:.4f}, worst {s['Q_above_worst']:.4f}; cost of finishing median {s['cost_of_finishing_median']:.2f}"
         else:
             score = f"Q median {s['Q_median']:.4f}, worst {s['Q_worst']:.4f}"
         lines.append(f"{setting} ({len(nets)} networks; real accuracy median {100 * real:.3f}%): {score}")
@@ -288,7 +306,7 @@ def render_frontier(records: list[dict], entries: list[dict], run: RunDir, per_r
     return "\n".join(lines)
 
 
-METRIC_NAMES = {"Q": "Q", "Q_grid": "Q_grid", "Q_exact": "Q_exact", "cost_of_finishing": "cost of finishing"}
+METRIC_NAMES = {"Q": "Q", "Q_grid": "Q_grid", "Q_exact": "Q_exact", "Q_above": "Q_above", "cost_of_finishing": "cost of finishing"}
 AIM_TEXT = (
     "Raise your score, {name}. It stands at: {scores}.\n"
     "Before writing the recipe, consider several approaches that could raise it: a\n"

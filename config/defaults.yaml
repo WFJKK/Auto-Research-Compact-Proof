@@ -94,9 +94,10 @@ max_consecutive_refusals: 3
 prompt_template: v4
 # token_interval is for networks beyond linear maps (the attention models list it).
 rule_set: [single, interval, skip, contract, symmetry, approximate]
-# The number the agent sees as its score: Q, Q_grid or cost_of_finishing
-# (section 5 of docs/SPEC.md). Q_grid scores at fixed budgets, so where a
-# recipe places its proofs earns nothing; the report shows all of them.
+# The number the agent sees as its score: Q, Q_grid, Q_exact, Q_above or
+# cost_of_finishing (section 5 of docs/SPEC.md). Q_grid scores at fixed budgets,
+# so where a recipe places its proofs earns nothing; Q_above counts only what
+# beats brute force of the same length; the report shows all of them.
 metric: Q
 lean_spot_check: false
 

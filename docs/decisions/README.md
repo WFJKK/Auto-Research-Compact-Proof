@@ -13,3 +13,9 @@ working from the repositories can read them. Each is dated; later decisions supe
   costs) as the tie-breaker; what is frozen; how held-out is enforced; what the claim is (the frozen method
   generalises) and is not (understanding); the cost model to freeze first (policy v4, then the matched
   baseline remeasured).
+- [q-above.md](q-above.md) (26 October 2026): the score counts only what beats brute force. Brute force on
+  any subset of the inputs is a proof the agent can always write, and Q_exact rewarded it (the first attention
+  pilot scored 0.15 with no compression); Q_above is the frontier's log-area above the brute-force line over
+  the room above it, with the review's corrections (an achievable line from the run's own baseline, the
+  positive part over exact breakpoints, patience by gain, what the number means, versions kept with
+  re-scored runs).

@@ -189,7 +189,7 @@ def test_template_v3_ends_with_the_aim_and_the_score_as_it_stands(trained_stub, 
     assert part2.rstrip().endswith("{AIM}") and "AIM" not in placeholders(part1)
     from core.run_config import METRICS
 
-    names = {"Q": "Q", "Q_grid": "Q_grid", "Q_exact": "Q_exact", "cost_of_finishing": "cost of finishing"}
+    names = {"Q": "Q", "Q_grid": "Q_grid", "Q_exact": "Q_exact", "Q_above": "Q_above", "cost_of_finishing": "cost of finishing"}
     assert set(METRICS) == set(names), "a metric without a prompt test"
     for metric, name in names.items():
         (tmp_path / metric).mkdir()
@@ -200,7 +200,8 @@ def test_template_v3_ends_with_the_aim_and_the_score_as_it_stands(trained_stub, 
         assert f"Raise your score, {name}. It stands at:" in aim and "consider several approaches" in aim
         assert all(e["setting"] in aim for e in ctx.entries)
         # the score as the run takes it: the mean over networks for Q_exact, the median otherwise
-        assert (" mean " in aim) == (metric == "Q_exact") and (" median " in aim) == (metric != "Q_exact")
+        mean = metric in ("Q_exact", "Q_above")
+        assert (" mean " in aim) == mean and (" median " in aim) == (not mean)
 
 
 @pytest.mark.parametrize("model", ["max2", "attn-max2", "attn-max4", "attn-min2", "attn-min4", "xorformer-majority"])

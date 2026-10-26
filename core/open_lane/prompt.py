@@ -17,7 +17,7 @@ from pathlib import Path
 from ..agent.build_prompt import CHARS_PER_TOKEN, Prompt, PromptError, fill, forbidden, grid_text, load_template, metric_scores, metric_text
 from ..archive import RunDir
 from ..model_folder import ModelFolder
-from ..scoring import summarize
+from ..scoring import brute_force_line, line_certified, summarize
 from ..util import REPO_ROOT
 from .session import Session
 
@@ -157,23 +157,34 @@ def static_values(cfg: dict, folder: ModelFolder, entries: list[dict]) -> dict:
 def scoreboard(records: list[dict], entries: list[dict], budget_ratio) -> str:
     lines = []
     for setting, s in summarize(records, entries, budget_ratio).items():
-        lines.append(f"{setting}: Q_exact mean {s['Q_exact_mean']:.4f}, worst {s['Q_exact_worst']:.4f}; Q median {s['Q_median']:.4f}; "
+        lines.append(f"{setting}: Q_above mean {s['Q_above_mean']:.4f}, worst {s['Q_above_worst']:.4f}; "
+                     f"Q_exact mean {s['Q_exact_mean']:.4f}; Q median {s['Q_median']:.4f}; "
                      f"cost of finishing median {s['cost_of_finishing_median']:.2f}")
         for nid, m in s["networks"].items():
             full = f"{m['shortest_full']:,} (B/{m['B'] / m['shortest_full']:.1f})" if m["shortest_full"] else "none"
-            lines.append(f"  {nid}: Q_exact {m['Q_exact']:.4f}, Q {m['Q']:.4f}; best certified accuracy {100 * m['best_accuracy']:.3f}% of "
-                         f"{100 * (m['real_accuracy'] or 0):.3f}%; shortest full-accuracy proof {full}; {m['points']} frontier proofs")
+            line = m["brute_force_line"]
+            lines.append(f"  {nid}: Q_above {m['Q_above']:.4f}, Q_exact {m['Q_exact']:.4f}, Q {m['Q']:.4f}; best certified accuracy "
+                         f"{100 * m['best_accuracy']:.3f}% of {100 * (m['real_accuracy'] or 0):.3f}%; shortest full-accuracy proof "
+                         f"{full}; {m['points']} frontier proofs, {m['points_above_line']} above the brute-force line "
+                         f"(k inputs for {line['c']:g} k + {line['E']:g}, up to {line['coverage']})")
     return "\n".join(lines) if lines else "nothing checked yet"
 
 
-def receipts_text(records: list[dict]) -> str:
+def receipts_text(records: list[dict], entries: list[dict] | None = None) -> str:
     lines = []
+    lines_by_net = {e["id"]: brute_force_line(e, records) for e in entries or []}
     for r in records:
         if r.get("lane") != "open" or r.get("status") == "no_submission":
             continue
         head = f"- round {r['round']} submission {r.get('submission')}: {r.get('network')}, claimed {r.get('claimed_count')}: {r['status']}"
         if r["status"] == "ok":
-            lines.append(f"{head}, certified {r['certified']}, length {r['length']:,} (bill {r['length_by_rule']['bill']:,})")
+            line = lines_by_net.get(r.get("network"))
+            above = ""
+            if line is not None:
+                k = line_certified(line, r["length"])
+                above = (f"; above the brute-force line (which certifies {k} at this length)" if r["certified"] > k
+                         else f"; not above the brute-force line (which certifies {k} at this length): scores nothing")
+            lines.append(f"{head}, certified {r['certified']}, length {r['length']:,} (bill {r['length_by_rule']['bill']:,}){above}")
         elif r["status"] == "lemma":
             lines.append(f"{head} (auxiliary lemma accepted): {(r.get('statement') or '')[:MAX_REASON]}")
         elif r["status"] == "verified":
@@ -247,7 +258,7 @@ def build_open_lane_prompt(cfg: dict, folder: ModelFolder, entries: list[dict], 
     trimmed = []
     values = {
         "SCOREBOARD": scoreboard(records, entries, cfg.get("budget_ratio")),
-        "RECEIPTS": receipts_text(records),
+        "RECEIPTS": receipts_text(records, entries),
         "AIM": aim(records, entries, cfg, k),
     }
     while True:

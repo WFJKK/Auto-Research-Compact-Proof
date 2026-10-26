@@ -225,6 +225,46 @@ def test_patience_counts_claims_not_files(tmp_path):
     assert loop.claim_identity(rounds[5][2]) is None
 
 
+def test_patience_under_q_above_needs_a_gain_or_a_new_lemma(tmp_path):
+    """Under the metric Q_above (26 October 2026) a scored proof keeps the loop alive only if it raised
+    Q_above: a brute-force subset (a new count and length at the line) is not progress, nor is a proof
+    worse than an earlier one; a new lemma still is, and a proof above the line is."""
+    from core.archive import RunDir
+
+    run = RunDir(tmp_path / "runs", "patience-q")
+    run.create({"run_id": "patience-q"})
+    base = {"run_id": "patience-q", "lane": "open", "network": "n1", "attempt": 0, "n_inputs": 64, "knob": 1.0,
+            "length_by_rule": {"bill": 0, "extract": 136, "read": 0}}
+    entries = [{"id": "n1", "setting": "v8", "n_inputs": 64, "E": 136, "B": 12571, "real_correct": 64}]
+    round0 = {"run_id": "patience-q", "round": 0, "attempt": 0, "network": "n1", "status": "ok", "certified": 64, "n_inputs": 64,
+              "length": 12571, "knob": 0.0, "record_id": "patience-q/r000/a0/n1/k0", "source": "baseline",
+              "length_by_rule": {"extract": 136, "read": 138, "single": 12224, "tree": 73},
+              "leaves": {"accepted": 64, "rejected": 0, "skipped": 0, "total": 64}}
+    run.round_path(0).mkdir(parents=True)
+    run.append_archive([round0])
+    run.mark_done(0)
+
+    def rec(k, i, **f):
+        return {**base, "round": k, "record_id": f"patience-q/r{k:03d}/a0/n1/open{i:03d}",
+                "receipt": {"digests": {"modules": f"d{k}{i}"}}, **f}
+
+    rounds = {
+        1: [rec(1, 0, status="ok", certified=10, length=191 * 10 + 136, theorem="A.p")],  # a subset: at the line
+        2: [rec(2, 0, status="ok", certified=32, length=191 * 32 + 136, theorem="B.p")],  # another: still nothing
+        3: [rec(3, 0, status="lemma", statement="∀ x, p x", theorem="C.l")],  # a new lemma: progress
+        4: [rec(4, 0, status="ok", certified=20, length=2000, theorem="D.p")],  # above the line: progress
+        5: [rec(5, 0, status="ok", certified=20, length=2500, theorem="E.p")],  # worse than round 4: nothing
+    }
+    expected = {1: 1, 2: 2, 3: 0, 4: 0, 5: 1}
+    for k in range(1, 6):
+        run.round_path(k).mkdir(parents=True)
+        run.append_archive(rounds[k])
+        run.mark_done(k)
+        assert loop.rounds_without_new_artifact(run, entries, "Q_above") == expected[k], k
+    # under the claim rule alone, round 5's new length would have counted as progress
+    assert loop.rounds_without_new_artifact(run) == 0
+
+
 def test_the_tool_backend_reports_the_counters_the_tools_saved(tmp_path):
     """The tools run in the MCP server's process and save their counters to the session; the backend's
     metadata must come from that saved state, not from the session it loaded before the CLI ran. A fake
@@ -407,7 +447,7 @@ def test_the_open_lane_config_names_its_example_and_sources_in_the_lean_project(
             merge(cfg)
 
 
-@pytest.mark.parametrize("metric", ["Q", "Q_grid", "Q_exact", "cost_of_finishing"])
+@pytest.mark.parametrize("metric", ["Q", "Q_grid", "Q_exact", "Q_above", "cost_of_finishing"])
 def test_the_open_lane_prompt_builds_for_every_metric(tmp_path, metric):
     """Review of 23 October: the open-lane aim had no entry for Q_exact, so the first prompt of a Q_exact run
     raised KeyError. The whole prompt, both parts, for each metric the run config accepts, from a fake Lean
@@ -437,11 +477,28 @@ def test_the_open_lane_prompt_builds_for_every_metric(tmp_path, metric):
     run.append_archive([{"run_id": run.run_id, "round": 0, "attempt": 0, "record_id": "r0", "network": e["id"],
                          "setting": e["setting"], "status": "ok", "certified": e["n_inputs"], "n_inputs": e["n_inputs"],
                          "length": e["B"], "length_by_rule": {"single": 64 * 191, "tree": e["B"] - 64 * 191 - e["E"],
-                                                              "extract": e["E"]}, "knob": 1.0}])
-    p = build_open_lane_prompt(cfg, folder, entries, run, 1)
+                                                              "extract": e["E"]}, "knob": 1.0,
+                         "leaves": {"accepted": 64, "rejected": 0, "skipped": 0, "total": 64}}])
+    # a brute-force subset and a proof above the line, as the agent's receipts
+    run.round_path(1).mkdir(parents=True)
+    run.append_archive([{"run_id": run.run_id, "round": 1, "attempt": 0, "record_id": "r1a", "network": e["id"], "lane": "open",
+                         "submission": 0, "claimed_count": 10, "setting": e["setting"], "status": "ok", "certified": 10,
+                         "n_inputs": 64, "length": 191 * 10 + e["E"], "length_by_rule": {"bill": 1910, "extract": e["E"], "read": 0},
+                         "knob": 1.0},
+                        {"run_id": run.run_id, "round": 1, "attempt": 0, "record_id": "r1b", "network": e["id"], "lane": "open",
+                         "submission": 1, "claimed_count": 20, "setting": e["setting"], "status": "ok", "certified": 20,
+                         "n_inputs": 64, "length": 2000, "length_by_rule": {"bill": 1864, "extract": e["E"], "read": 0}, "knob": 1.0}])
+    run.mark_done(1)
+    p = build_open_lane_prompt(cfg, folder, entries, run, 2)
     assert "Raise the score. It stands at: " + metric in p.part2
-    assert (" mean " in p.part2.split("Raise the score", 1)[1]) == (metric == "Q_exact")
+    assert (" mean " in p.part2.split("Raise the score", 1)[1]) == (metric in ("Q_exact", "Q_above"))
     assert "-- general" in p.part1 and "{" + "EXTRA_SOURCES}" not in p.part1
+    # the receipts say which proofs beat brute force; the scoreboard shows the line
+    assert "not above the brute-force line (which certifies 10 at this length): scores nothing" in p.part2
+    assert "above the brute-force line (which certifies 9 at this length)" in p.part2
+    assert "1 above the brute-force line (k inputs for 191 k + 136, up to 64)" in p.part2
+    if metric == "Q_above":
+        assert "brute force on any subset of the inputs scores exactly 0" in p.part1
 
 
 

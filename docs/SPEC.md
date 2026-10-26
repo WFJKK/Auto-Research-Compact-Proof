@@ -235,6 +235,14 @@ Q = \frac{1}{\ln(B/E)} \int_E^B a(b) \, \frac{db}{b}
 - **Cost of finishing** (alternative): the proof's length plus, for every correct input it leaves uncertified, the brute-force cost of one input (B divided by the number of inputs). Reported as B divided by that total.
 - **Q_grid** (alternative, added 14 October 2026): Q read only at fixed budgets. Per size setting the budgets are B/r, B/r², ... down to E, with r the run config's `budget_ratio` (2 by default); per network, Q_grid is the mean over the budgets of a(b). With this metric the loop runs each recipe once per budget instead of once per knob value, passing the budget in `info["budget"]` (with `info["E"]` and `info["B"]`) and the budget's position on the log axis as the knob. The score reads accuracy only at the grid, so a recipe gains nothing from where its proofs sit between budgets; under Q a recipe that defines its knob as a set of budgets can raise its score by placing them well (see `docs/REWARD_HACKING.md`). The price is resolution: a shorter full proof counts only when it crosses a budget, so the shortest full-accuracy proof and cost of finishing are reported next to it.
 
+- **Q_above** (added 26 October 2026): the improvement over the brute-force line, normalised by the room above it. Brute force on k inputs costs c k + E (c the single rule's charge per input, from round 0's brute-force record) and certifies k, so at length L it certifies b(L) = min(coverage, floor((L - E)/c)) / n, with coverage what the baseline brute force certifies. Over [max(E, B/1000), B] on the log scale, with a_max the share of inputs the network gets right:
+
+```latex
+Q_{above} = \frac{\int (a(L) - b(L))^{+} \, dL/L}{\int (a_{max} - b(L)) \, dL/L}
+```
+
+  Equivalently the gain of Q_exact of the frontier merged with the line over Q_exact of the line, divided by the headroom. A proof earns credit only where it certifies more inputs than brute force of the same length; brute force on any subset scores 0; a score of 0.05 means 5% of the headroom's log-area, not 5% of the operations. Under Q_exact the area under the line counts as score (0.206 on the tiny attention network, against 0.250 for the hand proof), so an agent that beats brute force nowhere still scores by submitting subsets, which the first attention pilot did. The integral is exact over the merged breakpoints of a and b; the line's facts are the run's own, and the metrics say when they are estimated instead. Per size setting the mean over networks, as for Q_exact. `core.rescore` recomputes every metric of a finished run from its archive, with the versions the numbers depend on.
+
 Per model and size setting, report the median over networks and the worst network. Every number carries its label: Python-checked or Lean-backed.
 
 The config field `metric` sets which number the agent sees as its score, Q by default. It is frozen for a run; the report always shows all of them.

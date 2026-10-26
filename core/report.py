@@ -45,6 +45,7 @@ def _metric_rows(s: dict) -> list[tuple[str, str, str]]:
         ("Q", f"{s['Q_median']:.4f}", f"{s['Q_worst']:.4f}"),
         ("Q_grid (mean accuracy over the fixed budgets)", f"{s['Q_grid_median']:.4f}", f"{s['Q_grid_worst']:.4f}"),
         ("Q_exact (log-area of the frontier over [max(E, B/1000), B]; mean, worst)", f"{s['Q_exact_mean']:.4f}", f"{s['Q_exact_worst']:.4f}"),
+        ("Q_above (the frontier's log-area above the brute-force line, over the room above it; mean, worst)", f"{s['Q_above_mean']:.4f}", f"{s['Q_above_worst']:.4f}"),
         ("cost of finishing (B / total)", f"{s['cost_of_finishing_median']:.2f}", f"{s['cost_of_finishing_worst']:.2f}"),
     ]
     full = [m["B"] / m["shortest_full"] if m["shortest_full"] else None for m in nets]

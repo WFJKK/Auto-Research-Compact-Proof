@@ -88,6 +88,14 @@ evaluator chooses where proofs are requested; when the agent chooses its own poi
 placement effect, which is why the next evaluation requests a frozen method's proofs on a fixed schedule
 (docs/decisions/frozen-transfer.md).
 
+Since 26 October the pilots are driven by Q_above (`core.scoring.q_above`, docs/SPEC.md section 5 and
+docs/decisions/q-above.md): the frontier's log-area above the brute-force line, over the room above it.
+Brute force on k inputs is a proof the agent can always write (k calls of the single rule at c each, plus E),
+and Q_exact counted its area as score; the first attention pilot spent four of its first nine submissions on
+such subsets, which scored 0.15 with no compression at all. Under Q_above they score 0, the receipts tell the
+agent whether each proof is above the line, and a scored proof keeps the loop's patience alive only if it
+raised Q_above (lemmas as before). `python -m core.rescore --run <run>` re-scores a finished run.
+
 ## The reference count
 
 The zoo's `real_correct` comes from the float forward pass; the Lean specification counts over the reals

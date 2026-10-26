@@ -10,8 +10,9 @@ effort: xhigh
 prompt_template: open_lane_v2
 # The legacy lane (round 0's baselines) limited to single and skip; explicit, as the ticket asks.
 rule_set: [single, skip]
-# The score the agent is shown and asked to raise: the clipped log-area of the verified frontier.
-metric: Q_exact
+# The score the agent is shown and asked to raise: the verified frontier's log-area above the brute-force line,
+# over the room above it (docs/decisions/q-above.md). Brute force on any subset of the inputs scores 0.
+metric: Q_above
 baselines: [brute_force]
 rounds_max: 7
 patience: 4

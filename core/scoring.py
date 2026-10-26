@@ -11,6 +11,8 @@ length at most b. The metrics:
 - within: the best certified accuracy within B/10, B/100 and B/1000.
 - cost_of_finishing: B divided by (length + uncertified correct inputs x B/n),
   for the best proof.
+- Q_above: the improvement over the brute-force line, normalised by the room
+  above it (below). Brute force on any subset of the inputs scores 0.
 
 Per size setting, the median and the worst network. All numbers are
 Python-checked until rules have Lean proofs.
@@ -134,6 +136,97 @@ def q_exact(points: list[dict], E: float, B: float) -> float:
     return total / math.log(B / lo_limit)
 
 
+# Q_above: improvement over the brute-force line ----------------------------------------
+#
+# Brute force on any k inputs is a proof the agent can always write: k forward passes at the single rule's
+# charge c each, plus extract E, certifying k inputs (at most the `coverage` inputs the baseline brute force
+# certifies, which is every input the network gets right). So at length L brute force certifies
+#
+#     b(L) = min(coverage, floor((L - E) / c)) / n,
+#
+# the brute-force line. Q_exact counts the area under b as score (about 0.21 on the tiny attention network,
+# most of the hand proof's 0.25), so an agent that beats brute force nowhere still scores by submitting
+# subsets. Q_above counts only the area above the line, normalised by the room above it:
+#
+#     Q_above = integral of (a(L) - b(L))+ over log L / integral of (a_max - b(L)) over log L,
+#
+# both over [max(E, B/1000), B], with a_max the share of inputs the network gets right (what any sound proof
+# can certify at most). Equivalently (Q_exact(max(a, b)) - Q_exact(b)) / (a_max - Q_exact(b)): the gain of
+# the frontier merged with the line over the line alone, over the headroom. A point at or below the line adds
+# nothing and costs nothing; 1 means every correct input certified at every length from the range's start.
+# A score of 0.05 means 5% of the headroom's log-area, not 5% of the operations saved.
+#
+# The line's facts come from the run's own round-0 brute-force record (coverage and c) and the open lane's
+# accounting (E, the extract the service charges, which equals the zoo's E: the weight count); c is the
+# single rule's charge per input, which the open lane's single and gsingle charge too. When no brute-force
+# record exists the line is estimated (coverage = the real correct count, c = B / n) and the metrics say so.
+# The integral is exact: a and b are step functions, so it is summed over their merged breakpoints.
+
+
+def brute_force_line(entry: dict, records: list[dict] | None) -> dict:
+    """The brute-force line of a network: per-input cost c, extract E, coverage, n, and how they were found."""
+    n = int(entry.get("n_inputs") or 0)
+    E = float(entry.get("E") or 0.0)
+    for r in records or []:
+        if r.get("network") != entry.get("id") or r.get("round") != 0 or r.get("status") != "ok":
+            continue
+        by_rule = r.get("length_by_rule") or {}
+        leaves = r.get("leaves") or {}
+        others = [k for k, v in by_rule.items() if v and k not in ("single", "extract", "read", "tree")]
+        if by_rule.get("single") and n and not others and leaves.get("total") == n and not leaves.get("skipped"):
+            return {"c": by_rule["single"] / n, "E": E, "coverage": int(r["certified"]), "n": n,
+                    "how": "exact: the single rule's charge per input and the coverage of round 0's brute force"}
+    B = float(entry.get("B") or 0.0)
+    return {"c": (B / n if n else 0.0), "E": E, "coverage": int(entry.get("real_correct") or 0), "n": n,
+            "how": "estimate: B over the number of inputs, coverage the real correct count (no brute-force record)"}
+
+
+def line_certified(line: dict, length: float) -> int:
+    """How many inputs brute force certifies at this length."""
+    if not line["c"] or length < line["E"]:
+        return 0
+    return min(line["coverage"], int(math.floor((length - line["E"]) / line["c"])))
+
+
+def above_line(line: dict, length: float, certified: int) -> bool:
+    """Whether a proof certifies more than brute force of the same length."""
+    return certified > line_certified(line, length)
+
+
+def _log_area(step, lo_limit: float, B: float, breaks: list[float]) -> float:
+    """The integral of a step function over log L on [lo_limit, B], where `step(L)` is constant between
+    consecutive breakpoints (its value on a piece is its value at the piece's left end)."""
+    xs = sorted({lo_limit, B, *(x for x in breaks if lo_limit < x < B)})
+    total = 0.0
+    for lo, hi in zip(xs, xs[1:]):
+        total += step(lo) * (math.log(hi) - math.log(lo))
+    return total
+
+
+def q_above(points: list[dict], entry: dict, line: dict) -> float:
+    """The improvement of the frontier over the brute-force line, normalised by the room above the line."""
+    E, B, n = entry.get("E"), entry.get("B"), line["n"]
+    if not E or not B or not n:
+        return 0.0
+    lo_limit = max(E, B / 1000)
+    if B <= lo_limit:
+        return 0.0
+    a_max = (entry.get("real_correct") if entry.get("real_correct") is not None else line["coverage"]) / n
+
+    def a(L: float) -> float:
+        return accuracy_within(points, L)
+
+    def b(L: float) -> float:
+        return line_certified(line, L) / n
+
+    breaks = [p["length"] for p in points]
+    if line["c"]:
+        breaks += [line["E"] + line["c"] * k for k in range(1, line["coverage"] + 1)]
+    gain = _log_area(lambda L: max(a(L) - b(L), 0.0), lo_limit, B, breaks)
+    room = _log_area(lambda L: max(a_max - b(L), 0.0), lo_limit, B, breaks)
+    return gain / room if room > 0 else 0.0
+
+
 def fallback_cost_per_input(entry: dict, records: list[dict] | None) -> tuple[float, str]:
     """What one uncovered input costs to certify by the fallback rule, exactly: the single rule's charge
     per input, read from the run's brute-force baseline record for this network (its `single` charge over
@@ -168,9 +261,13 @@ def network_metrics(points: list[dict], entry: dict, budget_ratio: float | None 
     ratio = budget_ratio if budget_ratio is not None else default_budget_ratio()
     full = [p["length"] for p in points if real is not None and p["certified"] >= real]
     unit, unit_how = fallback_cost_per_input(entry, records)
+    line = brute_force_line(entry, records)
     return {
         "Q": q_score(points, E, B),
         "Q_exact": q_exact(points, E, B),
+        "Q_above": q_above(points, entry, line),
+        "brute_force_line": line,
+        "points_above_line": sum(1 for p in points if above_line(line, p["length"], p["certified"])),
         "Q_grid": q_grid(points, E, B, ratio),
         "grid": {str(b): accuracy_within(points, b) for b in budget_grid(E, B, ratio)},
         "best_accuracy": max((p["certified"] / p["n_inputs"] for p in points), default=0.0),
@@ -200,6 +297,7 @@ def summarize(records: list[dict], entries: list[dict], budget_ratio: float | No
         q = [m["Q"] for m in nets.values()]
         qg = [m["Q_grid"] for m in nets.values()]
         qe = [m["Q_exact"] for m in nets.values()]
+        qa = [m["Q_above"] for m in nets.values()]
         cof = [m["cost_of_finishing"] for m in nets.values()]
         full = [m["shortest_full"] / m["B"] if m["shortest_full"] and m["B"] else None for m in nets.values()]
         out[setting] = {
@@ -210,6 +308,8 @@ def summarize(records: list[dict], entries: list[dict], budget_ratio: float | No
             "Q_grid_worst": min(qg),
             "Q_exact_mean": statistics.mean(qe),  # equal weight per network (seed); across sizes, equal weight per size
             "Q_exact_worst": min(qe),
+            "Q_above_mean": statistics.mean(qa),
+            "Q_above_worst": min(qa),
             "cost_of_finishing_median": statistics.median(cof),
             "cost_of_finishing_worst": min(cof),
             "shortest_full_over_B_median": statistics.median(full) if all(f is not None for f in full) else None,

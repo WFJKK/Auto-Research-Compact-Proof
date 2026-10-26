@@ -1,6 +1,7 @@
 """Scoring at fixed budgets (metric Q_grid): the grid, the score, the recipe's budget, the prompt and the baseline."""
 
 import json
+import math
 import re
 from pathlib import Path
 
@@ -194,3 +195,84 @@ def test_q_exact_is_the_clipped_log_area_of_the_verified_frontier():
     assert cost_of_finishing(partial, 64, B, unit) == B / (536 + 26 * 63)
     assert cost_of_finishing(partial, 64, B) == B / (536 + 26 * B / 64)  # the estimate, without the baseline record
     assert fallback_cost_per_input(entry, [])[1].startswith("estimate")
+
+
+def test_q_above_counts_only_what_beats_the_brute_force_line():
+    """Q_above (26 October 2026): the frontier's log-area above the brute-force line b(L) = min(coverage,
+    floor((L - E) / c)) / n over the room above it. Checked: brute force on any subset scores 0 (the max2
+    attention pilot's four subset points, which Q_exact scores 0.148); the identity with Q_exact of the frontier
+    merged with the line; the hand proof's number from its actual frontier, which ties the line at its first
+    point (the raw difference of Q_exacts would give 0.055, the positive part 0.078); the line's facts from a
+    round-0 record, and the estimate without one; coverage below n; the breakpoints are exact."""
+    from core.scoring import above_line, brute_force_line, line_certified, q_above, q_exact
+
+    entry = {"id": "attn", "n_inputs": 64, "E": 136, "B": 12571, "real_correct": 64}
+    round0 = {"network": "attn", "round": 0, "status": "ok", "certified": 64, "n_inputs": 64,
+              "length_by_rule": {"extract": 136, "read": 138, "single": 12224, "tree": 73},
+              "leaves": {"accepted": 64, "rejected": 0, "skipped": 0, "total": 64}}
+    line = brute_force_line(entry, [round0])
+    assert (line["c"], line["E"], line["coverage"], line["n"]) == (191.0, 136, 64, 64) and line["how"].startswith("exact")
+    assert line_certified(line, 100) == 0 and line_certified(line, 136 + 191 * 3) == 3 and line_certified(line, 12571) == 64
+    subsets = [{"length": 191 * k + 136, "certified": k, "n_inputs": 64} for k in (10, 20, 32, 48)]
+    assert round(q_exact(subsets, 136, 12571), 3) == 0.148
+    assert q_above(subsets, entry, line) == 0.0 and not any(above_line(line, p["length"], p["certified"]) for p in subsets)
+    # the line alone, as Q_exact of its own points: the reviewer's 0.206
+    line_pts = [{"length": 136 + 191 * k, "certified": k, "n_inputs": 64} for k in range(1, 65)]
+    assert round(q_exact(line_pts, 136, 12571), 3) == 0.206
+    # the identity: (Q_exact(merged) - Q_exact(line)) / (1 - Q_exact(line)) for a frontier above the line everywhere
+    pts = [{"length": 1000, "certified": 16, "n_inputs": 64}, {"length": 4000, "certified": 64, "n_inputs": 64}]
+    merged = sorted(pts + line_pts, key=lambda p: (p["length"], -p["certified"]))
+    fr, best = [], -1
+    for q in merged:
+        if q["certified"] > best:
+            fr.append(q)
+            best = q["certified"]
+    ql = q_exact(line_pts, 136, 12571)
+    assert abs(q_above(pts, entry, line) - (q_exact(fr, 136, 12571) - ql) / (1 - ql)) < 1e-12
+    # the hand proof (results/attn-tiny-reference-2026-10-23): ties the line at 1,664 (8 inputs), above it after
+    ref = json.loads((Path(__file__).resolve().parent.parent / "results" / "attn-tiny-reference-2026-10-23" / "results.json").read_text())
+    hand = sorted(ref["attn_max2_tiny-v8d4-s1"]["peeling"]["points"], key=lambda p: (p["length"], -p["certified"]))
+    fr, best = [], -1
+    for q in hand:
+        if q["certified"] > best:
+            fr.append({"length": q["length"], "certified": q["certified"], "n_inputs": 64})
+            best = q["certified"]
+    assert not above_line(line, 1664, 8) and above_line(line, 2165, 15)
+    assert round(q_above(fr, entry, line), 4) == 0.0776
+    assert round(q_exact(fr, 136, 12571), 4) == 0.2496 and round((0.2496 - 0.2062) / (1 - 0.2062), 3) == 0.055
+    # the breakpoints are exact: one input above the line on [1000, 1091) only (brute force reaches 5 at 1091)
+    one = [{"length": 1000, "certified": 5, "n_inputs": 64}]
+    gain = (5 - 4) / 64 * (math.log(136 + 191 * 5) - math.log(1000))  # brute force has 4 at 1000, 5 from 1091
+    xs = [136] + [136 + 191 * k for k in range(1, 65)] + [12571]  # the line's steps and the range's ends
+    room = sum((1 - k / 64) * (math.log(min(hi, 12571)) - math.log(max(lo, 136)))
+               for k, (lo, hi) in enumerate(zip(xs, xs[1:])) if hi > max(lo, 136))
+    assert abs(q_above(one, entry, line) - gain / room) < 1e-12
+    # coverage below n: the line stops at the inputs brute force certifies, and the room's ceiling is the real count
+    entry2 = {"id": "attn", "n_inputs": 64, "E": 136, "B": 12571, "real_correct": 60}
+    round0b = {**round0, "certified": 60}
+    line2 = brute_force_line(entry2, [round0b])
+    assert line2["coverage"] == 60 and line_certified(line2, 12571) == 60
+    assert q_above([{"length": 136 + 191 * 60, "certified": 60, "n_inputs": 64}], entry2, line2) == 0.0
+    at_start = [{"length": 136, "certified": 60, "n_inputs": 64}]  # every correct input from the range's start: 1
+    assert abs(q_above(at_start, entry2, line2) - 1.0) < 1e-12
+    # without a brute-force record: an estimate, said so
+    est = brute_force_line(entry, [])
+    assert est["how"].startswith("estimate") and est["c"] == 12571 / 64 and est["coverage"] == 64
+    # a baseline that is not brute force (another rule charged, or skipped leaves) does not define the line
+    other = {**round0, "length_by_rule": {"extract": 136, "single": 191, "token_convex": 500}}
+    assert brute_force_line(entry, [other])["how"].startswith("estimate")
+
+
+def test_pilot_2_rescored_under_q_above():
+    """The linear pilot's archive under Q_above (core.rescore): the line is 63 k + 80 up to 64, and the agent's
+    frontier scores 0.2520 after round 1 and 0.3634 after round 4 (Q_exact 0.4132 and 0.5101)."""
+    from core.rescore import rescore
+
+    r = rescore(Path(__file__).resolve().parent.parent / "results" / "open-lane-pilot-tiny-3")
+    line = r["brute_force_lines"]["max2_tiny-v8-s0"]
+    assert (line["c"], line["E"], line["coverage"]) == (63.0, 80, 64) and line["how"].startswith("exact")
+    by_round = {row["after_round"]: row["by_setting"]["v8"] for row in r["per_round"]}
+    assert round(by_round[1]["Q_above_mean"], 4) == 0.2520 and round(by_round[4]["Q_above_mean"], 4) == 0.3634
+    assert round(by_round[4]["Q_exact_mean"], 4) == 0.5101 and by_round[0]["Q_above_mean"] == 0.0
+    assert r["driven_by"] == "Q_grid" and r["versions"]["cost_model"] == "cost-v3"
+
