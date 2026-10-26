@@ -161,6 +161,16 @@ accepted, or the archive recording transparently why none was.
 
 For runs that must survive a laptop going offline, docs/SERVER.md sets up a small Linux server.
 
+The legacy lane's counterpart of these pilots, for the comparison: `config/legacy-pilot-attn-*-tiny.yaml`.
+The agent writes Python recipes that produce proof files and the checker's rules do the mathematics, with
+the rules the Lean checker has (`single`, `interval`, `token_interval`, `skip`; not `token_convex`), scored
+by Q_above like the open-lane pilots. Every proof that enters the frontier is checked by the Lean checker
+during the run (`lean_spot_check`; the tiny model folders' `lean_check` runs `scripts/lean_check_proof.py`
+against the Lean project at `COMPACT_PROOF_LEAN` or the pilots' default path, and a disagreement halts the
+run), and `scripts/check_run.py` of the Lean project checks every proof afterwards. The counts are
+Lean-verified; the lengths are the Python checker's accounting (cost-v3), which the Lean operations
+reproduce leaf by leaf (`scripts/test_gtokens_cost.py` there).
+
 ## What a scored proof costs
 
 Length = the bill of the checker on the protected weights + E (one per weight entry) + one per certificate

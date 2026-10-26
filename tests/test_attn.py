@@ -3,6 +3,8 @@ they load, the general evaluator accepts the model, exact single checks agree wi
 leaves are sound, and brute force on the smallest setting certifies what the manifest says at length B."""
 
 import itertools
+import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -87,3 +89,55 @@ def test_brute_force_certifies_the_manifest_count_at_length_b():
     e = next(x for x in networks(folder) if x["setting"] == "v16")
     r = check_proof(brute_force_proof(folder, e["id"]), folder, e["id"])
     assert r["status"] == "ok" and r["certified"] == e["real_correct"] and r["length"] == e["B"]
+
+
+@pytest.mark.skipif(not (Path(os.environ.get("COMPACT_PROOF_LEAN", "~/Desktop/VerifiedMechanisms/LeanFormalisations/CompactCheck")).expanduser() / ".lake" / "build" / "bin" / "compactcheck").is_file(),
+                    reason="needs the Lean project (COMPACT_PROOF_LEAN or the pilots' default path) with `lake build compactcheck`")
+def test_a_legacy_pilot_on_the_tiny_attention_network_is_lean_checked_and_scored_by_q_above(tmp_path):
+    """The legacy lane's counterpart of the open-lane pilots (config/legacy-pilot-attn-*-tiny.yaml): one agent
+    round from a fake response whose recipe uses token_interval leaves (one box per largest token with the
+    other position below it, and one-input token leaves elsewhere), run with lean_spot_check on. The proof
+    enters the frontier, the Lean checker (scripts/lean_check_proof.py through the model folder's lean_check)
+    certifies the Python checker's count, and the proof is above the brute-force line, so Q_above is positive."""
+    import yaml
+
+    from core import loop
+    from core.scoring import summarize
+
+    recipe = '''```python
+import helpers
+
+
+def make_proof(weights, info, knob):
+    V = info["input_space"][0]
+    children = []
+    for m in range(V):
+        if m == V - 1:
+            children.append({"leaf": "token_interval"})
+            continue
+        upper = [{"leaf": "token_interval"} for _ in range(m + 1, V)]
+        children.append({"split": {"position": 1, "cuts": list(range(m + 1, V))}, "children": [{"leaf": "token_interval"}] + upper})
+    return helpers.proof({"split": {"position": 0, "cuts": list(range(1, V))}, "children": children})
+```'''
+    text = ("CLAIM: The largest token's row dominates.\n\nWHY IT HELPS: One token_interval leaf per largest token.\n\n"
+            f"PREDICTION: Full accuracy below B.\n\nKNOB: Unused.\n\nRECIPE:\n{recipe}\n\nNOTES: boxes by the largest token.\n")
+    resp = tmp_path / "r.md"
+    resp.write_text(text)
+    base = yaml.safe_load((Path(__file__).resolve().parent.parent / "config" / "legacy-pilot-attn-max2-tiny.yaml").read_text())
+    cfg = {**base, "run_id": "legacy-tiny-test", "backend": "fake", "fake_responses": [str(resp)], "rounds_max": 1,
+           "runs_dir": str(tmp_path / "runs"), "sandbox": "process", "knob_values": [1]}
+    for k in ("agent_model", "effort", "api_retries"):
+        cfg.pop(k, None)
+    path = tmp_path / "run.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+    lines = []
+    ctx = loop.start(path, log=lines.append)
+    loop.drive(ctx)
+    records = ctx.run.read_archive()
+    ok = [r for r in records if r["round"] == 1 and r["status"] == "ok"]
+    assert len(ok) == 1 and ok[0]["certified"] == 64 and ok[0]["length"] < 64 * 191 + 136, [(r["status"], r.get("error")) for r in records if r["round"] == 1]
+    checks = [json.loads(l) for l in (ctx.run.path / "lean.jsonl").read_text().splitlines()]
+    assert checks and all(c["agree"] and c["lean"] == 64 for c in checks), checks
+    s = summarize(records, ctx.entries, cfg.get("budget_ratio"))["v8d4"]
+    assert s["Q_above_mean"] > 0 and s["networks"]["attn_max2_tiny-v8d4-s1"]["points_above_line"] == 1
+    assert any("Lean spot check: 1 of 1 agree" in l for l in lines)

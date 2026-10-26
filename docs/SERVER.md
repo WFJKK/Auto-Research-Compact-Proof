@@ -39,7 +39,7 @@ Always inside tmux, so the run survives the ssh session:
     tmux new -s pilot
     cd ~/Desktop/VerifiedMechanisms/CompactProofsAgent/Auto-Research-Compact-Proof && source .venv/bin/activate
     python3 -m pytest tests/test_open_lane.py      # the pair works together: about two minutes
-    python3 -m core.loop run --config config/open-lane-pilot-attn-max2-tiny-maximum.yaml
+    python3 -m core.loop run --config config/open-lane-pilot-attn-max2-tiny.yaml
 
 Detach with Ctrl-B then D; the run keeps going. Later, from anywhere:
 
