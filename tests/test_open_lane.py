@@ -1,8 +1,8 @@
 """The open lane in the loop: the MCP server's protocol, and a fake-backend run that submits the scored
 brute-force example through the Lean project's acceptance service and records its receipt.
 
-The run test needs the Lean project built next to this repository (or at COMPACT_PROOF_LEAN) and takes a
-few minutes; it is skipped otherwise.
+The run test needs the Lean project built (at COMPACT_PROOF_LEAN, else next to this repository, else at the
+pilots' path, where scripts/server_setup.sh puts it) and takes a few minutes; it is skipped otherwise.
 """
 
 from __future__ import annotations
@@ -20,7 +20,14 @@ from core.open_lane.session import Session
 from core.run_config import merge
 from core.util import REPO_ROOT
 
-LEAN = Path(os.environ.get("COMPACT_PROOF_LEAN", REPO_ROOT.parent / "auto-research-compact-proof-in-lean"))
+def _lean_project() -> Path:
+    if os.environ.get("COMPACT_PROOF_LEAN"):
+        return Path(os.environ["COMPACT_PROOF_LEAN"]).expanduser()
+    sibling = REPO_ROOT.parent / "auto-research-compact-proof-in-lean"
+    return sibling if sibling.is_dir() else Path("~/Desktop/VerifiedMechanisms/LeanFormalisations/CompactCheck").expanduser()
+
+
+LEAN = _lean_project()
 HAVE_LEAN = (LEAN / "scripts" / "accept.py").is_file() and (LEAN / ".lake" / "build" / "bin" / "acceptcheck").is_file()
 
 
