@@ -9,8 +9,9 @@ the service its proper sandbox (Landlock), which a Mac cannot.
 
 Any Ubuntu 24.04 VM with 4 or more cores, 16 GB of memory and 60 GB of disk. Lean candidates compile at up to
 about 6 GB (the service allows 12 GB of address space per compile), and Mathlib's prebuilt files take about
-10 GB of disk. No GPU. A machine of this size costs on the order of 20 to 30 euros a month at the usual
-providers; delete it when the series is done, after copying the run folders home.
+10 GB of disk. No GPU. Cloud providers such as Hetzner bill a machine like this by the hour, up to a monthly
+cap, until it is deleted (check the provider's current price); delete it when the series is done, after copying
+the run folders home.
 
 ## Setup, once
 
@@ -24,7 +25,7 @@ CompactCheck.CountedOps CompactCheck.CountedGeneralSound compactcheck acceptchec
 agents' proofs import), the pipeline in a virtual environment with its pinned packages, tmux, and the Claude
 Code CLI. It clones both repositories to the paths the pilot configs name on the Mac
 (`~/Desktop/VerifiedMechanisms/...`), so nothing in a config needs editing and every command in
-docs/OPEN_LANE.md is the same. About half an hour, most of it Lean.
+docs/OPEN_LANE.md is the same. About five minutes on an 8-core machine, most of it Lean.
 
 Then sign in to Claude Code with the subscription: run `claude`, choose the subscription login; on a headless
 server it prints a link to open on any device (the laptop, the phone) and asks for the code shown there. `claude
@@ -39,8 +40,10 @@ Always inside tmux, so the run survives the ssh session:
     tmux new -s pilot
     cd ~/Desktop/VerifiedMechanisms/CompactProofsAgent/Auto-Research-Compact-Proof && source .venv/bin/activate
     python3 -m pytest tests/test_open_lane.py      # the pair works together: about two minutes
-    python3 -m core.loop run --config config/open-lane-pilot-attn-max2-tiny.yaml
+    python3 -m core.loop run --config config/open-lane-pilot-attn-max2-tiny.yaml --set rounds_max=5
 
+`--set` changes a setting for this run only, without editing the config (a run with a model backend starts
+only from a clean commit, so an edited config on the server would be refused); the run folder records it.
 Detach with Ctrl-B then D; the run keeps going. Later, from anywhere:
 
     ssh <server>

@@ -392,6 +392,8 @@ Open a Claude Code session in this repository and ask it to follow `docs/SPEC.md
    python -m core.loop status --run ~/auto-research-compact-proof-runs/<run_id> --diagnostics
    ```
 
+Any setting can also be given for one run when it starts, on top of the config file: `--set rounds_max=5` (repeatable; `--set open_lane.worker_seconds=3600` sets one entry of a mapping). The run folder's `config.yaml` records what the run used, and its `versions.json` lists what came from the command line.
+
 A run stops at `rounds_max`, after `patience` rounds without a gain, or when the API reports something waiting can't fix (a spend limit, say). Ctrl-C is safe at any point; `python -m core.loop resume --run <runs_dir>/<run_id>` continues without paying for any saved response again. Each round's `meta.json` records the tokens used and the estimated cost, priced from `config/prices.yaml`.
 
 In the real-run configs round 0 holds brute force only: the agent is told which proof rules exist, but it has to discover the strategies (the input symmetry, contracting the linear maps, grouping inputs by their label) itself. `config/max2-round0.yaml` runs the hand-written baselines instead (and `config/max2-baselines.yaml` runs only those, on every development network), and `python -m core.report --run <run> --reference <that run>` overlays them as reference marks on the run's plots. Set `baselines` in a run config to `true`, `false` or a list of names to choose.

@@ -3,12 +3,18 @@
 A run config must name `run_id` and `model` (the model folder) and may override
 any default. Unknown keys are refused, so a typo never silently falls back to
 a default. Relative paths are relative to the repository root.
+
+A run may also set values when it starts (`python -m core.loop run ... --set
+rounds_max=5`): they go on top of the run config before the merge, under the
+same checks, and the run folder's config.yaml records the result.
 """
 
 from __future__ import annotations
 
 import re
 from pathlib import Path
+
+import yaml
 
 from .check.rules import generic_rules
 from .util import REPO_ROOT, read_yaml
@@ -39,13 +45,54 @@ def defaults() -> dict:
     return dict(read_yaml(DEFAULTS_PATH))
 
 
-def load_run_config(path: str | Path, run_id: str | None = None) -> dict:
+def load_run_config(path: str | Path, run_id: str | None = None, overrides: dict | None = None) -> dict:
     raw = read_yaml(Path(path))
     if not isinstance(raw, dict):
         raise RunConfigError(f"{path}: a run config is a mapping")
     if run_id is not None:
         raw = {**raw, "run_id": run_id}
+    if overrides:
+        raw = apply_overrides(raw, overrides)
     return merge(raw, source=str(path))
+
+
+def parse_overrides(items: list[str]) -> dict:
+    """Command-line settings, KEY=VALUE each, as {KEY: value}. VALUE is read as YAML: 5, true, high, [single, skip]."""
+    out = {}
+    for item in items:
+        key, sep, text = item.partition("=")
+        key = key.strip()
+        if not sep or not key:
+            raise RunConfigError(f"--set {item!r}: write KEY=VALUE, for example rounds_max=5")
+        try:
+            out[key] = yaml.safe_load(text)
+        except yaml.YAMLError as exc:
+            raise RunConfigError(f"--set {item!r}: the value is not YAML ({exc})") from exc
+    return out
+
+
+def apply_overrides(raw: dict, overrides: dict) -> dict:
+    """The run config with the command-line settings on top.
+
+    A key names a setting (rounds_max) or one entry of a setting that is a mapping
+    (open_lane.worker_seconds, api_retries.tries); the rest of that mapping stays
+    as the run config or the defaults have it. The merge's checks then apply as to
+    any run config: an unknown key or a wrong type is refused.
+    """
+    out = dict(raw)
+    base = defaults()
+    for key, value in overrides.items():
+        head, _, entry = key.partition(".")
+        if head == "run_id":
+            raise RunConfigError("--set run_id: use --run-id")
+        if not entry:
+            out[head] = value
+            continue
+        current = out.get(head, base.get(head))
+        if "." in entry or not isinstance(current, dict):
+            raise RunConfigError(f"--set {key}: write a setting, or <setting>.<entry> for a setting that is a mapping")
+        out[head] = {**current, entry: value}
+    return out
 
 
 def merge(raw: dict, source: str = "run config") -> dict:

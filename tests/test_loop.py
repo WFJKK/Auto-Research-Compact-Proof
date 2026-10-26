@@ -225,3 +225,28 @@ def test_a_manifest_from_another_cost_model_is_refused(trained_stub, tmp_path):
     write_manifest(folder, m)
     with pytest.raises(loop.LoopError, match="computed under cost-v0"):
         loop.start(write_config(tmp_path, dst, "stale-costs"), log=lambda *a: None)
+
+
+def test_settings_given_when_a_run_starts_go_on_top_of_its_config_and_are_recorded(trained_stub, tmp_path):
+    from core.run_config import defaults, parse_overrides
+
+    cfg = write_config(tmp_path, trained_stub, "with-set", rounds_max=7, fake_responses=[])
+    sets = parse_overrides(["rounds_max=5", "patience=2", "api_retries.tries=20", "knob_values=[0, 0.5, 1]"])
+    assert sets == {"rounds_max": 5, "patience": 2, "api_retries.tries": 20, "knob_values": [0, 0.5, 1]}
+    ctx = loop.start(cfg, log=lambda *a: None, overrides=sets)
+    assert (ctx.cfg["rounds_max"], ctx.cfg["patience"], ctx.cfg["knob_values"]) == (5, 2, [0, 0.5, 1])
+    assert ctx.cfg["api_retries"] == {**defaults()["api_retries"], "tries": 20}  # the mapping's other entries stay
+    recorded = yaml.safe_load((ctx.run.path / "config.yaml").read_text())
+    assert recorded["rounds_max"] == 5 and recorded["api_retries"]["tries"] == 20
+    versions = json.loads((ctx.run.path / "versions.json").read_text())
+    assert versions["set_on_command_line"] == sets and versions["config_file"] == str(cfg)
+    # resume reads the run folder's config, so the run keeps them
+    assert loop.resume(ctx.run.path, log=lambda *a: None).cfg["rounds_max"] == 5
+
+
+def test_bad_settings_given_when_a_run_starts_are_refused_before_a_run_folder_exists(trained_stub, tmp_path):
+    cfg = write_config(tmp_path, trained_stub, "bad-set", fake_responses=[])
+    for bad in ("rounds_max", "roundsmax=5", "rounds_max=five", "rounds_max=0", "open_lane.nope=1", "run_id=x",
+                "rounds_max.x=1", "rule_set=[single"):
+        assert loop.main(["run", "--config", str(cfg), "--set", bad]) == 2, bad
+    assert not (tmp_path / "runs" / "bad-set").exists()

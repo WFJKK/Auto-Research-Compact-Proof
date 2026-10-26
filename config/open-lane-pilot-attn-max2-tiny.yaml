@@ -16,7 +16,7 @@ rule_set: [single, skip]
 # over the room above it (docs/decisions/q-above.md). Brute force on any subset of the inputs scores 0.
 metric: Q_above
 baselines: [brute_force]
-rounds_max: 5
+rounds_max: 7
 patience: 4
 api_retries: {tries: 12, first_wait_s: 60, max_wait_s: 1800, timeout_s: 3600}
 sandbox: auto   # hardened once Docker or Landlock is available; the receipts record the isolation

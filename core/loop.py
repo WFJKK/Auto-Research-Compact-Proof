@@ -1,6 +1,6 @@
 """The loop driver.
 
-    python -m core.loop run --config config/<run>.yaml
+    python -m core.loop run --config config/<run>.yaml [--run-id <id>] [--set rounds_max=5 ...]
     python -m core.loop resume --run <runs_dir>/<run_id>
     python -m core.loop status --run <runs_dir>/<run_id>
 
@@ -42,7 +42,7 @@ from .archive import RunDir
 from .check.cost import VERSION as COST_VERSION
 from .model_folder import load_model_folder
 from .rounds import Context, RoundError, now, run_round
-from .run_config import METRIC_KEYS, load_run_config, resolve
+from .run_config import METRIC_KEYS, RunConfigError, load_run_config, parse_overrides, resolve
 from .runner import Limits
 from .sandbox import SandboxError, check_probe, choose, probe, protected_paths
 from .scoring import frontier, summarize
@@ -390,8 +390,8 @@ def check_lean_lock(project: Path) -> dict:
     return lock
 
 
-def start(config_path: str | Path, log=print, run_id: str | None = None) -> Context:
-    cfg = load_run_config(config_path, run_id=run_id)
+def start(config_path: str | Path, log=print, run_id: str | None = None, overrides: dict | None = None) -> Context:
+    cfg = load_run_config(config_path, run_id=run_id, overrides=overrides)
     folder = load_model_folder(resolve(cfg["model"]))
     preflight(cfg, folder)
     run = RunDir(resolve(cfg["runs_dir"]), cfg["run_id"])
@@ -400,8 +400,11 @@ def start(config_path: str | Path, log=print, run_id: str | None = None) -> Cont
     versions = collect(folder, cfg, config_sha)
     if cfg.get("open_lane", {}).get("enabled"):
         versions["lean_checker"] = lean_identity(resolve(cfg["open_lane"]["lean_project"]), knowledge=cfg["open_lane"]["knowledge"])
-    write_json(run.path / "versions.json", {**versions, "git": git_state(), "created": now()})
+    write_json(run.path / "versions.json", {**versions, "git": git_state(), "created": now(),
+                                            "config_file": str(config_path), "set_on_command_line": overrides or {}})
     log(f"run {cfg['run_id']} at {run.path}")
+    if overrides:
+        log("set on the command line: " + ", ".join(f"{k}={v}" for k, v in overrides.items()))
     return open_context(run, run.config(), log)
 
 
@@ -509,6 +512,9 @@ def main(argv=None):
     p_run = sub.add_parser("run", help="start a run from a run config")
     p_run.add_argument("--config", required=True)
     p_run.add_argument("--run-id", help="use this run id instead of the config's, e.g. to repeat a run")
+    p_run.add_argument("--set", dest="settings", action="append", default=[], metavar="KEY=VALUE",
+                       help="set a value for this run on top of the config, e.g. --set rounds_max=5 or "
+                            "--set open_lane.worker_seconds=3600 (repeatable; the run folder's config.yaml records it)")
     for name in ("resume", "status"):
         p = sub.add_parser(name)
         p.add_argument("--run", required=True, help="the run's folder, <runs_dir>/<run_id>")
@@ -519,14 +525,17 @@ def main(argv=None):
             path = Path(args.run).expanduser().resolve()
             print(status_text(RunDir(path.parent, path.name), diagnostics=args.diagnostics))
             return 0
-        ctx = start(args.config, run_id=args.run_id) if args.cmd == "run" else resume(args.run)
+        if args.cmd == "run":
+            ctx = start(args.config, run_id=args.run_id, overrides=parse_overrides(args.settings))
+        else:
+            ctx = resume(args.run)
         drive(ctx)
         print(status_text(ctx.run))
         return 0
     except StopRun as exc:
         print(f"stopped: {exc}\nFix the cause, then continue with: python -m core.loop resume --run <the run's folder>", file=sys.stderr)
         return 3
-    except (LoopError, RoundError, BackendError, SandboxError, PromptError, LeanError) as exc:
+    except (LoopError, RoundError, BackendError, SandboxError, PromptError, LeanError, RunConfigError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
