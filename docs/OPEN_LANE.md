@@ -12,13 +12,18 @@ there). This document is the pipeline side: how a run uses it.
 With `open_lane.enabled: true` in the run config, an agent round is a session with tools instead of one
 response:
 
-- The prompt (`core/agent/prompts/open_lane_v1.md`, or `open_lane_v2.md`, built by `core/open_lane/prompt.py`)
-  gives the specification (Spec.lean), the protected module's interface, the counted language with its prices
-  (Counted.lean, CountedOps.lean), a scored brute-force proof as the worked example (`open_lane.example`), the
-  tools and their budgets, the scoreboard, the receipts so far, the sources of the agent's accepted submissions
-  from earlier rounds, and its latest notes. No rule descriptions. Template v2 adds further Lean sources
-  (`open_lane.extra_sources`) and says how to split an instance proof; a run of facts in the example that
-  differ only in their numbers is shortened to its first two and its last.
+- The prompt (`core/agent/prompts/open_lane_v1.md`, `open_lane_v2.md` or `open_lane_v3.md`, built by
+  `core/open_lane/prompt.py`) gives the specification (Spec.lean), the protected module's interface, the
+  counted language with its prices (Counted.lean, CountedOps.lean), a scored brute-force proof as the worked
+  example (`open_lane.example`), the tools and their budgets, the scoreboard, the receipts so far, the sources
+  of the agent's accepted submissions from earlier rounds, and its latest notes. No rule descriptions. Template
+  v2 adds further Lean sources (`open_lane.extra_sources`) and says how to split an instance proof; a run of
+  facts in the example that differ only in their numbers is shortened to its first two and its last. Template
+  v3 (the pilot configs' since 27 October 2026) lists the carried modules of the workspace (below) instead of
+  pasting the accepted sources, and tells the agent that the instance is one `decide +kernel` over the whole
+  run with `set_option maxRecDepth 1000000 in` before it: Lean's default recursion limit stops the kernel's
+  evaluation of a bill after a few thousand charges, and the server pilot of 26 October built a model of its
+  checker and run lemmas to get past it (the Lean project's docs/COUNTED.md, "The instance in one theorem").
 - The tools (`core/open_lane/session.py`): `lean_check` saves a module in the session's workspace and
   compiles it through the service against the protected module of a network and claim;
   `run_python` runs code in the recipe sandbox with the network's weights; `search_library` searches the

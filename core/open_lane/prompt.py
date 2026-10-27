@@ -3,9 +3,10 @@ the receipts so far, the agent's accepted lemmas from earlier rounds and its lat
 descriptions: the agent is told what a proof is and what it costs, not which argument shapes to use.
 
 Templates: core/agent/prompts/open_lane_v1.md (the pilot's), open_lane_v2.md (adds the further sources
-and the split instance) and open_lane_v3.md (the modules carried into the workspace instead of the accepted
-sources pasted in, and instances proved through the bill-free run of CountedRun.lean). Part 1 is the same
-every round; part 2 is rebuilt from the archive. Building it opens the round's first session, which carries
+and the split instance) and open_lane_v3.md (the modules carried into the workspace listed instead of the
+accepted sources pasted in; the instance as one `decide +kernel` with Lean's recursion limit raised, which
+is what the kernel needs to compute a bill of thousands of charges). Part 1 is the same every round; part 2
+is rebuilt from the archive. Building it opens the round's first session, which carries
 the earlier rounds' accepted modules into its workspace (core.open_lane.session). The Lean
 sources shown (Spec.lean, Counted.lean, CountedOps.lean, the scored example of `open_lane.example`, the
 files of `open_lane.extra_sources`) are read from the Lean project the run config names, so the prompt

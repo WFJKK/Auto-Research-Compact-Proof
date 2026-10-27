@@ -9,7 +9,7 @@ model: tests/attn_min4_tiny
 backend: claude_code
 agent_model: claude-fable-5-1
 effort: xhigh
-prompt_template: open_lane_v2
+prompt_template: open_lane_v3
 # The legacy lane (round 0's baselines) limited to single and skip; explicit, as the ticket asks.
 rule_set: [single, skip]
 # The score the agent is shown and asked to raise: the verified frontier's log-area above the brute-force line,

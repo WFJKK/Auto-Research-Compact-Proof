@@ -425,7 +425,7 @@ def test_the_prompt_shows_the_configured_example_shortened_and_the_further_sourc
              "CompactCheck/CountedOps.lean": "-- ops", "CompactCheck/CountedGeneral.lean": "-- general single rule",
              "examples/open_lane/attn/Candidate/A.lean": example}
     project = fake_project(tmp_path, files)
-    cfg = merge(base_config(tmp_path, [], model="tests/attn_max2_tiny", prompt_template="open_lane_v2"))
+    cfg = merge(base_config(tmp_path, [], model="tests/attn_max2_tiny", prompt_template="open_lane_v3"))
     cfg["open_lane"].update(lean_project=str(project), example="examples/open_lane/attn/Candidate/A.lean",
                             extra_sources=["CompactCheck/CountedGeneral.lean"])
     folder = load_model_folder(REPO_ROOT / "tests" / "attn_max2_tiny")
@@ -433,9 +433,13 @@ def test_the_prompt_shows_the_configured_example_shortened_and_the_further_sourc
     values = static_values(cfg, folder, entries)
     assert "more of the same form" in values["EXAMPLE"] and "theorem in_1_1" not in values["EXAMPLE"]
     assert values["EXTRA_SOURCES"].startswith("From CompactCheck/CountedGeneral.lean:") and "general single rule" in values["EXTRA_SOURCES"]
-    part1, _ = load_template("open_lane_v2")
+    part1, part2 = load_template("open_lane_v3")
     assert "{EXTRA_SOURCES}" in part1 and placeholders(part1) <= set(values)
     assert "CostM.gsingle_run_of" in part1
+    # the instance is one decide with Lean's recursion limit raised (a few thousand charges stop the default)
+    assert "set_option maxRecDepth 1000000 in\n    theorem D_instance" in part1
+    # the accepted modules are in the workspace, listed; their sources are no longer pasted
+    assert "{WORKSPACE}" in part2 and "{LEMMAS}" not in part2
 
 
 def test_the_open_lane_config_names_its_example_and_sources_in_the_lean_project(tmp_path):
@@ -455,10 +459,11 @@ def test_the_open_lane_config_names_its_example_and_sources_in_the_lean_project(
 
 
 @pytest.mark.parametrize("metric", ["Q", "Q_grid", "Q_exact", "Q_above", "cost_of_finishing"])
-def test_the_open_lane_prompt_builds_for_every_metric(tmp_path, metric):
+def test_the_open_lane_prompt_builds_for_every_metric(tmp_path, monkeypatch, metric):
     """Review of 23 October: the open-lane aim had no entry for Q_exact, so the first prompt of a Q_exact run
     raised KeyError. The whole prompt, both parts, for each metric the run config accepts, from a fake Lean
-    project and an archive with round 0's brute-force record."""
+    project and an archive with round 0's brute-force record. Part 2 lists the module round 1 had accepted,
+    carried into the workspace (the service's compile replaced), without pasting its source."""
     from core.archive import RunDir
     from core.model_folder import load_model_folder
     from core.open_lane.prompt import build_open_lane_prompt
@@ -470,7 +475,7 @@ def test_the_open_lane_prompt_builds_for_every_metric(tmp_path, metric):
              "CompactCheck/CountedGeneralSound.lean": "-- sound",
              "examples/open_lane/attn_max2_tiny_scored/Candidate/AttnTinyScored.lean": "-- example"}
     project = fake_project(tmp_path, files)
-    cfg = merge(base_config(tmp_path, [], model="tests/attn_max2_tiny", prompt_template="open_lane_v2", metric=metric))
+    cfg = merge(base_config(tmp_path, [], model="tests/attn_max2_tiny", prompt_template="open_lane_v3", metric=metric))
     cfg["open_lane"].update(lean_project=str(project),
                             example="examples/open_lane/attn_max2_tiny_scored/Candidate/AttnTinyScored.lean",
                             extra_sources=["CompactCheck/CountedGeneral.lean", "CompactCheck/CountedGeneralSound.lean"])
@@ -495,8 +500,12 @@ def test_the_open_lane_prompt_builds_for_every_metric(tmp_path, metric):
                         {"run_id": run.run_id, "round": 1, "attempt": 0, "record_id": "r1b", "network": e["id"], "lane": "open",
                          "submission": 1, "claimed_count": 20, "setting": e["setting"], "status": "ok", "certified": 20,
                          "n_inputs": 64, "length": 2000, "length_by_rule": {"bill": 1864, "extract": e["E"], "read": 0}, "knob": 1.0}])
+    _submission(run.path, 1, 2, {"Candidate/Tables.lean": "theorem tables_ok : 2 + 2 = 4 := rfl\n"})
+    monkeypatch.setattr(Session, "_service", lambda self, args, timeout_s: {"ok": True, "messages": ""})
     run.mark_done(1)
     p = build_open_lane_prompt(cfg, folder, entries, run, 2)
+    assert "YOUR WORKSPACE" in p.part2 and "- Candidate/Tables.lean (1 lines; round 1, submission 2" in p.part2
+    assert "tables_ok" not in p.part2 and "ACCEPTED LEMMAS" not in p.part2
     assert "Raise the score. It stands at: " + metric in p.part2
     assert (" mean " in p.part2.split("Raise the score", 1)[1]) == (metric in ("Q_exact", "Q_above"))
     assert "-- general" in p.part1 and "{" + "EXTRA_SOURCES}" not in p.part1
