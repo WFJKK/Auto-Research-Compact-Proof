@@ -2,8 +2,11 @@
 the receipts so far, the agent's accepted lemmas from earlier rounds and its latest notes. No rule
 descriptions: the agent is told what a proof is and what it costs, not which argument shapes to use.
 
-Templates: core/agent/prompts/open_lane_v1.md (the pilot's) and open_lane_v2.md (adds the further sources
-and the split instance). Part 1 is the same every round; part 2 is rebuilt from the archive. The Lean
+Templates: core/agent/prompts/open_lane_v1.md (the pilot's), open_lane_v2.md (adds the further sources
+and the split instance) and open_lane_v3.md (the modules carried into the workspace instead of the accepted
+sources pasted in, and instances proved through the bill-free run of CountedRun.lean). Part 1 is the same
+every round; part 2 is rebuilt from the archive. Building it opens the round's first session, which carries
+the earlier rounds' accepted modules into its workspace (core.open_lane.session). The Lean
 sources shown (Spec.lean, Counted.lean, CountedOps.lean, the scored example of `open_lane.example`, the
 files of `open_lane.extra_sources`) are read from the Lean project the run config names, so the prompt
 always matches the service that will check the proof.
@@ -228,6 +231,32 @@ def accepted_sources(run: RunDir, records: list[dict], n: int, max_chars: int) -
     return "\n\n".join(parts) if parts else "none yet"
 
 
+WORKSPACE_HEAD = (
+    "These modules, from the submissions the service accepted in earlier rounds (the latest accepted version of "
+    "each), are in your workspace and were compiled there before this session began. Import them (`import "
+    "Candidate.<Name>`) rather than pasting their code again; read one with read_file (path Candidate/<Name>.lean); "
+    "submit_candidate adds the workspace modules your submitted modules import, and the service checks them "
+    "afresh with every submission. Saving a module of the same path with lean_check replaces it."
+)
+
+
+def workspace_text(carried) -> str:
+    """Part 2's account of the modules carried into this round's workspace (core.open_lane.session)."""
+    if not carried or not isinstance(carried, list):
+        return "none yet"
+    lines = [WORKSPACE_HEAD]
+    for m in carried:
+        if m.get("kind") == "auxiliary":
+            what = f"accepted lemma {m.get('theorem')}"
+        elif m.get("scored"):
+            what = f"scored proof ({m.get('certified')} inputs, length {m.get('length'):,})" if m.get("length") else "scored proof"
+        else:
+            what = f"verified proof ({m.get('certified')} inputs)"
+        state = "compiled" if m.get("compiled") else "did not compile here: " + " | ".join(m.get("errors") or [])[:MAX_REASON]
+        lines.append(f"- {m['path']} ({m.get('lines')} lines; round {m['round']}, submission {m['submission']}, {what}): {state}")
+    return "\n".join(lines)
+
+
 def latest_notes(run: RunDir, k: int, max_chars: int) -> str:
     for kk in range(k - 1, 0, -1):
         j = 0
@@ -271,10 +300,14 @@ def build_open_lane_prompt(cfg: dict, folder: ModelFolder, entries: list[dict], 
     budget = cfg["prompt_budget_tokens"] * CHARS_PER_TOKEN
     lemma_chars, notes_chars = MAX_LEMMA_CHARS, MAX_NOTES_CHARS
     trimmed = []
+    # the round's first session, made now so that the prompt can say what was carried into its workspace and
+    # whether it compiled; the backend opens the same session (Session.create returns an existing one)
+    session = Session.create(run.round_path(k) / "attempt_0" / "open_lane", cfg, cfg["model"], entries, run.path)
     values = {
         "SCOREBOARD": scoreboard(records, entries, cfg.get("budget_ratio")),
         "RECEIPTS": receipts_text(records, entries),
         "AIM": aim(records, entries, cfg, k),
+        "WORKSPACE": workspace_text(session.state.get("carried")),
     }
     while True:
         values["LEMMAS"] = accepted_sources(run, records, cfg["shown_top_recipes"], lemma_chars)

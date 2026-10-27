@@ -16,7 +16,7 @@ import pytest
 
 from core import loop
 from core.open_lane.mcp_server import serve
-from core.open_lane.session import Session
+from core.open_lane.session import Session, ToolError
 from core.run_config import merge
 from core.util import REPO_ROOT
 
@@ -567,3 +567,103 @@ def test_the_tool_backend_never_records_another_models_session(tmp_path):
     with pytest.raises(StopRun, match="other instead of m"):
         b.respond(Prompt("one", "two", {}), 0, where=where)
     assert seen[0]["CLAUDE_CODE_NO_MODEL_FALLBACK"] == "1"
+
+
+def _submission(run: Path, k: int, n: int, modules: dict, kind: str = "auxiliary", status: str = "accepted") -> None:
+    """A submission folder as a session leaves it: the modules as submitted, the manifest, the receipt."""
+    d = run / f"round_{k:03d}" / "attempt_0" / "open_lane" / "submissions" / f"{n:03d}"
+    for rel, text in modules.items():
+        (d / rel).parent.mkdir(parents=True, exist_ok=True)
+        (d / rel).write_text(text)
+    (d / "manifest.json").write_text(json.dumps({
+        "schema": "open-lane-candidate-v1", "kind": kind, "network": "max2_tiny-v8-s0", "model": "tests/max2_tiny",
+        "claimed_count": 64 if kind == "performance" else 0, "theorem": "Candidate.A.t", "modules": list(modules)}))
+    (d / "receipt.json").write_text(json.dumps({"status": status, "claim_kind": kind, "statement": "1 = 1"}))
+
+
+def test_a_new_round_starts_with_the_accepted_modules_of_earlier_rounds_compiled(tmp_path, monkeypatch):
+    """No Lean: the service's compile is replaced. What is carried, in which order, and what the tools do with it."""
+    run = tmp_path / "run"
+    _submission(run, 1, 0, {"Candidate/A.lean": "theorem t : 1 = 1 := rfl\n"})
+    _submission(run, 1, 1, {"Candidate/R.lean": "theorem r : 1 = 2 := sorry\n"}, status="rejected")
+    _submission(run, 2, 0, {"Candidate/B.lean": "import Candidate.A\n\ntheorem u : 2 = 2 := rfl\n",
+                            "Candidate/A.lean": "theorem t : 1 = 1 := rfl\ntheorem t2 : 3 = 3 := rfl\n"})
+    calls = []
+
+    def fake_service(self, args, timeout_s):
+        calls.append(args)
+        return {"ok": args[2] != "Candidate/B.lean", "messages": "B.lean:3:0: error: something" if args[2] == "Candidate/B.lean" else ""}
+
+    monkeypatch.setattr(Session, "_service", fake_service)
+    cfg = merge(base_config(tmp_path, [], open_lane={"enabled": False}))
+    cfg["open_lane"].update(lean_project=str(tmp_path), work_dir=str(tmp_path / "work"))
+    entries = [{"id": "max2_tiny-v8-s0", "setting": "v8", "n_inputs": 64}]
+    where = run / "round_003" / "attempt_0" / "open_lane"
+    s = Session.create(where, cfg, "tests/max2_tiny", entries, run)
+    assert [c[2] for c in calls] == ["Candidate/A.lean", "Candidate/B.lean"]  # a module after the ones it imports
+    assert all(c[0] == "compile" and "--claimed" in c for c in calls)
+    assert s.remaining()["lean_check"] == cfg["open_lane"]["compile_calls"]  # not charged
+    assert "t2" in (s.workspace / "Candidate/A.lean").read_text()  # the latest accepted version
+    assert not (s.workspace / "Candidate/R.lean").exists()  # a rejected submission carries nothing
+    carried = s.state["carried"]
+    assert [(m["path"], m["round"], m["compiled"]) for m in carried] == [("Candidate/A.lean", 2, True), ("Candidate/B.lean", 2, False)]
+    assert "something" in carried[1]["errors"][0]
+    from core.open_lane.prompt import workspace_text
+
+    text = workspace_text(carried)
+    assert "Candidate/A.lean (2 lines; round 2, submission 0, accepted lemma Candidate.A.t): compiled" in text
+    assert "Candidate/B.lean" in text and "did not compile here" in text
+    assert workspace_text([]) == "none yet"
+    # reopening the session (the backend does, after the prompt did) carries nothing again
+    calls.clear()
+    Session.create(where, cfg, "tests/max2_tiny", entries, run)
+    assert calls == []
+    # the agent reads its own modules, and a submission takes the modules its modules import
+    assert "t2" in s.read_file("Candidate/A.lean")["text"]
+    with pytest.raises(ToolError, match="no module"):
+        s.read_file("Candidate/Missing.lean")
+    assert s.with_imports(["Candidate/B.lean"]) == ["Candidate/B.lean", "Candidate/A.lean"]
+    # an interrupted carry is done again when the session is reopened
+    state = json.loads((where / "session.json").read_text())
+    state["carried"] = "pending"
+    (where / "session.json").write_text(json.dumps(state))
+    Session.create(where, cfg, "tests/max2_tiny", entries, run)
+    assert len(calls) == 2
+    # round 1 has nothing to carry
+    assert Session.create(run / "round_001" / "attempt_1" / "open_lane", cfg, "tests/max2_tiny", entries, run).state["carried"] == []
+
+
+@pytest.mark.skipif(not HAVE_LEAN, reason="the Lean project with a built acceptcheck is not next to this repository")
+def test_a_lemma_accepted_in_one_round_is_imported_in_the_next_without_being_pasted(tmp_path):
+    lib = ("import CompactCheck.Spec\n\nnamespace Candidate.Lib\n\ntheorem two_eq : (2 : Nat) = 1 + 1 := rfl\n\n"
+           "end Candidate.Lib\n")
+    use = ("import Candidate.Lib\n\nnamespace Candidate.Use\n\ntheorem three_eq : (2 : Nat) + 1 = 3 := by\n"
+           "  rw [Candidate.Lib.two_eq]\n\nend Candidate.Use\n")
+    net = "max2_tiny-v8-s0"
+    r1 = {"calls": [{"tool": "lean_check", "args": {"path": "Candidate/Lib.lean", "source": lib, "network": net, "claimed_count": 0}},
+                    {"tool": "submit_candidate", "args": {"network": net, "claimed_count": 0, "kind": "auxiliary",
+                                                          "theorem": "Candidate.Lib.two_eq", "modules": ["Candidate/Lib.lean"]}}],
+          "response": "CLAIM: a lemma.\nWHY IT HELPS: to be imported.\nNOTES: import it next round."}
+    r2 = {"calls": [{"tool": "lean_check", "args": {"path": "Candidate/Use.lean", "source": use, "network": net, "claimed_count": 0}},
+                    {"tool": "submit_candidate", "args": {"network": net, "claimed_count": 0, "kind": "auxiliary",
+                                                          "theorem": "Candidate.Use.three_eq", "modules": ["Candidate/Use.lean"]}}],
+          "response": "CLAIM: a lemma that uses the last one.\nWHY IT HELPS: no pasting.\nNOTES: none."}
+    scripts = []
+    for i, s in enumerate((r1, r2)):
+        p = tmp_path / f"r{i + 1}.json"
+        p.write_text(json.dumps(s))
+        scripts.append(str(p))
+    import yaml
+
+    cfg_path = tmp_path / "run.yaml"
+    cfg_path.write_text(yaml.safe_dump(base_config(tmp_path, scripts)))
+    ctx = loop.start(cfg_path, log=lambda *a: None)
+    loop.drive(ctx)
+    lemmas = [r for r in ctx.run.read_archive() if r["status"] == "lemma"]
+    assert [(r["round"], r["theorem"]) for r in lemmas] == [(1, "Candidate.Lib.two_eq"), (2, "Candidate.Use.three_eq")]
+    s2 = ctx.run.round_path(2) / "attempt_0" / "open_lane"
+    carried = json.loads((s2 / "session.json").read_text())["carried"]
+    assert [(m["path"], m["compiled"]) for m in carried] == [("Candidate/Lib.lean", True)]
+    assert (s2 / "workspace" / "out" / "Candidate" / "Lib.olean").is_file()
+    assert (s2 / "submissions" / "000" / "Candidate" / "Lib.lean").read_text() == lib  # added to the submission
+    assert "Candidate/Lib.lean" in ctx.run.read(2, "prompt.md") or "Lib" in ctx.run.read(2, "prompt.md")

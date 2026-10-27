@@ -29,6 +29,16 @@ response:
   modules to the acceptance service and returns the receipt. Each call is logged append-only (`tools.jsonl`); the budgets (`compile_calls`,
   `python_calls`, `submissions`) persist in `session.json`, so a session that is started again continues
   them.
+- Carried modules (since 27 October 2026): a round's session starts with the modules of every submission
+  the service accepted in the run's earlier rounds (the latest accepted version of each module path) in its
+  workspace, compiled there before the agent begins, in import order, through the same `accept.py compile` as
+  `lean_check` and without charge to the budgets; `session.json` (`carried`) and the prompt (template
+  `open_lane_v3`) say what was carried and whether it compiled. `read_file` reads the workspace's modules
+  (`Candidate/<Name>.lean`), and `submit_candidate` adds the workspace modules that the listed ones import,
+  so a carried module is imported, never retyped. Nothing about acceptance changes: the service compiles and
+  checks every module of a submission afresh. Before this, each round started with an empty workspace and the
+  prompt showed the latest accepted sources cut to 12,000 characters, and the server pilot of 26 October spent
+  rounds 3 and 4 rebuilding modules it had already had accepted (claude/server-pilots-2026-10-26.md).
 - The records (`core/open_lane/records.py`) come from the receipts: `ok` when verified and scored (count
   and length; it enters the frontier like a proof file's record), `verified` when accepted without a
   length, else the receipt's status with its reason. An attempt without a submission gets `no_submission`.

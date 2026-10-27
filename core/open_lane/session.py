@@ -16,11 +16,18 @@ The tools:
 - run_python(code, network): run code in the recipe sandbox with that network's weights and info, returning
   what it printed. Same limits as a recipe.
 - search_library(query, max_results): search the Lean project's sources and docs (the allowed package only).
-- read_file(path, start, lines): read a stretch of one of those files, numbered.
+- read_file(path, start, lines): read a stretch of one of those files, or of a module of the workspace, numbered.
 - submit_candidate(network, claimed_count, theorem, modules, scored, kind): hand the workspace's modules to
-  the acceptance service (`accept.py submit`); returns the receipt. Counts against the submission budget.
+  the acceptance service (`accept.py submit`); returns the receipt. The workspace modules that the listed
+  ones import (transitively) are added. Counts against the submission budget.
 
 The service is the Lean project's; this file is its client and never decides anything about a proof.
+
+Carried modules: a new session's workspace starts with the modules of every submission the service accepted
+in the run's earlier rounds (the latest accepted version of each module), compiled there before the agent
+begins, through the same `accept.py compile` as lean_check and without charge to the budgets. The agent
+imports them instead of pasting their code again; whatever it submits is compiled and checked afresh by the
+service, as every submission is. session.json's `carried` says what was carried and whether it compiled.
 
 Budgets persist in session.json, so a session that is started again (a resumed run) continues them rather
 than starting afresh, and its earlier submissions and their receipts stay.
@@ -66,10 +73,97 @@ MAX_SOURCE = 400_000  # characters of one module
 MODULE_PATH = re.compile(r"^Candidate/([A-Za-z_][A-Za-z0-9_]*/)*[A-Za-z_][A-Za-z0-9_]*\.lean$")
 SUBMIT_TIMEOUT_S = 4 * 3600
 COMPILE_TIMEOUT_S = 3600
+IMPORT_LINE = re.compile(r"^\s*import\s+([A-Za-z_][A-Za-z0-9_.]*)\s*$")  # as the service reads imports
+ROUND_DIR = re.compile(r"^round_(\d+)$")
 
 
 class ToolError(ValueError):
     """A tool refused the call: the message goes back to the agent."""
+
+
+def module_imports(text: str) -> list[str]:
+    """The imports at the head of a module, read as the service reads them: blank lines and `--` comments are
+    skipped, and the first other line ends the imports."""
+    out = []
+    for line in text.splitlines():
+        s = line.strip()
+        if not s or s.startswith("--"):
+            continue
+        m = IMPORT_LINE.match(line)
+        if not m:
+            break
+        out.append(m.group(1))
+    return out
+
+
+def module_name(rel: str) -> str:
+    """Candidate/A/B.lean -> Candidate.A.B"""
+    return rel[: -len(".lean")].replace("/", ".")
+
+
+def module_rel(name: str) -> str:
+    """Candidate.A.B -> Candidate/A/B.lean"""
+    return name.replace(".", "/") + ".lean"
+
+
+def carried_modules(run_path: Path, k: int) -> list[dict]:
+    """The modules of the submissions the service accepted in rounds 1 to k - 1 of the run, the latest accepted
+    version of each module path (by round, attempt and submission), in an order where every module comes after
+    the carried modules it imports. Each entry names the submission it comes from and what that submission
+    proved; `source` is the submitted file."""
+    latest: dict[str, dict] = {}
+    for kk in range(1, k):
+        rdir = Path(run_path) / f"round_{kk:03d}"
+        attempts = sorted((p for p in rdir.glob("attempt_*") if p.name[len("attempt_"):].isdigit()),
+                          key=lambda p: int(p.name[len("attempt_"):]))
+        for adir in attempts:
+            sub = adir / "open_lane" / "submissions"
+            if not sub.is_dir():
+                continue
+            for d in sorted(p for p in sub.iterdir() if p.is_dir() and p.name.isdigit()):
+                try:
+                    receipt = json.loads((d / "receipt.json").read_text())
+                    manifest = json.loads((d / "manifest.json").read_text())
+                except (OSError, ValueError):
+                    continue
+                if receipt.get("status") != "accepted":
+                    continue
+                for rel in manifest.get("modules") or []:
+                    f = d / rel
+                    if not isinstance(rel, str) or not MODULE_PATH.match(rel) or f.is_symlink() or not f.is_file():
+                        continue
+                    latest[rel] = {
+                        "path": rel, "source": str(f), "round": kk, "attempt": int(adir.name[len("attempt_"):]),
+                        "submission": int(d.name), "kind": manifest.get("kind", "performance"),
+                        "theorem": manifest.get("theorem"), "statement": receipt.get("statement"),
+                        "scored": (receipt.get("scoring") or {}).get("status") == "scored",
+                        "certified": receipt.get("certified_count"), "length": (receipt.get("scoring") or {}).get("length"),
+                        "network": manifest.get("network"), "claimed_count": int(manifest.get("claimed_count") or 0),
+                        "certificate": (manifest.get("scored") or {}).get("certificate") or None,
+                    }
+    names = {module_name(rel): rel for rel in latest}
+    deps = {n: [i for i in module_imports(Path(latest[rel]["source"]).read_text()) if i in names] for n, rel in names.items()}
+    order: list[str] = []
+    state: dict[str, int] = {}
+
+    def visit(n: str) -> None:
+        if state.get(n):  # done, or on the current path (a cycle, which the compiler will report)
+            return
+        state[n] = 1
+        for dep in deps[n]:
+            visit(dep)
+        state[n] = 2
+        order.append(n)
+
+    for n in sorted(names):
+        visit(n)
+    return [latest[names[n]] for n in order]
+
+
+def round_of(path: Path) -> int | None:
+    """The round of a session folder <run>/round_<k>/attempt_<j>/open_lane, or None for a folder elsewhere."""
+    m = ROUND_DIR.match(Path(path).parent.parent.name)
+    return int(m.group(1)) if m else None
 
 
 # What read_file may read: the sources, the docs, the allowlist, and the examples the prompt shows (the
@@ -110,7 +204,10 @@ class Session:
         path.mkdir(parents=True, exist_ok=True)
         state_path = path / "session.json"
         if state_path.exists():
-            return cls(path)
+            session = cls(path)
+            if session.state.get("carried") == "pending":  # interrupted while compiling them: do it again
+                session._carry(carried_modules(Path(run_path), round_of(path) or 0))
+            return session
         ol = cfg["open_lane"]
         work = ol["work_dir"] or str(run_path / "open_lane_work")
         state = {
@@ -130,10 +227,42 @@ class Session:
             "knowledge": ol.get("knowledge", "minimal"),
             "created": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
         }
+        k = round_of(path)
+        carried = carried_modules(Path(run_path), k) if k else []
+        state["carried"] = "pending" if carried else []
         tmp = path / "session.json.tmp"
         tmp.write_text(json.dumps(state, indent=1))
         tmp.replace(state_path)
-        return cls(path)
+        session = cls(path)
+        if carried:
+            session._carry(carried)
+        return session
+
+    def _carry(self, carried: list[dict]) -> None:
+        """Put the carried modules in the workspace and compile them there, in import order (not charged)."""
+        for m in carried:
+            dst = self.workspace / m["path"]
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            dst.write_bytes(Path(m["source"]).read_bytes())
+        out = []
+        for m in carried:
+            cmd = ["compile", str(self.workspace), m["path"], "--model", self.state["model"], "--network", m["network"],
+                   "--claimed", str(m["claimed_count"])]
+            if m["certificate"]:
+                cpath = self.path / "carried_certificate.json"
+                cpath.write_text(json.dumps(m["certificate"]))
+                cmd += ["--certificate", str(cpath)]
+            if m["network"] in self.state["networks"]:
+                res = self._service(cmd, COMPILE_TIMEOUT_S)
+            else:
+                res = {"ok": False, "error": f"{m['network']} is not one of this run's networks"}
+            text = (res.get("messages") or res.get("error") or "").strip()
+            entry = {k: v for k, v in m.items() if k not in ("source", "certificate")}
+            entry.update(lines=len((self.workspace / m["path"]).read_text().splitlines()), compiled=bool(res.get("ok")),
+                         errors=[] if res.get("ok") else (error_lines(text, 3) or [text[:300]]))
+            out.append(entry)
+        self.state["carried"] = out
+        self._save()
 
     def reload(self) -> None:
         """Re-read the saved state: the tools run in the MCP server's process, which saves its counters here."""
@@ -260,11 +389,17 @@ class Session:
         args = {"path": path, "start": start, "lines": lines}
         readable = tuple(self.state.get("readable") or self.READABLE)
         try:
-            if not isinstance(path, str) or ".." in path or path.startswith("/") or not path.startswith(readable):
-                raise ToolError(f"path must be inside the Lean project's {', '.join(readable)}")
-            p = self.lean_project / path
-            if p.is_symlink() or not p.is_file():
-                raise ToolError(f"no file {path} in the Lean project")
+            if isinstance(path, str) and MODULE_PATH.match(path):  # a module of the agent's own workspace
+                p = self.workspace / path
+                if p.is_symlink() or not p.is_file():
+                    raise ToolError(f"no module {path} in your workspace")
+            elif not isinstance(path, str) or ".." in path or path.startswith("/") or not path.startswith(readable):
+                raise ToolError(f"path must be a module of your workspace (Candidate/<Name>.lean) or inside the "
+                                f"Lean project's {', '.join(readable)}")
+            else:
+                p = self.lean_project / path
+                if p.is_symlink() or not p.is_file():
+                    raise ToolError(f"no file {path} in the Lean project")
             all_lines = p.read_text().splitlines()
             start = max(1, int(start or 1))
             n = max(1, min(int(lines or 200), self.MAX_READ_LINES))
@@ -326,6 +461,7 @@ class Session:
                     raise ToolError(f"{m} is not in the workspace; save it with lean_check first")
             if not isinstance(theorem, str) or not theorem.startswith("Candidate."):
                 raise ToolError("theorem must be the full name of the theorem proving Target, under Candidate.")
+            modules = self.with_imports(modules)
             self._spend("submit_candidate")
             n = len(list((self.path / "submissions").glob("*"))) if (self.path / "submissions").is_dir() else 0
             cdir = self.path / "submissions" / f"{n:03d}"
@@ -351,6 +487,7 @@ class Session:
             out = {k: receipt.get(k) for k in ("status", "reason", "claim_kind", "certified_count", "domain_size", "claimed_count",
                                                 "network", "statement", "axioms", "score_eligible", "execution_assurance", "scoring", "seconds")}
             out["submission"] = n
+            out["modules"] = modules
             out["remaining"] = self.remaining()
             scoring = receipt.get("scoring") or {}
             self._log("submit_candidate", args, {"status": receipt.get("status"), "scoring": scoring.get("status"),
@@ -360,6 +497,21 @@ class Session:
         except ToolError as exc:
             self._log("submit_candidate", args, {"error": str(exc)}, time.monotonic() - t0)
             raise
+
+    def with_imports(self, modules: list[str]) -> list[str]:
+        """The modules, and after them every module of the workspace they import, directly or not: the service
+        compiles only what a submission lists, and a carried module is in the workspace without being retyped."""
+        out, todo = list(modules), list(modules)
+        while todo:
+            f = self.workspace / todo.pop()
+            if f.is_symlink() or not f.is_file():
+                continue
+            for name in module_imports(f.read_text()):
+                rel = module_rel(name)
+                if name.startswith("Candidate.") and MODULE_PATH.match(rel) and rel not in out and (self.workspace / rel).is_file():
+                    out.append(rel)
+                    todo.append(rel)
+        return out
 
     def receipts(self) -> list[dict]:
         out = []
@@ -404,10 +556,12 @@ class Session:
                        "required": ["query"]},
         },
         "read_file": {
-            "description": "Read lines of a file of the Lean project: its sources (CompactCheck/<Name>.lean), docs "
-                           "(docs/COUNTED.md, docs/OPEN_LANE.md), the examples of your prompt (the worked example's "
-                           "folder, and examples/open_lane/max2_tiny_brute/..., examples/open_lane/max2_tiny_scored/...) and "
-                           "the allowlist (accept/allowlist.txt); no other example. Returns up to 400 numbered lines from `start`.",
+            "description": "Read lines of a module of your workspace (Candidate/<Name>.lean: those you saved with "
+                           "lean_check and those carried over from earlier rounds) or of a file of the Lean project: its "
+                           "sources (CompactCheck/<Name>.lean), docs (docs/COUNTED.md, docs/OPEN_LANE.md), the examples of "
+                           "your prompt (the worked example's folder, and examples/open_lane/max2_tiny_brute/..., "
+                           "examples/open_lane/max2_tiny_scored/...) and the allowlist (accept/allowlist.txt); no other "
+                           "example. Returns up to 400 numbered lines from `start`.",
             "schema": {"type": "object", "properties": {"path": {"type": "string"}, "start": {"type": "integer"},
                                                         "lines": {"type": "integer"}},
                        "required": ["path"]},
@@ -421,7 +575,9 @@ class Session:
             "schema": {"type": "object", "properties": {
                 "network": {"type": "string"}, "claimed_count": {"type": "integer"},
                 "theorem": {"type": "string", "description": "Candidate.<...>.<name> proving Target"},
-                "modules": {"type": "array", "items": {"type": "string"}, "description": "paths saved with lean_check, imports first"},
+                "modules": {"type": "array", "items": {"type": "string"},
+                            "description": "paths in your workspace (saved with lean_check or carried over); the "
+                                           "workspace modules they import are added"},
                 "scored": {"type": "object", "description": "optional: {checker, sound, instance, certificate, claimed_bill}"},
                 "kind": {"type": "string", "enum": ["performance", "auxiliary"],
                          "description": "performance (default): theorem proves Target; auxiliary: theorem is a lemma with any statement, accepted with no count and no score, listed to you in later rounds"}},
